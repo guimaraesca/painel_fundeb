@@ -1,58 +1,122 @@
-"""Camada Histórica de Recursos e Guia Executivo de Intervenção ('Como Agir')."""
+"""Camada Histórica de Recursos e Guia Executivo de Intervenção ('Como Agir').
+
+Aplica os princípios de Stephen Few:
+- Séries temporais limpas em escala cronológica sem 3D ou oclusão.
+- Small Multiples dentro de um único alcance visual (single eyespan).
+- Alta proporção tinta-dado (Data-Ink Ratio).
+"""
 from __future__ import annotations
 
 import streamlit as st
 import pandas as pd
-import plotly.express as px
+import plotly.graph_objects as go
 
 from fundeb.domain.legal import RAMPA_COMPLEMENTACAO, FONTE_RAMPA
-from fundeb.ui.components import metric_card
+from fundeb.domain.territorio import REGIOES
+from fundeb.ui.charts import chart_time_series, apply_few_theme
 
 
 def render_historico_view(df: pd.DataFrame) -> None:
     st.subheader("📈 Linha Histórica dos Recursos & Como Agir")
     st.markdown(
         """
-        Compreenda a progressão constitucional dos recursos federais do FUNDEB (EC nº 108/2020)
-        e adote uma **estratégia estruturada para garantir e maximizar os repasses nos próximos ciclos**.
+        Compreenda a progressão constitucional dos recursos federais do FUNDEB (EC nº 108/2020),
+        a dinâmica histórica de matrículas por região e o **roteiro estratégico para qualificar e maximizar os repasses**.
         """
     )
 
     # ------------------------------------------------------------- BLOCO 1: RAMPA CONSTITUCIONAL
     st.markdown("##### 🏛️ Progressão da Complementação da União ao FUNDEB (2021–2026)")
-    st.caption(f"Fonte Oficial: {FONTE_RAMPA}")
+    st.caption(f"Fonte Oficial: {FONTE_RAMPA} &middot; Proporção sobre a receita total dos fundos")
 
     dados_rampa = [
-        {"Ano": ano, "VAAF (p.p.)": vaaf, "VAAT (p.p.)": vaat, "VAAR (p.p.)": vaar, "Total União (p.p.)": vaaf + vaat + vaar}
+        {
+            "Ano": ano,
+            "VAAF": vaaf,
+            "VAAT": vaat,
+            "VAAR": vaar,
+            "Total União": vaaf + vaat + vaar,
+        }
         for ano, (vaaf, vaat, vaar) in sorted(RAMPA_COMPLEMENTACAO.items())
     ]
     df_rampa = pd.DataFrame(dados_rampa)
 
     col_g, col_t = st.columns([3, 2])
     with col_g:
-        fig_rampa = px.line(
+        series_rampa = [
+            ("Total União", "Complementação Total (União)", "#1E3A8A"),
+            ("VAAF", "VAAF (Fixo 10 p.p.)", "#2563EB"),
+            ("VAAT", "VAAT (Progressivo até 10,5 p.p.)", "#0D9488"),
+            ("VAAR", "VAAR (Desempenho até 2,5 p.p.)", "#DC2626"),
+        ]
+        fig_rampa = chart_time_series(
             df_rampa,
-            x="Ano",
-            y=["VAAF (p.p.)", "VAAT (p.p.)", "VAAR (p.p.)", "Total União (p.p.)"],
-            markers=True,
-            title="Evolução Percentual sobre a Receita dos Fundos",
-            labels={"value": "Pontos Percentuais (%)", "variable": "Modalidade"},
-            color_discrete_map={
-                "VAAF (p.p.)": "#3B82F6",
-                "VAAT (p.p.)": "#10B981",
-                "VAAR (p.p.)": "#F59E0B",
-                "Total União (p.p.)": "#1E3A8A",
-            },
+            x_col="Ano",
+            series=series_rampa,
+            titulo="Evolução Percentual dos Recursos Federais (2021 ➔ 2026)",
+            y_title="Pontos Percentuais (%)",
         )
-        fig_rampa.update_layout(height=320, margin=dict(l=10, r=10, t=30, b=10))
         st.plotly_chart(fig_rampa, use_container_width=True)
 
     with col_t:
-        st.dataframe(df_rampa, use_container_width=True, hide_index=True)
+        st.dataframe(
+            df_rampa.rename(columns={
+                "VAAF": "VAAF (p.p.)",
+                "VAAT": "VAAT (p.p.)",
+                "VAAR": "VAAR (p.p.)",
+                "Total União": "Total União (p.p.)",
+            }),
+            use_container_width=True,
+            hide_index=True,
+        )
 
     st.markdown("---")
 
-    # ------------------------------------------------------------- BLOCO 2: COMO AGIR
+    # ------------------------------------------------------------- BLOCO 2: SMALL MULTIPLES (STEPHEN FEW)
+    st.markdown("##### 👥 Small Multiples: Trajetória Histórica das Matrículas por Região (2017–2023)")
+    st.caption("Princípio de Stephen Few: múltiplos pequenos gráficos comparativos lado a lado em um único relance visual (*single eyespan*), variando apenas a dimensão geográfica:")
+
+    anos = [a for a in range(2017, 2024)]
+    cols_anos = [f"mat_iee_{a}" for a in anos]
+
+    # Agregar soma de matrículas reais por região
+    df_reg_mats = df.groupby("regiao")[cols_anos].sum().reset_index()
+
+    cols_sm = st.columns(len(REGIOES))
+    for col_ui, reg in zip(cols_sm, REGIOES):
+        sub = df_reg_mats[df_reg_mats["regiao"] == reg]
+        if not sub.empty:
+            vals = [float(sub[f"mat_iee_{a}"].iloc[0]) for a in anos]
+            # Variação acumulada 2017 -> 2023
+            var_pct = ((vals[-1] - vals[0]) / vals[0] * 100.0) if vals[0] > 0 else 0.0
+
+            fig_sm = go.Figure()
+            fig_sm.add_trace(
+                go.Scatter(
+                    x=anos,
+                    y=vals,
+                    mode="lines+markers",
+                    line=dict(color="#1E40AF" if var_pct >= 0 else "#DC2626", width=2),
+                    marker=dict(size=4),
+                    hoverinfo="x+y",
+                )
+            )
+            fig_sm.update_layout(
+                title=dict(text=f"<b>{reg}</b> ({var_pct:+.1f}%)", font=dict(size=12, color="#0F172A")),
+                height=160,
+                margin=dict(l=5, r=5, t=28, b=10),
+                showlegend=False,
+            )
+            fig_sm.update_xaxes(showgrid=False, tickmode="array", tickvals=[2017, 2020, 2023], ticktext=["'17", "'20", "'23"])
+            fig_sm.update_yaxes(showgrid=True, gridcolor="#F1F5F9", tickformat="~s")
+            apply_few_theme(fig_sm, show_x_grid=False, show_y_grid=True)
+
+            with col_ui:
+                st.plotly_chart(fig_sm, use_container_width=True)
+
+    st.markdown("---")
+
+    # ------------------------------------------------------------- BLOCO 3: COMO AGIR
     st.subheader("🎯 Matriz de Ação Estratégica: Como Melhorar os Próximos Recebimentos")
     st.markdown(
         """
@@ -102,7 +166,7 @@ def render_historico_view(df: pd.DataFrame) -> None:
 
     st.markdown("---")
 
-    # ------------------------------------------------------------- BLOCO 3: CHECKLIST INTERATIVO
+    # ------------------------------------------------------------- BLOCO 4: CHECKLIST INTERATIVO
     st.subheader("✅ Checklist Interativo de Conformidade da Rede")
     st.markdown("Utilize este checklist em reuniões de alinhamento com a equipe técnica da Secretaria:")
 

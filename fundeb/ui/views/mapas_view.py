@@ -15,6 +15,7 @@ from fundeb.ui.components import (
     format_int,
     status_badge,
 )
+from fundeb.ui.charts import chart_ranking_horizontal
 
 
 def render_mapas_view(df: pd.DataFrame, repo: DataRepository) -> None:
@@ -126,17 +127,14 @@ def render_mapas_view(df: pd.DataFrame, repo: DataRepository) -> None:
         )
         df_reg_uf["pct_hab"] = (df_reg_uf["habilitadas"] / df_reg_uf["total"]) * 100.0
 
-        fig_reg = px.bar(
-            df_reg_uf.sort_values(by="pct_hab", ascending=False),
-            x="uf",
-            y="pct_hab",
-            text="pct_hab",
-            color="pct_hab",
-            color_continuous_scale="Viridis",
-            labels={"pct_hab": "% Redes Habilitadas", "uf": "Estado"},
+        fig_reg = chart_ranking_horizontal(
+            df_reg_uf,
+            categoria_col="uf",
+            valor_col="pct_hab",
+            titulo=f"Classificação das UFs na Região {regiao_sel} (% Redes Habilitadas)",
+            destacar_primeiro=True,
+            formato_rotulo="%{x:.1f}%",
         )
-        fig_reg.update_traces(texttemplate="%{text:.1f}%", textposition="outside")
-        fig_reg.update_layout(height=380, margin=dict(l=10, r=10, t=20, b=20))
         st.plotly_chart(fig_reg, use_container_width=True)
 
     # ------------------------------------------------------------- FASE 3: MUNICÍPIOS

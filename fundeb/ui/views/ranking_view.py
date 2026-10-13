@@ -7,6 +7,7 @@ import plotly.express as px
 
 from fundeb.services.analytics import AnalyticsService
 from fundeb.domain.territorio import REGIOES
+from fundeb.ui.charts import chart_ranking_horizontal, chart_deviation
 
 
 def render_ranking_view(analytics: AnalyticsService) -> None:
@@ -33,22 +34,36 @@ def render_ranking_view(analytics: AnalyticsService) -> None:
     if apenas_perda:
         df_rank = df_rank[df_rank["delta_vaar"] < 0]
 
-    # Gráfico de barras executivo no topo
-    st.markdown("##### 📊 Top UFs por Volume de VAAR 2026")
-    fig = px.bar(
-        df_rank.head(10),
-        x="uf",
-        y="vaar_2026",
-        text="vaar_2026",
-        color="pct_habilitadas",
-        color_continuous_scale="Blues",
-        labels={"vaar_2026": "VAAR 2026 (R$)", "uf": "UF", "pct_habilitadas": "% Habilitadas"},
-    )
-    fig.update_traces(texttemplate="R$ %{text:,.2s}", textposition="outside")
-    fig.update_layout(height=320, margin=dict(l=10, r=10, t=20, b=20))
-    st.plotly_chart(fig, use_container_width=True)
+    # Visualização Stephen Few: Ranking e Desvio
+    c_tipo, _ = st.columns([2, 2])
+    with c_tipo:
+        modo_grafico = st.segmented_control(
+            "Perspectiva Visual:",
+            options=["Ranking por Volume (VAAR 2026)", "Análise de Desvio (Variação 2025 ➔ 2026)"],
+            default="Ranking por Volume (VAAR 2026)",
+        )
 
-    st.markdown("##### 📋 Tabela Estruturada com Cores e Micrográficos por Linha")
+    if modo_grafico == "Ranking por Volume (VAAR 2026)":
+        fig = chart_ranking_horizontal(
+            df_rank.head(12),
+            categoria_col="uf",
+            valor_col="vaar_2026",
+            titulo="Top UFs por Volume de Recursos VAAR 2026 (Base Zero)",
+            destacar_primeiro=True,
+            formato_rotulo="R$ %{x:,.2s}",
+        )
+        st.plotly_chart(fig, use_container_width=True)
+    else:
+        fig_dev = chart_deviation(
+            df_rank.head(15),
+            categoria_col="uf",
+            delta_col="delta_vaar",
+            titulo="Desvio Líquido de Recursos do VAAR (2025 ➔ 2026) com Referência Zero",
+            formato_rotulo="R$ %{x:+,.2s}",
+        )
+        st.plotly_chart(fig_dev, use_container_width=True)
+
+    st.markdown("##### 📋 Tabela Estruturada com Micrográficos por Linha (Alta Densidade de Dados)")
 
     # Preparar DataFrame para exibição interativa
     df_display = df_rank.copy()

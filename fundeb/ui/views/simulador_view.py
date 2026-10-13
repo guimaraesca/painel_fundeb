@@ -5,6 +5,7 @@ import streamlit as st
 import pandas as pd
 import plotly.express as px
 
+import plotly.graph_objects as go
 from fundeb.services.simulator import SimulatorService
 from fundeb.domain.territorio import UF_CODIGO
 from fundeb.ui.components import (
@@ -15,6 +16,7 @@ from fundeb.ui.components import (
     format_int,
     status_badge,
 )
+from fundeb.ui.charts import apply_few_theme, chart_part_to_whole_100
 
 
 def render_simulador_view(sim_service: SimulatorService, df: pd.DataFrame) -> None:
@@ -164,6 +166,39 @@ def render_simulador_view(sim_service: SimulatorService, df: pd.DataFrame) -> No
             delta=f"{resultado.delta_pct:+.2f}%",
             delta_color="normal" if resultado.delta_rs >= 0 else "red",
         )
+    # Gráfico Stephen Few: Comparativo Antes x Depois e Parte-pelo-Todo (50/50)
+    col_c1, col_c2 = st.columns([1, 1])
+    with col_c1:
+        # Comparação Direta com Base Zero (Stephen Few - Slide 87)
+        fig_comp = go.Figure()
+        fig_comp.add_trace(
+            go.Bar(
+                x=["VAAR Atual", "VAAR Projetado"],
+                y=[resultado.vaar_total_orig_rs, resultado.vaar_total_sim_rs],
+                marker=dict(color=["#64748B", "#1E40AF"]),
+                text=[resultado.vaar_total_orig_rs, resultado.vaar_total_sim_rs],
+                texttemplate="R$ %{y:,.2s}",
+                textposition="outside",
+            )
+        )
+        fig_comp.update_layout(
+            title=dict(text="Comparativo de Repasse (Base Zero)", font=dict(size=13, color="#0F172A")),
+            height=220,
+        )
+        apply_few_theme(fig_comp, show_x_grid=False, show_y_grid=True)
+        st.plotly_chart(fig_comp, use_container_width=True)
+
+    with col_c2:
+        # Parte-pelo-Todo 100% (Stephen Few - Slide 103)
+        fig_pw = chart_part_to_whole_100(
+            rotulo="Distribuição Legal",
+            parte_a_nome="Cota Atendimento",
+            parte_a_val=resultado.vaar_atend_sim_rs,
+            parte_b_nome="Cota Aprendizagem",
+            parte_b_val=resultado.vaar_aprend_sim_rs,
+            titulo="Repartição das Cotas Legais no Repasse Projetado",
+        )
+        st.plotly_chart(fig_pw, use_container_width=True)
 
     st.markdown("---")
 

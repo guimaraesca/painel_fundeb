@@ -7,6 +7,7 @@ import plotly.express as px
 
 from fundeb.services.analytics import AnalyticsService
 from fundeb.ui.components import metric_card, format_int, format_percent
+from fundeb.ui.charts import chart_ranking_horizontal
 
 
 def render_condicionalidades_view(analytics: AnalyticsService) -> None:
@@ -50,28 +51,19 @@ def render_condicionalidades_view(analytics: AnalyticsService) -> None:
             {
                 "Condicionalidade": f"{g.codigo}: {g.nome_curto.split('—')[1].strip() if '—' in g.nome_curto else g.nome_curto}",
                 "Reprovações": g.reprovacoes_nao_habilitadas,
-                "Percentual (%)": round(g.pct_sobre_nao_habilitadas, 1),
             }
             for g in gargalos_ranking
         ])
 
-        fig = px.bar(
+        fig = chart_ranking_horizontal(
             df_chart,
-            x="Reprovações",
-            y="Condicionalidade",
-            orientation="h",
-            text="Reprovações",
-            color="Reprovações",
-            color_continuous_scale=["#FCA5A5", "#DC2626"],
+            categoria_col="Condicionalidade",
+            valor_col="Reprovações",
+            titulo="Redes Não Habilitadas que Reprovaram em Cada Condicionalidade",
+            destacar_primeiro=True,
+            cor_destaque="#DC2626",
+            formato_rotulo="%{x:,.0f} redes",
         )
-        fig.update_layout(
-            height=320,
-            margin=dict(l=10, r=20, t=10, b=10),
-            yaxis=dict(autorange="reversed"),
-            coloraxis_showscale=False,
-            font=dict(size=12),
-        )
-        fig.update_traces(texttemplate="%{text:,.0f}", textposition="outside")
         st.plotly_chart(fig, use_container_width=True)
 
     with col_tabela:
