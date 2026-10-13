@@ -187,23 +187,17 @@ def render_mapas_view(df: pd.DataFrame, repo: DataRepository) -> None:
 
             # Container Enxuto
             with st.container(border=True):
-                # Cabeçalho compacto
-                h1, h2 = st.columns([3, 1])
+                h1, h2 = st.columns([3, 2])
                 with h1:
                     st.markdown(
-                        f"<h3 style='margin:0; padding:0; display:inline;'>{m_dados['nome']}</h3> &nbsp; "
-                        f"<span style='color:#64748B;'>IBGE: {m_dados['ibge']} &middot; Rede Municipal &middot; {uf_escolhida}</span>",
+                        f"### {m_dados['nome']} &nbsp; <small style='color:#64748B;'>IBGE: {m_dados['ibge']} &middot; Rede Municipal &middot; {uf_escolhida}</small>",
                         unsafe_allow_html=True,
                     )
                 with h2:
-                    st.markdown(
-                        f"{status_badge('Habilitado' if m_dados['habilitado'] else 'Não habilitado')} "
-                        f"{status_badge('Beneficiário' if m_dados['beneficiario'] else 'Não beneficiário')} "
-                        f"{status_badge(m_dados['transicao'])}",
-                        unsafe_allow_html=True,
-                    )
-
-                st.markdown("<div style='height: 8px;'></div>", unsafe_allow_html=True)
+                    b_hab = status_badge('Habilitado' if m_dados['habilitado'] else 'Não habilitado')
+                    b_ben = status_badge('Beneficiário' if m_dados['beneficiario'] else 'Não beneficiário')
+                    b_tr = status_badge(m_dados['transicao'])
+                    st.markdown(f"{b_hab} &nbsp; {b_ben} &nbsp; {b_tr}")
 
                 # Grid 4 Colunas Enxuto
                 g1, g2, g3, g4 = st.columns(4)

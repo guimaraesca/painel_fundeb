@@ -1,6 +1,7 @@
 """Componentes visuais reutilizáveis de alta fidelidade e ergonomia (SOLID - SRP)."""
 from __future__ import annotations
 
+from typing import Any
 import streamlit as st
 
 
@@ -42,35 +43,42 @@ def metric_card(
     subtitle: str = "",
     delta: str | None = None,
     delta_color: str = "normal",
+    **kwargs: Any,
 ) -> None:
-    """Renderiza um card moderno de métrica formatado em HTML."""
-    delta_html = ""
-    if delta:
-        cor = "#16A34A" if delta_color == "normal" and not delta.startswith("-") else "#DC2626"
-        delta_html = f"<div style='font-size: 0.8rem; font-weight: 600; color: {cor}; margin-top: 4px;'>{delta}</div>"
-
-    html = f"""
-    <div class="metric-card">
-        <div class="title">{title}</div>
-        <div class="value">{value}</div>
-        {delta_html}
-        <div class="subtitle">{subtitle}</div>
-    </div>
-    """
-    st.markdown(html, unsafe_allow_html=True)
+    """Renderiza um card moderno de métrica nativo do Streamlit (sem vazamento de HTML)."""
+    # Proteção caso subtitle tenha sido passado via kwargs ou duplicado
+    sub = kwargs.get("sub", subtitle)
+    with st.container(border=True):
+        st.metric(
+            label=title,
+            value=value,
+            delta=delta,
+            delta_color="normal" if delta_color == "normal" else ("inverse" if delta_color == "red" else "off"),
+        )
+        if sub:
+            st.caption(sub)
 
 
 def status_badge(status: str) -> str:
-    """Retorna tag HTML de badge colorida com base no status."""
+    """Retorna indicador legível com emoji para status institucional."""
     s = str(status).strip()
-    if s in ("Habilitado", "Beneficiário", "Manteve", "Cumprida", "OK", "Sim"):
-        cls = "badge-green"
-    elif s in ("Pendente", "Atenção", "Cuidado"):
-        cls = "badge-amber"
-    elif s in ("Não habilitado", "Perdeu", "Reprovada", "Crítica", "Não", "Fora"):
-        cls = "badge-red"
-    elif s in ("Entrou", "Estadual", "Municipal"):
-        cls = "badge-blue"
-    else:
-        cls = "badge-gray"
-    return f"<span class='badge {cls}'>{s}</span>"
+    mapa = {
+        "Habilitado": "✅ Habilitado",
+        "Beneficiário": "🌟 Beneficiário",
+        "Não beneficiário": "⚪ Não beneficiário",
+        "Manteve": "🔄 Manteve VAAR",
+        "Perdeu": "🔻 Perdeu VAAR",
+        "Entrou": "🔺 Conquistou VAAR",
+        "Fora": "⚪ Fora do VAAR",
+        "Cumprida": "✅ Cumprida",
+        "OK": "✅ Regular",
+        "Sim": "✅ Sim",
+        "Não": "❌ Não",
+        "Não habilitado": "❌ Desabilitada",
+        "Reprovada": "❌ Reprovada",
+        "Crítica": "🚨 Crítica",
+        "Pendente": "⚠️ Pendente",
+        "Estadual": "🏛️ Rede Estadual",
+        "Municipal": "🏫 Rede Municipal",
+    }
+    return mapa.get(s, s)

@@ -19,20 +19,21 @@ def render_condicionalidades_view(analytics: AnalyticsService) -> None:
         """
     )
 
-    gargalos = analytics.gargalos_condicionalidade()
+    gargalos_ranking = analytics.gargalos_condicionalidade()
+    gargalos_ordem = analytics.condicionalidades_ordem_legal()
     total_nao_hab = len(analytics.df[~analytics.df["habilitado"]])
 
     st.markdown(
         f"**Universo analisado:** Total de **{format_int(total_nao_hab)} redes não habilitadas** que reprovaram em cada condicionalidade *(uma rede pode reprovar em mais de uma condicionalidade)*."
     )
 
-    # 5 Colunas com os números exatos solicitados pelo usuário
-    cols = st.columns(len(gargalos))
-    for col, g in zip(cols, gargalos):
+    # 5 Colunas na ordem legal das condicionalidades (I a V)
+    cols = st.columns(len(gargalos_ordem))
+    for col, g in zip(cols, gargalos_ordem):
         with col:
             metric_card(
                 title=g.codigo,
-                value=f"{format_int(g.reprovacoes_nao_habilitadas)}",
+                value=f"{format_int(g.reprovacoes_nao_habilitadas)} redes",
                 subtitle=f"{format_percent(g.pct_sobre_nao_habilitadas)} das não habilitadas",
                 delta=f"{g.nome_curto.split('—')[1].strip() if '—' in g.nome_curto else g.nome_curto}",
                 delta_color="red",
@@ -44,14 +45,14 @@ def render_condicionalidades_view(analytics: AnalyticsService) -> None:
     col_chart, col_tabela = st.columns([3, 2])
 
     with col_chart:
-        st.markdown("##### 📊 Funil de Reprovações nas Redes Desabilitadas")
+        st.markdown("##### 📊 Funil de Reprovações nas Redes Desabilitadas (Ranking por Impacto)")
         df_chart = pd.DataFrame([
             {
                 "Condicionalidade": f"{g.codigo}: {g.nome_curto.split('—')[1].strip() if '—' in g.nome_curto else g.nome_curto}",
                 "Reprovações": g.reprovacoes_nao_habilitadas,
                 "Percentual (%)": round(g.pct_sobre_nao_habilitadas, 1),
             }
-            for g in gargalos
+            for g in gargalos_ranking
         ])
 
         fig = px.bar(
@@ -74,7 +75,7 @@ def render_condicionalidades_view(analytics: AnalyticsService) -> None:
         st.plotly_chart(fig, use_container_width=True)
 
     with col_tabela:
-        st.markdown("##### 📋 Síntese Numérica")
+        st.markdown("##### 📋 Síntese Numérica por Condicionalidade")
         df_tabela = pd.DataFrame([
             {
                 "Condicionalidade": g.codigo,
@@ -83,17 +84,18 @@ def render_condicionalidades_view(analytics: AnalyticsService) -> None:
                 "% s/ Não Hab.": f"{g.pct_sobre_nao_habilitadas:.1f}%",
                 "Total Geral Reprov.": f"{g.total_reprovacoes:,}".replace(",", "."),
             }
-            for g in gargalos
+            for g in gargalos_ordem
         ])
         st.dataframe(df_tabela, use_container_width=True, hide_index=True)
 
     st.markdown("---")
 
-    # Expansão detalhada de cada Condicionalidade com texto da lei e como agir
+    # Expansão detalhada de cada Condicionalidade LISTADA ESTRITAMENTE NA ORDEM LEGAL (I a V)
     st.subheader("📖 Detalhamento Normativo e Guia de Ação por Condicionalidade")
+    st.caption("As condicionalidades estão dispostas na ordem legal dos incisos I a V do § 1º do art. 14 da Lei nº 14.113/2020:")
 
-    for g in gargalos:
-        with st.expander(f"🔹 {g.codigo} — {g.nome_curto} ({format_int(g.reprovacoes_nao_habilitadas)} redes reprovadas)", expanded=(g.codigo == "Cond. III")):
+    for g in gargalos_ordem:
+        with st.expander(f"🔹 {g.codigo} — {g.nome_curto} ({format_int(g.reprovacoes_nao_habilitadas)} redes reprovadas)", expanded=(g.codigo == "Cond. I")):
             c_info1, c_info2 = st.columns([3, 2])
             with c_info1:
                 st.markdown("**Texto Oficial da Lei nº 14.113/2020 (Art. 14, § 1º):**")

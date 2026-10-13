@@ -58,19 +58,8 @@ def main() -> None:
 
     # Sidebar: Navegação Executiva
     with st.sidebar:
-        st.markdown(
-            """
-            <div style="padding: 10px 0 16px 0;">
-                <h2 style="margin: 0; font-size: 1.25rem; font-weight: 800; color: #1E3A8A;">
-                    📊 FUNDEB &amp; VAAR
-                </h2>
-                <div style="font-size: 0.8rem; color: #64748B; margin-top: 2px;">
-                    Ciclo 2026 &middot; Dados FNDE/Inep
-                </div>
-            </div>
-            """,
-            unsafe_allow_html=True,
-        )
+        st.markdown("## 📊 FUNDEB & VAAR")
+        st.caption("Ciclo de Distribuição 2026 &middot; Dados Oficiais FNDE/Inep")
 
         menu = st.radio(
             "Navegação:",
@@ -89,15 +78,12 @@ def main() -> None:
         st.markdown("---")
         st.markdown(
             """
-            <div style="font-size: 0.78rem; color: #64748B; line-height: 1.4;">
-                <b>Auditabilidade:</b><br>
-                &bull; 5.596 Entes avaliados<br>
-                &bull; Lei nº 14.113/2020 &bull; EC 108/2020<br>
-                &bull; NT Inep 23/2022 &amp; NT 5/2024<br>
-                &bull; Zero dados sintéticos
-            </div>
-            """,
-            unsafe_allow_html=True,
+            **Auditabilidade dos Dados:**
+            - 5.596 Entes avaliados (26 Estados + DF + 5.569 Municípios)
+            - Lei nº 14.113/2020 &bull; EC 108/2020
+            - NT Inep 23/2022 &amp; NT 5/2024
+            - Zero dados sintéticos ou populados artificialmente
+            """
         )
 
     # Roteamento de Visualizações

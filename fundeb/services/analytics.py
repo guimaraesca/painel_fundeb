@@ -132,6 +132,12 @@ class AnalyticsService:
         gargalos.sort(key=lambda g: g.reprovacoes_nao_habilitadas, reverse=True)
         return gargalos
 
+    def condicionalidades_ordem_legal(self) -> list[GargaloCondicionalidade]:
+        """Retorna as condicionalidades estritamente na ordem legal dos incisos I a V."""
+        ordem = ["Cond. I", "Cond. II", "Cond. III", "Cond. IV", "Cond. V"]
+        g_map = {g.codigo: g for g in self.gargalos_condicionalidade()}
+        return [g_map[k] for k in ordem if k in g_map]
+
     def ranking_por_uf(self) -> pd.DataFrame:
         """Gera a tabela estruturada de UFs com indicadores e valores agregados."""
         linhas = []
