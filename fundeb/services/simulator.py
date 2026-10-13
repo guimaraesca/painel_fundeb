@@ -194,3 +194,74 @@ class SimulatorService:
             cenarios_iee=cenarios,
             memoria_calculo=memoria,
         )
+
+    def simular_trilha_hipoteses(self, ibge: str) -> list[dict[str, Any]]:
+        """Gera a trilha de 6 hipóteses incrementais para o ente, do atual até a melhor hipótese teórica."""
+        ente = self.get_ente(ibge)
+        if not ente:
+            return []
+
+        # 1. Atual FNDE (Baseline)
+        r0 = self.simular_ente(ibge, 0.0, 0.0, forcar_habilitacao=False)
+        v0 = r0.vaar_total_sim_rs if r0 else 0.0
+
+        # 2. Habilitação Plena (regularização das 5 condicionalidades mantendo desempenho atual)
+        r1 = self.simular_ente(ibge, 0.0, 0.0, forcar_habilitacao=True)
+        v1 = r1.vaar_total_sim_rs if r1 else v0
+
+        # 3. Conservadora (+5% Atendimento / +5% Aprendizagem)
+        r2 = self.simular_ente(ibge, 5.0, 5.0, forcar_habilitacao=True)
+        v2 = r2.vaar_total_sim_rs if r2 else v1
+
+        # 4. Moderada (+15% Atendimento / +15% Aprendizagem)
+        r3 = self.simular_ente(ibge, 15.0, 15.0, forcar_habilitacao=True)
+        v3 = r3.vaar_total_sim_rs if r3 else v2
+
+        # 5. Otimista (+30% Atendimento / +30% Aprendizagem)
+        r4 = self.simular_ente(ibge, 30.0, 30.0, forcar_habilitacao=True)
+        v4 = r4.vaar_total_sim_rs if r4 else v3
+
+        # 6. Melhor Hipótese Teórica (Teto: Peso 2.0 nos dois eixos)
+        peso_atend_orig = r1.peso_atend_orig if r1 else 1.0
+        peso_aprend_orig = r1.peso_aprend_orig if r1 else 1.0
+        vaar_atend_base = r1.vaar_atend_orig_rs if r1 else 0.0
+        vaar_aprend_base = r1.vaar_aprend_orig_rs if r1 else 0.0
+        v5 = (vaar_atend_base * (2.0 / max(1.0, peso_atend_orig))) + (vaar_aprend_base * (2.0 / max(1.0, peso_aprend_orig)))
+        v5 = max(v5, v4 * 1.08)
+
+        return [
+            {"cenario": "1. Atual (FNDE)", "valor_rs": v0, "delta_rs": 0.0, "destaque": False},
+            {"cenario": "2. Habilitação Plena (5 Condic.)", "valor_rs": v1, "delta_rs": v1 - v0, "destaque": False},
+            {"cenario": "3. Hipótese Conservadora (+5%)", "valor_rs": v2, "delta_rs": v2 - v0, "destaque": False},
+            {"cenario": "4. Hipótese Moderada (+15%)", "valor_rs": v3, "delta_rs": v3 - v0, "destaque": False},
+            {"cenario": "5. Hipótese Otimista (+30%)", "valor_rs": v4, "delta_rs": v4 - v0, "destaque": False},
+            {"cenario": "6. Melhor Hipótese (Teto Máximo)", "valor_rs": v5, "delta_rs": v5 - v0, "destaque": True},
+        ]
+
+    def comparativo_entes_potencial(
+        self,
+        esfera: str = "Estadual",
+        uf: str | None = None,
+    ) -> pd.DataFrame:
+        """Gera dataset comparando o valor atual recebido com a melhor hipótese simulada para entes."""
+        if esfera == "Estadual":
+            df_subset = self._df[self._df["rede"] == "Estadual"].copy()
+        else:
+            df_subset = self._df[(self._df["rede"] == "Municipal") & (self._df["uf"] == (uf or "PI"))].copy()
+
+        registros = []
+        for _, row in df_subset.iterrows():
+            ib = row["ibge"]
+            v_atu = float(row.get("vaar") or 0.0)
+            trilha = self.simular_trilha_hipoteses(ib)
+            v_melhor = trilha[-1]["valor_rs"] if trilha else v_atu
+            registros.append({
+                "ibge": ib,
+                "nome": row["nome"],
+                "uf": row["uf"],
+                "habilitado": row["habilitado"],
+                "vaar_atual": v_atu,
+                "vaar_melhor_hipotese": v_melhor,
+                "delta_salto": v_melhor - v_atu,
+            })
+        return pd.DataFrame(registros)

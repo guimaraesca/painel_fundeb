@@ -16,7 +16,12 @@ from fundeb.ui.components import (
     format_int,
     status_badge,
 )
-from fundeb.ui.charts import apply_few_theme, chart_part_to_whole_100
+from fundeb.ui.charts import (
+    apply_few_theme,
+    chart_part_to_whole_100,
+    chart_lollipop_hipoteses,
+    chart_dumbbell_comparativo,
+)
 
 
 def render_simulador_view(sim_service: SimulatorService, df: pd.DataFrame) -> None:
@@ -202,8 +207,25 @@ def render_simulador_view(sim_service: SimulatorService, df: pd.DataFrame) -> No
 
     st.markdown("---")
 
-    # ------------------------------------------------------------- MEMÓRIA DE CÁLCULO E FÓRMULAS
-    st.markdown("#### 4. Memória de Cálculo Passo a Passo (Fórmulas Matemáticas)")
+    # ------------------------------------------------------------- 4. GRÁFICO LOLLIPOP DA TRILHA DE HIPÓTESES
+    st.markdown("#### 🍭 4. Trilha de Hipóteses: Do Recebido Atual à Melhor Hipótese Teórica")
+    st.markdown(
+        f"Acompanhe visualmente a trajetória financeira de **{resultado.nome}** partindo do valor atualmente recebido até "
+        "a melhor hipótese de captação teórica permitida pela fórmula legal do Inep:"
+    )
+
+    trilha_hipoteses = sim_service.simular_trilha_hipoteses(resultado.ibge)
+    if trilha_hipoteses:
+        fig_lolli = chart_lollipop_hipoteses(
+            trilha_hipoteses,
+            titulo=f"Trilha de Hipóteses Lollipop — {resultado.nome} ({resultado.uf})",
+        )
+        st.plotly_chart(fig_lolli, use_container_width=True)
+
+    st.markdown("---")
+
+    # ------------------------------------------------------------- 5. MEMÓRIA DE CÁLCULO E FÓRMULAS
+    st.markdown("#### 5. Memória de Cálculo Passo a Passo (Fórmulas Matemáticas)")
     st.markdown(
         """
         Transparência metodológica: acompanhe como cada etapa da legislação e da fórmula do Inep
@@ -240,3 +262,78 @@ def render_simulador_view(sim_service: SimulatorService, df: pd.DataFrame) -> No
                 for c in resultado.cenarios_iee
             ])
             st.dataframe(df_iee_tabela, use_container_width=True, hide_index=True)
+
+    st.markdown("---")
+
+    # ------------------------------------------------------------- 6. COMPARATIVO TERRITORIAL LOLLIPOP
+    st.markdown("#### 🗺️ 6. Comparativo Territorial Lollipop: Recebido Atual vs Melhor Hipótese")
+    st.markdown(
+        "Visualize lado a lado o contraste entre o **VAAR efetivamente recebido** (ponto cinza) e o "
+        "**potencial na melhor hipótese** (ponto verde esmeralda) para redes estaduais ou municípios:"
+    )
+
+    c_esf_t, c_uf_t, c_top_t = st.columns([1, 1, 1])
+    with c_esf_t:
+        esfera_comp = st.radio(
+            "Visualizar Território Por:",
+            options=["Por Estado (27 Redes Estaduais)", "Por Municípios (Conforme Estado Escolhido)"],
+            index=0 if esfera_escolhida == "Rede Estadual" else 1,
+            horizontal=False,
+            key="lolli_esfera_radio",
+        )
+
+    if "Por Estado" in esfera_comp:
+        with st.spinner("Processando potencial de todas as 27 redes estaduais..."):
+            df_comp_est = sim_service.comparativo_entes_potencial(esfera="Estadual")
+        fig_dumb_est = chart_dumbbell_comparativo(
+            df_comp_est,
+            categoria_col="nome",
+            val_atual_col="vaar_atual",
+            val_potencial_col="vaar_melhor_hipotese",
+            titulo="Comparativo das 27 Redes Estaduais: VAAR Recebido vs Melhor Hipótese Potencial",
+            max_linhas=27,
+        )
+        st.plotly_chart(fig_dumb_est, use_container_width=True)
+    else:
+        with c_uf_t:
+            uf_comp = st.selectbox(
+                "Selecione o Estado (UF):",
+                options=sorted(list(UF_CODIGO.keys())),
+                index=sorted(list(UF_CODIGO.keys())).index(ente["uf"]) if ente["uf"] in UF_CODIGO else 0,
+                key="lolli_uf_select",
+            )
+        with c_top_t:
+            filtro_mun_tipo = st.selectbox(
+                "Filtro de Municípios:",
+                options=[
+                    "Top 20 com Maior Potencial de Salto (+Δ)",
+                    "Top 35 com Maior Potencial de Salto (+Δ)",
+                    "Apenas Não Habilitados (Potencial de Entrada)",
+                    "Todos os Municípios da UF",
+                ],
+                index=0,
+                key="lolli_filtro_mun",
+            )
+
+        with st.spinner(f"Processando potencial dos municípios de {uf_comp}..."):
+            df_comp_mun = sim_service.comparativo_entes_potencial(esfera="Municipal", uf=uf_comp)
+
+        if "Não Habilitados" in filtro_mun_tipo:
+            df_comp_mun = df_comp_mun[~df_comp_mun["habilitado"]]
+            n_linhas = min(35, len(df_comp_mun))
+        elif "Top 20" in filtro_mun_tipo:
+            n_linhas = min(20, len(df_comp_mun))
+        elif "Top 35" in filtro_mun_tipo:
+            n_linhas = min(35, len(df_comp_mun))
+        else:
+            n_linhas = len(df_comp_mun)
+
+        fig_dumb_mun = chart_dumbbell_comparativo(
+            df_comp_mun,
+            categoria_col="nome",
+            val_atual_col="vaar_atual",
+            val_potencial_col="vaar_melhor_hipotese",
+            titulo=f"Municípios de {uf_comp}: VAAR Atual Recebido vs Melhor Hipótese Potencial",
+            max_linhas=n_linhas,
+        )
+        st.plotly_chart(fig_dumb_mun, use_container_width=True)

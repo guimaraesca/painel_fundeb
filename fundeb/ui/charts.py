@@ -216,3 +216,167 @@ def chart_part_to_whole_100(
         xaxis=dict(range=[0, 100], ticksuffix="%"),
     )
     return apply_few_theme(fig, show_x_grid=True, show_y_grid=False)
+
+
+def chart_lollipop_hipoteses(
+    hipoteses: list[dict[str, Any]],
+    titulo: str,
+) -> go.Figure:
+    """Gráfico Lollipop (Pirulito) para a trilha de hipóteses de uma rede (do atual até a melhor teórica).
+    
+    Cada hipótese possui uma haste horizontal e uma esfera destacada com o valor financeiro em R$ e o salto (Δ).
+    """
+    fig = go.Figure()
+    n = len(hipoteses)
+
+    # 1. Hastes do pirulito
+    for h in hipoteses:
+        cor_haste = "#10B981" if h.get("destaque") else "#94A3B8"
+        largura = 3.5 if h.get("destaque") else 2.0
+        fig.add_trace(
+            go.Scatter(
+                x=[0, h["valor_rs"]],
+                y=[h["cenario"], h["cenario"]],
+                mode="lines",
+                line=dict(color=cor_haste, width=largura),
+                showlegend=False,
+                hoverinfo="skip",
+            )
+        )
+
+    # 2. Cabeças do pirulito (marcadores circulares e rótulos de texto)
+    cores_pts = [
+        "#10B981" if h.get("destaque")
+        else "#1E40AF" if h.get("delta_rs", 0) > 0
+        else "#64748B"
+        for h in hipoteses
+    ]
+    tamanhos = [16 if h.get("destaque") else 12 for h in hipoteses]
+    
+    # Rótulo amigável: se for milhão mostra R$ X,X Mi, se menor mostra R$ X mil
+    def _rotulo_rs(v: float) -> str:
+        if v >= 1e6:
+            return f"R$ {v / 1e6:.2f} Mi"
+        elif v >= 1e3:
+            return f"R$ {v / 1e3:.0f} mil"
+        elif v == 0:
+            return "R$ 0,00"
+        return f"R$ {v:,.2f}"
+
+    rotulos = [_rotulo_rs(h["valor_rs"]) for h in hipoteses]
+    hover_texts = [
+        f"<b>{h['cenario']}</b><br>Valor Projetado: R$ {h['valor_rs']:,.2f}<br>Salto vs Atual: {'+' if h['delta_rs'] >= 0 else ''}R$ {h['delta_rs']:,.2f}"
+        for h in hipoteses
+    ]
+
+    fig.add_trace(
+        go.Scatter(
+            x=[h["valor_rs"] for h in hipoteses],
+            y=[h["cenario"] for h in hipoteses],
+            mode="markers+text",
+            marker=dict(
+                size=tamanhos,
+                color=cores_pts,
+                line=dict(color="#0F172A", width=1.5),
+            ),
+            text=rotulos,
+            textposition="middle right",
+            hovertext=hover_texts,
+            hoverinfo="text",
+            showlegend=False,
+        )
+    )
+
+    max_val = max([h["valor_rs"] for h in hipoteses] + [1.0])
+    fig.update_layout(
+        title=dict(text=titulo, font=dict(size=13, color="#0F172A")),
+        height=max(280, n * 50),
+        xaxis=dict(range=[0, max_val * 1.3], tickprefix="R$ "),
+    )
+    return apply_few_theme(fig, show_x_grid=True, show_y_grid=False)
+
+
+def chart_dumbbell_comparativo(
+    df: pd.DataFrame,
+    categoria_col: str,
+    val_atual_col: str,
+    val_potencial_col: str,
+    titulo: str,
+    max_linhas: int = 25,
+) -> go.Figure:
+    """Gráfico Dumbbell / Lollipop Comparativo entre Entes (Estados ou Municípios).
+    
+    Compara para cada ente o 'VAAR Recebido Atual' (ponto cinza) com a 'Melhor Hipótese' (ponto verde esmeralda).
+    """
+    df_sorted = df.sort_values(by=val_potencial_col, ascending=True).tail(max_linhas).copy()
+    n = len(df_sorted)
+
+    fig = go.Figure()
+
+    # 1. Hastes de conexão
+    for _, row in df_sorted.iterrows():
+        cat = row[categoria_col]
+        v_atu = row[val_atual_col]
+        v_pot = row[val_potencial_col]
+        fig.add_trace(
+            go.Scatter(
+                x=[v_atu, v_pot],
+                y=[cat, cat],
+                mode="lines",
+                line=dict(color="#CBD5E1", width=2.5),
+                showlegend=False,
+                hoverinfo="skip",
+            )
+        )
+
+    # 2. Ponto Baseline: VAAR Atual Recebido
+    fig.add_trace(
+        go.Scatter(
+            x=df_sorted[val_atual_col],
+            y=df_sorted[categoria_col],
+            mode="markers",
+            name="VAAR Atual Recebido",
+            marker=dict(size=9, color="#64748B", line=dict(color="#334155", width=1)),
+            hoverinfo="text",
+            hovertext=[f"<b>{cat}</b><br>VAAR Atual: R$ {v:,.2f}" for cat, v in zip(df_sorted[categoria_col], df_sorted[val_atual_col])],
+        )
+    )
+
+    # 3. Ponto Potencial: Melhor Hipótese
+    def _delta_label(atu: float, pot: float) -> str:
+        d = pot - atu
+        if d >= 1e6:
+            return f"+R$ {d / 1e6:.2f} Mi"
+        elif d >= 1e3:
+            return f"+R$ {d / 1e3:.0f} mil"
+        elif d > 0:
+            return f"+R$ {d:,.0f}"
+        return "Sem alteração"
+
+    textos_pot = [_delta_label(atu, pot) for atu, pot in zip(df_sorted[val_atual_col], df_sorted[val_potencial_col])]
+
+    fig.add_trace(
+        go.Scatter(
+            x=df_sorted[val_potencial_col],
+            y=df_sorted[categoria_col],
+            mode="markers+text",
+            name="Melhor Hipótese (Potencial)",
+            marker=dict(size=12, color="#10B981", line=dict(color="#065F46", width=1.5)),
+            text=textos_pot,
+            textposition="middle right",
+            hoverinfo="text",
+            hovertext=[
+                f"<b>{cat}</b><br>Potencial Máximo: R$ {pot:,.2f}<br>Salto: +R$ {pot - atu:,.2f}"
+                for cat, atu, pot in zip(df_sorted[categoria_col], df_sorted[val_atual_col], df_sorted[val_potencial_col])
+            ],
+        )
+    )
+
+    max_x = df_sorted[val_potencial_col].max() if n > 0 else 1.0
+    fig.update_layout(
+        title=dict(text=titulo, font=dict(size=13, color="#0F172A")),
+        height=max(320, n * 30),
+        xaxis=dict(range=[0, max_x * 1.3], tickprefix="R$ "),
+    )
+    return apply_few_theme(fig, show_x_grid=True, show_y_grid=False)
+
