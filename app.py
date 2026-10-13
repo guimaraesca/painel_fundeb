@@ -18,6 +18,7 @@ from fundeb.ui.views.mapas_view import render_mapas_view
 from fundeb.ui.views.ranking_view import render_ranking_view
 from fundeb.ui.views.historico_view import render_historico_view
 from fundeb.ui.views.simulador_view import render_simulador_view
+from fundeb.ui.views.boletim_view import render_boletim_view
 from fundeb.ui.views.qualidade_view import render_qualidade_view
 
 # 1. Configuração da Página Streamlit (Widescreen nativo)
@@ -65,6 +66,7 @@ def main() -> None:
             "Navegação:",
             options=[
                 "🏠 Início & Guia de Leitura",
+                "📄 Boletim Executivo (2 Páginas)",
                 "⚖️ Condicionalidades & Funil",
                 "🗺️ Mapas em 3 Fases",
                 "🏆 Ranking por UF",
@@ -89,6 +91,8 @@ def main() -> None:
     # Roteamento de Visualizações
     if "Início" in menu:
         render_home_view(analytics)
+    elif "Boletim Executivo" in menu:
+        render_boletim_view(df, simulator)
     elif "Condicionalidades" in menu:
         render_condicionalidades_view(analytics)
     elif "Mapas" in menu:
