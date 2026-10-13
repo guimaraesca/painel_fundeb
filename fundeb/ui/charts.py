@@ -213,6 +213,6 @@ def chart_part_to_whole_100(
         barmode="stack",
         title=dict(text=titulo, font=dict(size=13, color="#0F172A")),
         height=140,
-        xaxis=dict(range=[0, 100], suffix="%"),
+        xaxis=dict(range=[0, 100], ticksuffix="%"),
     )
     return apply_few_theme(fig, show_x_grid=True, show_y_grid=False)
