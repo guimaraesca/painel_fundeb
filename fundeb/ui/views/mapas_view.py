@@ -1,4 +1,4 @@
-"""Visualização Geográfica em 3 Fases: Brasil, Regiões e Municípios com visualização enxuta."""
+"""Visualização Geográfica em 3 Fases: Brasil, Regiões e Municípios com sincronização total de métricas."""
 from __future__ import annotations
 
 import streamlit as st
@@ -19,176 +19,312 @@ from fundeb.ui.charts import chart_ranking_horizontal
 
 
 def render_mapas_view(df: pd.DataFrame, repo: DataRepository) -> None:
-    st.subheader("🗺️ Análise Espacial em 3 Fases")
-    st.markdown("Explore a distribuição dos recursos do FUNDEB e do VAAR 2026 em escala macro e microterritorial.")
-
-    # Fase Seletora
-    fase = st.radio(
-        "Selecione a Escala Territorial (3 Fases):",
-        options=["Fase 1: Brasil (Nacional)", "Fase 2: Regiões do País", "Fase 3: Municípios por UF"],
-        horizontal=True,
+    st.subheader("🗺️ Análise Espacial em 3 Fases (Sincronização Multi-Escala)")
+    st.markdown(
+        "Explore a distribuição territorial dos recursos e da habilitação do FUNDEB e VAAR 2026. "
+        "Ao alternar a métrica abaixo, **todos os mapas e indicadores selecionados são atualizados em tempo real**."
     )
 
-    # Métrica acionável (botões)
-    col_m, col_f = st.columns([3, 1])
-    with col_m:
+    # ------------------------------------------------------------- CONTROLES DE SINCRONIZAÇÃO
+    c_metr, c_fases, c_disp = st.columns([4, 4, 3])
+    with c_metr:
         metrica_escolhida = st.segmented_control(
-            "Métrica no Mapa:",
+            "🔘 Métrica Sincronizada:",
             options=["% Habilitadas", "% Beneficiárias", "Valor Total VAAR (R$)", "Total Complementação União (R$)"],
             default="% Habilitadas",
         )
+    with c_fases:
+        fases_opcoes = ["Fase 1: Brasil (Nacional)", "Fase 2: Regiões do País", "Fase 3: Municípios por UF"]
+        fases_ativas = st.pills(
+            "🗺️ Escalas Ativas:",
+            options=fases_opcoes,
+            default=fases_opcoes,
+            selection_mode="multi",
+        )
+        if not fases_ativas:
+            fases_ativas = fases_opcoes
+    with c_disp:
+        modo_disp = st.segmented_control(
+            "📐 Disposição:",
+            options=["Lado a Lado (3 Colunas)", "Em Linha (Expandido)"],
+            default="Lado a Lado (3 Colunas)" if len(fases_ativas) > 1 else "Em Linha (Expandido)",
+        )
 
-    # ------------------------------------------------------------- FASE 1: BRASIL
-    if "Fase 1" in fase:
-        st.markdown("##### 🇧🇷 Fase 1: Visão Panorâmica Nacional (Estados e DF)")
+    st.markdown("---")
 
-        # Agrupar dados por UF
-        df_uf = (
-            df.groupby("uf")
-            .agg(
-                total=("ibge", "count"),
-                habilitadas=("habilitado", "sum"),
-                beneficiarias=("beneficiario", "sum"),
-                vaar=("vaar", "sum"),
-                uniao=("uniao_total", "sum"),
+    # Mapeamento e Configuração da Métrica Escolhida
+    is_hab = metrica_escolhida == "% Habilitadas"
+    is_ben = metrica_escolhida == "% Beneficiárias"
+    is_vaar = metrica_escolhida == "Valor Total VAAR (R$)"
+    is_uniao = metrica_escolhida == "Total Complementação União (R$)"
+    is_taxa = is_hab or is_ben
+
+    cor_escala = "Greens" if is_taxa else "Blues"
+    var_col_uf = "pct_hab" if is_hab else "pct_benef" if is_ben else "vaar" if is_vaar else "uniao"
+    rotulo_metrica = (
+        "% Redes Habilitadas" if is_hab
+        else "% Redes Beneficiárias" if is_ben
+        else "VAAR 2026 (R$)" if is_vaar
+        else "Complementação União (R$)"
+    )
+
+    # Agregação Nacional e Estadual Base
+    df_uf = (
+        df.groupby("uf")
+        .agg(
+            total=("ibge", "count"),
+            habilitadas=("habilitado", "sum"),
+            beneficiarias=("beneficiario", "sum"),
+            vaar=("vaar", "sum"),
+            uniao=("uniao_total", "sum"),
+            regiao=("regiao", "first"),
+        )
+        .reset_index()
+    )
+    df_uf["pct_hab"] = (df_uf["habilitadas"] / df_uf["total"]) * 100.0
+    df_uf["pct_benef"] = (df_uf["beneficiarias"] / df_uf["total"]) * 100.0
+    df_uf["codigo_ibge"] = df_uf["uf"].map(UF_CODIGO)
+
+    # Função geradora do Mapa da Fase 1 (Brasil)
+    def desenhar_fase_1(container, altura: int = 420) -> None:
+        with container:
+            st.markdown("##### 🇧🇷 Fase 1: Brasil (Nacional)")
+            # KPI Nacional
+            val_nac = (
+                f"{format_percent(df['habilitado'].mean() * 100)} ({format_int(df['habilitado'].sum())} redes)"
+                if is_hab
+                else f"{format_percent(df['beneficiario'].mean() * 100)} ({format_int(df['beneficiario'].sum())} redes)"
+                if is_ben
+                else format_currency(df["vaar"].sum())
+                if is_vaar
+                else format_currency(df["uniao_total"].sum())
             )
-            .reset_index()
-        )
-        df_uf["pct_hab"] = (df_uf["habilitadas"] / df_uf["total"]) * 100.0
-        df_uf["pct_benef"] = (df_uf["beneficiarias"] / df_uf["total"]) * 100.0
-        df_uf["codigo_ibge"] = df_uf["uf"].map(UF_CODIGO)
+            st.caption(f"**Total Brasil ({rotulo_metrica}):** {val_nac}")
 
-        var_col = (
-            "pct_hab" if metrica_escolhida == "% Habilitadas"
-            else "pct_benef" if metrica_escolhida == "% Beneficiárias"
-            else "vaar" if metrica_escolhida == "Valor Total VAAR (R$)"
-            else "uniao"
-        )
-        cor_escala = "Greens" if "Habilitadas" in metrica_escolhida or "Beneficiárias" in metrica_escolhida else "Blues"
-
-        fig = px.choropleth(
-            df_uf,
-            geojson=repo.geo_uf(),
-            locations="codigo_ibge",
-            color=var_col,
-            color_continuous_scale=cor_escala,
-            hover_name="uf",
-            hover_data={
-                "codigo_ibge": False,
-                "pct_hab": ":.1f%",
-                "pct_benef": ":.1f%",
-                "vaar": ":,.2f",
-                "uniao": ":,.2f",
-            },
-            labels={
-                "pct_hab": "% Habilitadas",
-                "pct_benef": "% Beneficiárias",
-                "vaar": "Total VAAR (R$)",
-                "uniao": "Total União (R$)",
-            },
-        )
-        fig.update_geos(fitbounds="locations", visible=False)
-        fig.update_layout(
-            height=520,
-            margin=dict(l=0, r=0, t=10, b=10),
-            coloraxis_colorbar=dict(title=metrica_escolhida),
-        )
-        st.plotly_chart(fig, use_container_width=True)
-
-    # ------------------------------------------------------------- FASE 2: REGIÕES
-    elif "Fase 2" in fase:
-        st.markdown("##### 📍 Fase 2: Comparativo por Regiões do País")
-        regiao_sel = st.selectbox("Selecione a Grande Região:", options=["Todas"] + list(REGIOES))
-
-        df_reg = df if regiao_sel == "Todas" else df[df["regiao"] == regiao_sel]
-
-        # Resumo regional
-        r_cols = st.columns(4)
-        with r_cols[0]:
-            metric_card("Total de Redes na Região", format_int(len(df_reg)))
-        with r_cols[1]:
-            hab_r = int(df_reg["habilitado"].sum())
-            metric_card("Habilitadas", f"{format_int(hab_r)} ({format_percent(hab_r / len(df_reg) * 100)})")
-        with r_cols[2]:
-            ben_r = int(df_reg["beneficiario"].sum())
-            metric_card("Beneficiárias", f"{format_int(ben_r)} ({format_percent(ben_r / len(df_reg) * 100)})")
-        with r_cols[3]:
-            metric_card("VAAR Total da Região", format_currency(df_reg["vaar"].sum()))
-
-        # Gráfico comparativo entre as UFs da região
-        df_reg_uf = (
-            df_reg.groupby("uf")
-            .agg(
-                total=("ibge", "count"),
-                habilitadas=("habilitado", "sum"),
-                vaar=("vaar", "sum"),
+            fig = px.choropleth(
+                df_uf,
+                geojson=repo.geo_uf(),
+                locations="codigo_ibge",
+                color=var_col_uf,
+                color_continuous_scale=cor_escala,
+                hover_name="uf",
+                hover_data={
+                    "codigo_ibge": False,
+                    "pct_hab": ":.1f%",
+                    "pct_benef": ":.1f%",
+                    "vaar": ":,.2f",
+                    "uniao": ":,.2f",
+                },
+                labels={
+                    "pct_hab": "% Habilitadas",
+                    "pct_benef": "% Beneficiárias",
+                    "vaar": "Total VAAR (R$)",
+                    "uniao": "Total União (R$)",
+                },
             )
-            .reset_index()
-        )
-        df_reg_uf["pct_hab"] = (df_reg_uf["habilitadas"] / df_reg_uf["total"]) * 100.0
+            fig.update_geos(fitbounds="locations", visible=False)
+            fig.update_layout(
+                height=altura,
+                margin=dict(l=0, r=0, t=10, b=10),
+                coloraxis_colorbar=dict(title=dict(text=rotulo_metrica, font=dict(size=10)), thickness=10),
+            )
+            st.plotly_chart(fig, use_container_width=True)
 
-        fig_reg = chart_ranking_horizontal(
-            df_reg_uf,
-            categoria_col="uf",
-            valor_col="pct_hab",
-            titulo=f"Classificação das UFs na Região {regiao_sel} (% Redes Habilitadas)",
-            destacar_primeiro=True,
-            formato_rotulo="%{x:.1f}%",
-        )
-        st.plotly_chart(fig_reg, use_container_width=True)
+    # Função geradora do Mapa da Fase 2 (Regiões)
+    def desenhar_fase_2(container, altura: int = 420) -> None:
+        with container:
+            st.markdown("##### 📍 Fase 2: Regiões do País")
+            regiao_sel = st.selectbox(
+                "Região Focal:",
+                options=list(REGIOES),
+                index=list(REGIOES).index("Nordeste") if "Nordeste" in REGIOES else 0,
+                key="mapa_regiao_sel",
+            )
+            df_reg = df[df["regiao"] == regiao_sel]
+            df_reg_uf = df_uf[df_uf["regiao"] == regiao_sel].copy()
 
-    # ------------------------------------------------------------- FASE 3: MUNICÍPIOS
+            val_reg = (
+                f"{format_percent(df_reg['habilitado'].mean() * 100)} ({format_int(df_reg['habilitado'].sum())} redes)"
+                if is_hab
+                else f"{format_percent(df_reg['beneficiario'].mean() * 100)} ({format_int(df_reg['beneficiario'].sum())} redes)"
+                if is_ben
+                else format_currency(df_reg["vaar"].sum())
+                if is_vaar
+                else format_currency(df_reg["uniao_total"].sum())
+            )
+            st.caption(f"**Total {regiao_sel} ({rotulo_metrica}):** {val_reg}")
+
+            fig_reg = px.choropleth(
+                df_reg_uf,
+                geojson=repo.geo_uf(),
+                locations="codigo_ibge",
+                color=var_col_uf,
+                color_continuous_scale=cor_escala,
+                hover_name="uf",
+                hover_data={
+                    "codigo_ibge": False,
+                    "pct_hab": ":.1f%",
+                    "pct_benef": ":.1f%",
+                    "vaar": ":,.2f",
+                    "uniao": ":,.2f",
+                },
+                labels={
+                    "pct_hab": "% Habilitadas",
+                    "pct_benef": "% Beneficiárias",
+                    "vaar": "Total VAAR (R$)",
+                    "uniao": "Total União (R$)",
+                },
+            )
+            fig_reg.update_geos(fitbounds="locations", visible=False)
+            fig_reg.update_layout(
+                height=altura,
+                margin=dict(l=0, r=0, t=10, b=10),
+                coloraxis_colorbar=dict(title=dict(text=rotulo_metrica, font=dict(size=10)), thickness=10),
+            )
+            st.plotly_chart(fig_reg, use_container_width=True)
+
+            if modo_disp == "Em Linha (Expandido)":
+                fig_rank = chart_ranking_horizontal(
+                    df_reg_uf,
+                    categoria_col="uf",
+                    valor_col=var_col_uf,
+                    titulo=f"Classificação das UFs na Região {regiao_sel} ({rotulo_metrica})",
+                    destacar_primeiro=True,
+                    formato_rotulo="%{x:.1f}%" if is_taxa else "R$ %{x:,.2s}",
+                )
+                st.plotly_chart(fig_rank, use_container_width=True)
+
+    # Função geradora do Mapa da Fase 3 (Municípios)
+    def desenhar_fase_3(container, altura: int = 420) -> None:
+        with container:
+            st.markdown("##### 🏙️ Fase 3: Municípios por UF")
+            ufs_ordenadas = sorted(list(UF_CODIGO.keys()))
+            uf_sel = st.selectbox(
+                "Estado (UF):",
+                options=ufs_ordenadas,
+                index=ufs_ordenadas.index("PI") if "PI" in ufs_ordenadas else 0,
+                key="mapa_uf_sel",
+            )
+            df_mun = df[(df["uf"] == uf_sel) & (df["rede"] == "Municipal")].copy()
+
+            # Variável sincronizada no nível municipal
+            if is_hab:
+                df_mun["metrica_val"] = df_mun["habilitado"].astype(float) * 100.0
+            elif is_ben:
+                df_mun["metrica_val"] = df_mun["beneficiario"].astype(float) * 100.0
+            elif is_vaar:
+                df_mun["metrica_val"] = df_mun["vaar"]
+            else:
+                df_mun["metrica_val"] = df_mun["uniao_total"]
+
+            val_uf_total = (
+                f"{format_percent(df_mun['habilitado'].mean() * 100)} ({format_int(df_mun['habilitado'].sum())} de {len(df_mun)} mun.)"
+                if is_hab
+                else f"{format_percent(df_mun['beneficiario'].mean() * 100)} ({format_int(df_mun['beneficiario'].sum())} de {len(df_mun)} mun.)"
+                if is_ben
+                else format_currency(df_mun["vaar"].sum())
+                if is_vaar
+                else format_currency(df_mun["uniao_total"].sum())
+            )
+            st.caption(f"**Total {uf_sel} ({rotulo_metrica}):** {val_uf_total}")
+
+            geo_mun = repo.geo_municipios(UF_CODIGO[uf_sel])
+            if geo_mun.get("features"):
+                fig_mun = px.choropleth(
+                    df_mun,
+                    geojson=geo_mun,
+                    locations="ibge",
+                    color="metrica_val",
+                    color_continuous_scale=cor_escala,
+                    hover_name="nome",
+                    hover_data={
+                        "ibge": True,
+                        "habilitado": True,
+                        "beneficiario": True,
+                        "vaar": ":,.2f",
+                        "uniao_total": ":,.2f",
+                    },
+                    labels={
+                        "metrica_val": rotulo_metrica,
+                        "vaar": "VAAR 2026 (R$)",
+                        "uniao_total": "Total União (R$)",
+                    },
+                )
+                fig_mun.update_geos(fitbounds="locations", visible=False)
+                fig_mun.update_layout(
+                    height=altura,
+                    margin=dict(l=0, r=0, t=10, b=10),
+                    coloraxis_colorbar=dict(title=dict(text=rotulo_metrica, font=dict(size=10)), thickness=10),
+                )
+                st.plotly_chart(fig_mun, use_container_width=True)
+
+    # ------------------------------------------------------------- RENDERIZAÇÃO CONFORME DISPOSIÇÃO
+    tem_f1 = any("Fase 1" in f for f in fases_ativas)
+    tem_f2 = any("Fase 2" in f for f in fases_ativas)
+    tem_f3 = any("Fase 3" in f for f in fases_ativas)
+
+    if modo_disp == "Lado a Lado (3 Colunas)" and len(fases_ativas) > 1:
+        cols = st.columns(len(fases_ativas))
+        c_idx = 0
+        if tem_f1:
+            desenhar_fase_1(cols[c_idx], altura=430)
+            c_idx += 1
+        if tem_f2:
+            desenhar_fase_2(cols[c_idx], altura=430)
+            c_idx += 1
+        if tem_f3:
+            desenhar_fase_3(cols[c_idx], altura=430)
+            c_idx += 1
     else:
-        st.markdown("##### 🏙️ Fase 3: Detalhamento Municipal por UF")
+        # Modo em Linha (Expandido verticalmente)
+        if tem_f1:
+            with st.container(border=True):
+                desenhar_fase_1(st, altura=520)
+        if tem_f2:
+            with st.container(border=True):
+                desenhar_fase_2(st, altura=480)
+        if tem_f3:
+            with st.container(border=True):
+                desenhar_fase_3(st, altura=480)
 
-        c_uf_sel, c_busca = st.columns([1, 2])
-        with c_uf_sel:
-            uf_escolhida = st.selectbox("Selecione o Estado (UF):", options=sorted(list(UF_CODIGO.keys())), index=sorted(list(UF_CODIGO.keys())).index("PI") if "PI" in UF_CODIGO else 0)
-        with c_busca:
-            busca_mun = st.text_input("Filtrar município por nome ou IBGE:", placeholder="Ex: Teresina, Parnaíba...")
-
-        df_uf_mun = df[(df["uf"] == uf_escolhida) & (df["rede"] == "Municipal")].copy()
-        if busca_mun:
-            df_uf_mun = df_uf_mun[df_uf_mun["nome"].str.contains(busca_mun, case=False, na=False) | df_uf_mun["ibge"].str.contains(busca_mun)]
-
-        # Mapa dos municípios da UF
-        cod_uf = UF_CODIGO[uf_escolhida]
-        geo_mun = repo.geo_municipios(cod_uf)
-
-        if geo_mun.get("features"):
-            fig_mun = px.choropleth(
-                df_uf_mun,
-                geojson=geo_mun,
-                locations="ibge",
-                color="vaar",
-                color_continuous_scale="Teal",
-                hover_name="nome",
-                hover_data={"ibge": True, "habilitado": True, "beneficiario": True, "vaar": ":,.2f"},
-                labels={"vaar": "VAAR 2026 (R$)"},
-            )
-            fig_mun.update_geos(fitbounds="locations", visible=False)
-            fig_mun.update_layout(height=420, margin=dict(l=0, r=0, t=10, b=10))
-            st.plotly_chart(fig_mun, use_container_width=True)
-
+    # ------------------------------------------------------------- FICHA TÉCNICA DO MUNICÍPIO (Se Fase 3 estiver ativa)
+    if tem_f3:
         st.markdown("---")
+        st.markdown("##### 🔍 Ficha Técnica Detalhada do Município")
+        uf_ativa = st.session_state.get("mapa_uf_sel", "PI")
+        df_mun_lista = df[(df["uf"] == uf_ativa) & (df["rede"] == "Municipal")].sort_values(by="nome")
 
-        # Seleção e VISUALIZAÇÃO ENXUTA (Economizando espaço sem perder informação)
-        st.markdown("##### 🔍 Ficha Técnica Enxuta do Município")
-        mun_selecionado = st.selectbox(
-            "Selecione um município para exibir a ficha resumida:",
-            options=df_uf_mun["ibge"].tolist(),
-            format_func=lambda ib: f"{df_uf_mun[df_uf_mun['ibge'] == ib]['nome'].iloc[0]} ({ib})",
-        )
+        c_busca1, c_busca2 = st.columns([3, 1])
+        with c_busca1:
+            mun_selecionado = st.selectbox(
+                f"Selecione um município de {uf_ativa} para auditar dados:",
+                options=df_mun_lista["ibge"].tolist(),
+                format_func=lambda ib: f"{df_mun_lista[df_mun_lista['ibge'] == ib]['nome'].iloc[0]} ({ib})",
+                key="ficha_mun_sel",
+            )
 
         if mun_selecionado:
-            m_dados = df_uf_mun[df_uf_mun["ibge"] == mun_selecionado].iloc[0]
+            m_dados = df_mun_lista[df_mun_lista["ibge"] == mun_selecionado].iloc[0]
+            with c_busca2:
+                val_metr_kpi = (
+                    "Habilitado" if m_dados["habilitado"] else "Não habilitado"
+                    if is_hab
+                    else "Beneficiário" if m_dados["beneficiario"] else "Não beneficiário"
+                    if is_ben
+                    else format_currency_full(m_dados["vaar"])
+                    if is_vaar
+                    else format_currency_full(m_dados["uniao_total"])
+                )
+                st.metric(
+                    label=f"Métrica Atual ({rotulo_metrica}):",
+                    value=val_metr_kpi,
+                )
 
-            # Container Enxuto
             with st.container(border=True):
                 h1, h2 = st.columns([3, 2])
                 with h1:
                     st.markdown(
-                        f"### {m_dados['nome']} &nbsp; <small style='color:#64748B;'>IBGE: {m_dados['ibge']} &middot; Rede Municipal &middot; {uf_escolhida}</small>",
+                        f"### {m_dados['nome']} &nbsp; <small style='color:#64748B;'>IBGE: {m_dados['ibge']} &middot; Rede Municipal &middot; {uf_ativa}</small>",
                         unsafe_allow_html=True,
                     )
                 with h2:
@@ -197,7 +333,6 @@ def render_mapas_view(df: pd.DataFrame, repo: DataRepository) -> None:
                     b_tr = status_badge(m_dados['transicao'])
                     st.markdown(f"{b_hab} &nbsp; {b_ben} &nbsp; {b_tr}")
 
-                # Grid 4 Colunas Enxuto
                 g1, g2, g3, g4 = st.columns(4)
                 with g1:
                     st.markdown("**💰 Repasses 2026**")
@@ -227,6 +362,6 @@ def render_mapas_view(df: pd.DataFrame, repo: DataRepository) -> None:
                     st.markdown("**⚖️ Status das 5 Condicionalidades**")
                     st.markdown(f"- **Cond. I (Diretor):** {'✅ Sim' if m_dados['c1'] else '❌ Não'}")
                     st.markdown(f"- **Cond. II (Saeb >= 80%):** {'✅ Sim' if m_dados['c2'] else '❌ Não'}")
-                    st.markdown(f"- **Cond. III (ICMS / Desig.):** {'✅ Sim' if m_dados['c3'] else '❌ Não'}")
-                    st.markdown(f"- **Cond. IV (BNCC):** {'✅ Sim' if m_dados['c4'] else '❌ Não'}")
-                    st.markdown(f"- **Cond. V (SIOPE):** {'✅ Sim' if m_dados['c5'] else '❌ Não'}")
+                    st.markdown(f"- **Cond. III (Equidade):** {'✅ Sim' if m_dados['c3'] else '❌ Não'}")
+                    st.markdown(f"- **Cond. IV (ICMS Educação):** {'✅ Sim' if m_dados['c4'] else '❌ Não'}")
+                    st.markdown(f"- **Cond. V (BNCC):** {'✅ Sim' if m_dados['c5'] else '❌ Não'}")
