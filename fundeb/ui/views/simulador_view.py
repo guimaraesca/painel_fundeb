@@ -14,6 +14,7 @@ from fundeb.ui.components import (
     format_currency_full,
     format_percent,
     format_int,
+    format_decimal,
     status_badge,
 )
 from fundeb.ui.charts import (
@@ -49,10 +50,11 @@ def render_simulador_view(sim_service: SimulatorService, df: pd.DataFrame) -> No
     if esfera_escolhida == "Rede Estadual":
         st.info("🏛️ **Metodologia Rede Estadual:** Etapa de expansão de atendimento avaliada no **Ensino Médio** (matrículas e taxas de abandono do EM). Aprendizagem avaliada no Ensino Fundamental e Ensino Médio.")
         df_esf = df[df["rede"] == "Estadual"].sort_values(by="uf")
+        map_est_nomes = dict(zip(df_esf["ibge"], df_esf["nome"]))
         ente_ibge = st.selectbox(
             "Selecione o Estado:",
             options=df_esf["ibge"].tolist(),
-            format_func=lambda ib: f"{df_esf[df_esf['ibge'] == ib]['nome'].iloc[0]} (IBGE {ib})",
+            format_func=lambda ib: f"{map_est_nomes.get(ib, ib)} (IBGE {ib})",
         )
     else:
         st.info("🏫 **Metodologia Rede Municipal:** Etapa de expansão de atendimento avaliada na **Educação Infantil (Creche e Pré-Escola)**. Aprendizagem avaliada no Ensino Fundamental (Anos Iniciais e Finais).")
@@ -60,11 +62,12 @@ def render_simulador_view(sim_service: SimulatorService, df: pd.DataFrame) -> No
         with col_uf:
             uf_filtro = st.selectbox("Selecione a UF:", options=sorted(list(UF_CODIGO.keys())), index=sorted(list(UF_CODIGO.keys())).index("PI") if "PI" in UF_CODIGO else 0)
         df_mun_uf = df[(df["rede"] == "Municipal") & (df["uf"] == uf_filtro)].sort_values(by="nome")
+        map_mun_nomes = dict(zip(df_mun_uf["ibge"], df_mun_uf["nome"]))
         with col_mun:
             ente_ibge = st.selectbox(
                 "Selecione o Município:",
                 options=df_mun_uf["ibge"].tolist(),
-                format_func=lambda ib: f"{df_mun_uf[df_mun_uf['ibge'] == ib]['nome'].iloc[0]} (IBGE {ib})",
+                format_func=lambda ib: f"{map_mun_nomes.get(ib, ib)} (IBGE {ib})",
             )
 
     if not ente_ibge:
@@ -167,8 +170,8 @@ def render_simulador_view(sim_service: SimulatorService, df: pd.DataFrame) -> No
         metric_card(
             title="Impacto Líquido (Delta)",
             value=f"{'+' if resultado.delta_rs >= 0 else ''}{format_currency(resultado.delta_rs)}",
-            subtitle=f"Variação percentual: {resultado.delta_pct:+.2f}%",
-            delta=f"{resultado.delta_pct:+.2f}%",
+            subtitle=f"Variação percentual: {'+' if resultado.delta_pct >= 0 else ''}{format_percent(resultado.delta_pct, 2)}",
+            delta=f"{'+' if resultado.delta_pct >= 0 else ''}{format_percent(resultado.delta_pct, 2)}",
             delta_color="normal" if resultado.delta_rs >= 0 else "red",
         )
     # Gráfico Stephen Few: Comparativo Antes x Depois e Parte-pelo-Todo (50/50)
@@ -255,7 +258,7 @@ def render_simulador_view(sim_service: SimulatorService, df: pd.DataFrame) -> No
                 {
                     "Cenário": c["cenario"],
                     "Período Base": c["periodo"],
-                    "IEE Calculado": f"{c['iee']:.4f}" if c["iee"] else "—",
+                    "IEE Calculado": format_decimal(c["iee"], 4) if c["iee"] else "—",
                     "Evoluiu (IEE >= 1.0)": "✅ Sim" if c["evolui"] else "❌ Não",
                     "Fórmula de Composição": c["formula"],
                 }
@@ -328,12 +331,15 @@ def render_simulador_view(sim_service: SimulatorService, df: pd.DataFrame) -> No
         else:
             n_linhas = len(df_comp_mun)
 
-        fig_dumb_mun = chart_dumbbell_comparativo(
-            df_comp_mun,
-            categoria_col="nome",
-            val_atual_col="vaar_atual",
-            val_potencial_col="vaar_melhor_hipotese",
-            titulo=f"Municípios de {uf_comp}: VAAR Atual Recebido vs Melhor Hipótese Potencial",
-            max_linhas=n_linhas,
-        )
-        st.plotly_chart(fig_dumb_mun, use_container_width=True)
+        if df_comp_mun.empty:
+            st.info(f"ℹ️ Não há municípios nesta categoria para o estado {uf_comp} (100% das redes municipais estão habilitadas!).")
+        else:
+            fig_dumb_mun = chart_dumbbell_comparativo(
+                df_comp_mun,
+                categoria_col="nome",
+                val_atual_col="vaar_atual",
+                val_potencial_col="vaar_melhor_hipotese",
+                titulo=f"Municípios de {uf_comp}: VAAR Atual Recebido vs Melhor Hipótese Potencial",
+                max_linhas=n_linhas,
+            )
+            st.plotly_chart(fig_dumb_mun, use_container_width=True)

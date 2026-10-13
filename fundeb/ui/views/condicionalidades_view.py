@@ -72,9 +72,9 @@ def render_condicionalidades_view(analytics: AnalyticsService) -> None:
             {
                 "Condicionalidade": g.codigo,
                 "Inciso Legal": g.artigo,
-                "Redes Desabilitadas": f"{g.reprovacoes_nao_habilitadas:,}".replace(",", "."),
-                "% s/ Não Hab.": f"{g.pct_sobre_nao_habilitadas:.1f}%",
-                "Total Geral Reprov.": f"{g.total_reprovacoes:,}".replace(",", "."),
+                "Redes Desabilitadas": format_int(g.reprovacoes_nao_habilitadas),
+                "% s/ Não Hab.": format_percent(g.pct_sobre_nao_habilitadas),
+                "Total Geral Reprov.": format_int(g.total_reprovacoes),
             }
             for g in gargalos_ordem
         ])

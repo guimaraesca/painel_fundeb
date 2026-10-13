@@ -13,6 +13,7 @@ from fundeb.ui.components import (
     format_currency_full,
     format_percent,
     format_int,
+    format_decimal,
     status_badge,
 )
 
@@ -394,10 +395,15 @@ def render_home_view(analytics: AnalyticsService) -> None:
         elif filtro_esfera == "Rede Estadual":
             df_busca = df_busca[df_busca["rede"] == "Estadual"]
 
+        map_busca_nomes = {
+            ib: f"{nome} ({uf} - IBGE {ib})"
+            for ib, nome, uf in zip(df_busca["ibge"], df_busca["nome"], df_busca["uf"])
+        }
+
         ente_selecionado = st.selectbox(
             "Selecione ou digite o nome/IBGE da rede:",
             options=df_busca["ibge"].tolist(),
-            format_func=lambda ib: f"{df_busca[df_busca['ibge'] == ib]['nome'].iloc[0]} ({df_busca[df_busca['ibge'] == ib]['uf'].iloc[0]} - IBGE {ib})",
+            format_func=lambda ib: map_busca_nomes.get(ib, str(ib)),
             index=0,
         )
 
@@ -426,25 +432,25 @@ def render_home_view(analytics: AnalyticsService) -> None:
                 st.markdown(f"- **VAAT:** {format_currency_full(row['vaat'])}")
             with g2:
                 st.markdown("**📈 Indicadores de Rateio**")
-                st.markdown(f"- **IND Atendimento:** {row['ind_atend']:.4f}" if pd.notna(row['ind_atend']) else "- **IND Atendimento:** —")
+                st.markdown(f"- **IND Atendimento:** {format_decimal(row['ind_atend'], 4)}" if pd.notna(row['ind_atend']) else "- **IND Atendimento:** —")
                 st.markdown(f"- **Evoluiu Atendimento:** {'Sim' if row['evoluiu_atend'] else 'Não'}")
-                st.markdown(f"- **IND Aprendizagem:** {row['ind_aprend']:.4f}" if pd.notna(row['ind_aprend']) else "- **IND Aprendizagem:** —")
+                st.markdown(f"- **IND Aprendizagem:** {format_decimal(row['ind_aprend'], 4)}" if pd.notna(row['ind_aprend']) else "- **IND Aprendizagem:** —")
                 st.markdown(f"- **Evoluiu Aprendizagem:** {'Sim' if row['evoluiu_aprend'] else 'Não'}")
-                st.markdown(f"- **Total Reprovações:** {row['n_reprovacoes']} de 5")
+                st.markdown(f"- **Total Reprovações:** {format_int(row['n_reprovacoes'])} de 5")
             with g3:
                 st.markdown("**🎓 Desempenho Educacional (Inep)**")
-                st.markdown(f"- **Ideb Anos Iniciais:** {row['ideb_ai']:.1f}" if pd.notna(row['ideb_ai']) else "- **Ideb (AI):** —")
-                st.markdown(f"- **Ideb Anos Finais:** {row['ideb_af']:.1f}" if pd.notna(row['ideb_af']) else "- **Ideb (AF):** —")
-                st.markdown(f"- **Saeb Matemática (AI):** {row['saeb_ai_mt']:.1f}" if pd.notna(row['saeb_ai_mt']) else "- **Saeb MT:** —")
-                st.markdown(f"- **Saeb Língua Port. (AI):** {row['saeb_ai_lp']:.1f}" if pd.notna(row['saeb_ai_lp']) else "- **Saeb LP:** —")
-                st.markdown(f"- **INSE Municipal:** {row['inse']:.2f}" if pd.notna(row['inse']) else "- **INSE:** —")
+                st.markdown(f"- **Ideb Anos Iniciais:** {format_decimal(row['ideb_ai'], 1)}" if pd.notna(row['ideb_ai']) else "- **Ideb (AI):** —")
+                st.markdown(f"- **Ideb Anos Finais:** {format_decimal(row['ideb_af'], 1)}" if pd.notna(row['ideb_af']) else "- **Ideb (AF):** —")
+                st.markdown(f"- **Saeb Matemática (AI):** {format_decimal(row['saeb_ai_mt'], 1)}" if pd.notna(row['saeb_ai_mt']) else "- **Saeb MT:** —")
+                st.markdown(f"- **Saeb Língua Port. (AI):** {format_decimal(row['saeb_ai_lp'], 1)}" if pd.notna(row['saeb_ai_lp']) else "- **Saeb LP:** —")
+                st.markdown(f"- **INSE Municipal:** {format_decimal(row['inse'], 2)}" if pd.notna(row['inse']) else "- **INSE:** —")
             with g4:
                 st.markdown("**⚖️ Status das 5 Condicionalidades**")
                 st.markdown(f"- **Cond. I (Diretores por Mérito):** {'✅ Aprovada' if row['c1'] else '❌ Reprovada'}")
                 st.markdown(f"- **Cond. II (Saeb >= 80%):** {'✅ Aprovada' if row['c2'] else '❌ Reprovada'}")
-                st.markdown(f"- **Cond. III (ICMS / Red. Desigualdades):** {'✅ Aprovada' if row['c3'] else '❌ Reprovada'}")
-                st.markdown(f"- **Cond. IV (Currículo BNCC):** {'✅ Aprovada' if row['c4'] else '❌ Reprovada'}")
-                st.markdown(f"- **Cond. V (SIOPE / Fiscal):** {'✅ Aprovada' if row['c5'] else '❌ Reprovada'}")
+                st.markdown(f"- **Cond. III (Red. Desigualdades):** {'✅ Aprovada' if row['c3'] else '❌ Reprovada'}")
+                st.markdown(f"- **Cond. IV (ICMS Educação):** {'✅ Aprovada' if row['c4'] else '❌ Reprovada'}")
+                st.markdown(f"- **Cond. V (Currículo BNCC):** {'✅ Aprovada' if row['c5'] else '❌ Reprovada'}")
 
     st.markdown("---")
 

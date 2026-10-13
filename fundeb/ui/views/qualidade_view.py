@@ -73,7 +73,9 @@ def render_qualidade_view(repo: DataRepository) -> None:
     st.caption("Campos ausentes na fonte pública permanecem nulos (NaN) e são reportados com sua cobertura efetiva:")
 
     df_cob_disp = df_cobertura.copy()
-    df_cob_disp["Cobertura (%)"] = (df_cob_disp["Cobertura"] * 100).round(1).astype(str) + "%"
+    df_cob_disp["Com dado"] = df_cob_disp["Com dado"].map(format_int)
+    df_cob_disp["Total"] = df_cob_disp["Total"].map(format_int)
+    df_cob_disp["Cobertura (%)"] = (df_cob_disp["Cobertura"] * 100).map(format_percent)
     st.dataframe(df_cob_disp[["Indicador", "Rede", "Com dado", "Total", "Cobertura (%)"]], use_container_width=True, hide_index=True)
 
     st.markdown("---")

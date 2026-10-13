@@ -15,6 +15,14 @@ import pandas as pd
 import plotly.graph_objects as go
 import plotly.express as px
 
+from fundeb.ui.components import (
+    format_currency,
+    format_currency_full,
+    format_percent,
+    format_int,
+    format_decimal,
+)
+
 # Paleta Muted / Natural (Stephen Few - Slide 127)
 COLOR_NEUTRAL = "#64748B"       # Slate base para dados normais
 COLOR_NEUTRAL_LIGHT = "#94A3B8" # Slate claro para dados secundários
@@ -26,8 +34,9 @@ COLOR_AXIS = "#94A3B8"          # Eixos limpos
 
 
 def apply_few_theme(fig: go.Figure, show_x_grid: bool = True, show_y_grid: bool = False) -> go.Figure:
-    """Aplica o padrão Stephen Few de alta proporção tinta-dado (Data-Ink Ratio)."""
+    """Aplica o padrão Stephen Few de alta proporção tinta-dado (Data-Ink Ratio) e padrão numérico ABNT."""
     fig.update_layout(
+        separators=",.",  # ABNT: primeiro caractere é decimal (,), segundo é milhar (.)
         plot_bgcolor="#FFFFFF",
         paper_bgcolor="#FFFFFF",
         font=dict(
@@ -189,23 +198,23 @@ def chart_part_to_whole_100(
     fig = go.Figure()
     fig.add_trace(
         go.Bar(
-            name=f"{parte_a_nome} ({pct_a:.1f}%)",
+            name=f"{parte_a_nome} ({format_percent(pct_a)})",
             y=[rotulo],
             x=[pct_a],
             orientation="h",
             marker=dict(color="#2563EB"),
-            text=f"{pct_a:.1f}%",
+            text=format_percent(pct_a),
             textposition="inside",
         )
     )
     fig.add_trace(
         go.Bar(
-            name=f"{parte_b_nome} ({pct_b:.1f}%)",
+            name=f"{parte_b_nome} ({format_percent(pct_b)})",
             y=[rotulo],
             x=[pct_b],
             orientation="h",
             marker=dict(color="#0D9488"),
-            text=f"{pct_b:.1f}%",
+            text=format_percent(pct_b),
             textposition="inside",
         )
     )
@@ -253,19 +262,24 @@ def chart_lollipop_hipoteses(
     ]
     tamanhos = [16 if h.get("destaque") else 12 for h in hipoteses]
     
-    # Rótulo amigável: se for milhão mostra R$ X,X Mi, se menor mostra R$ X mil
+    # Rótulo amigável no padrão ABNT
     def _rotulo_rs(v: float) -> str:
-        if v >= 1e6:
-            return f"R$ {v / 1e6:.2f} Mi"
+        if v >= 1e9:
+            s = f"{v / 1e9:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
+            return f"R$ {s} bi"
+        elif v >= 1e6:
+            s = f"{v / 1e6:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
+            return f"R$ {s} mi"
         elif v >= 1e3:
-            return f"R$ {v / 1e3:.0f} mil"
+            s = f"{v / 1e3:,.0f}".replace(",", ".")
+            return f"R$ {s} mil"
         elif v == 0:
             return "R$ 0,00"
-        return f"R$ {v:,.2f}"
+        return format_currency_full(v)
 
     rotulos = [_rotulo_rs(h["valor_rs"]) for h in hipoteses]
     hover_texts = [
-        f"<b>{h['cenario']}</b><br>Valor Projetado: R$ {h['valor_rs']:,.2f}<br>Salto vs Atual: {'+' if h['delta_rs'] >= 0 else ''}R$ {h['delta_rs']:,.2f}"
+        f"<b>{h['cenario']}</b><br>Valor Projetado: {format_currency_full(h['valor_rs'])}<br>Salto vs Atual: {'+' if h['delta_rs'] >= 0 else ''}{format_currency_full(h['delta_rs'])}"
         for h in hipoteses
     ]
 
@@ -338,19 +352,24 @@ def chart_dumbbell_comparativo(
             name="VAAR Atual Recebido",
             marker=dict(size=9, color="#64748B", line=dict(color="#334155", width=1)),
             hoverinfo="text",
-            hovertext=[f"<b>{cat}</b><br>VAAR Atual: R$ {v:,.2f}" for cat, v in zip(df_sorted[categoria_col], df_sorted[val_atual_col])],
+            hovertext=[f"<b>{cat}</b><br>VAAR Atual: {format_currency_full(v)}" for cat, v in zip(df_sorted[categoria_col], df_sorted[val_atual_col])],
         )
     )
 
     # 3. Ponto Potencial: Melhor Hipótese
     def _delta_label(atu: float, pot: float) -> str:
         d = pot - atu
-        if d >= 1e6:
-            return f"+R$ {d / 1e6:.2f} Mi"
+        if d >= 1e9:
+            s = f"{d / 1e9:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
+            return f"+R$ {s} bi"
+        elif d >= 1e6:
+            s = f"{d / 1e6:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
+            return f"+R$ {s} mi"
         elif d >= 1e3:
-            return f"+R$ {d / 1e3:.0f} mil"
+            s = f"{d / 1e3:,.0f}".replace(",", ".")
+            return f"+R$ {s} mil"
         elif d > 0:
-            return f"+R$ {d:,.0f}"
+            return f"+{format_currency_full(d)}"
         return "Sem alteração"
 
     textos_pot = [_delta_label(atu, pot) for atu, pot in zip(df_sorted[val_atual_col], df_sorted[val_potencial_col])]
@@ -366,7 +385,7 @@ def chart_dumbbell_comparativo(
             textposition="middle right",
             hoverinfo="text",
             hovertext=[
-                f"<b>{cat}</b><br>Potencial Máximo: R$ {pot:,.2f}<br>Salto: +R$ {pot - atu:,.2f}"
+                f"<b>{cat}</b><br>Potencial Máximo: {format_currency_full(pot)}<br>Salto: +{format_currency_full(pot - atu)}"
                 for cat, atu, pot in zip(df_sorted[categoria_col], df_sorted[val_atual_col], df_sorted[val_potencial_col])
             ],
         )
@@ -379,4 +398,74 @@ def chart_dumbbell_comparativo(
         xaxis=dict(range=[0, max_x * 1.3], tickprefix="R$ "),
     )
     return apply_few_theme(fig, show_x_grid=True, show_y_grid=False)
+
+
+def chart_progressao_uniao(
+    df_prog: pd.DataFrame,
+    titulo: str,
+    y_title: str = "Recursos (R$)",
+) -> go.Figure:
+    """Gráfico de barras empilhadas para a progressão da Complementação da União (2021–2026).
+    
+    Apresenta a composição em VAAF (fixo 10 p.p.), VAAT (progressivo) e VAAR (resultado) segundo Stephen Few.
+    """
+    fig = go.Figure()
+
+    # VAAF (Base azul)
+    fig.add_trace(
+        go.Bar(
+            x=df_prog["ano"],
+            y=df_prog["vaaf"],
+            name="VAAF (Fixo 10 p.p.)",
+            marker=dict(color="#2563EB"),
+            hoverinfo="text",
+            hovertext=[f"<b>{ano}</b><br>VAAF: {format_currency_full(v)}" for ano, v in zip(df_prog["ano"], df_prog["vaaf"])],
+        )
+    )
+    # VAAT (Verde petróleo intermediário)
+    fig.add_trace(
+        go.Bar(
+            x=df_prog["ano"],
+            y=df_prog["vaat"],
+            name="VAAT (Progressivo até 10,5 p.p.)",
+            marker=dict(color="#0D9488"),
+            hoverinfo="text",
+            hovertext=[f"<b>{ano}</b><br>VAAT: {format_currency_full(v)}" for ano, v in zip(df_prog["ano"], df_prog["vaat"])],
+        )
+    )
+    # VAAR (Carmesim desempenho)
+    fig.add_trace(
+        go.Bar(
+            x=df_prog["ano"],
+            y=df_prog["vaar"],
+            name="VAAR (Desempenho até 2,5 p.p.)",
+            marker=dict(color="#E11D48"),
+            hoverinfo="text",
+            hovertext=[f"<b>{ano}</b><br>VAAR: {format_currency_full(v)}" for ano, v in zip(df_prog["ano"], df_prog["vaar"])],
+        )
+    )
+
+    # Rótulo sobre o topo com o total formatado em ABNT
+    totais_rotulos = [format_currency(tot) for tot in df_prog["total"]]
+    fig.add_trace(
+        go.Scatter(
+            x=df_prog["ano"],
+            y=df_prog["total"],
+            mode="text",
+            text=totais_rotulos,
+            textposition="top center",
+            showlegend=False,
+            hoverinfo="skip",
+        )
+    )
+
+    max_val = df_prog["total"].max() if not df_prog.empty else 1.0
+    fig.update_layout(
+        barmode="stack",
+        title=dict(text=titulo, font=dict(size=13, color="#0F172A")),
+        yaxis=dict(title=y_title, range=[0, max_val * 1.18]),
+        height=380,
+    )
+    return apply_few_theme(fig, show_x_grid=False, show_y_grid=True)
+
 

@@ -60,12 +60,13 @@ class ResultadoSimulacao:
 class SimulatorService:
     def __init__(self, df: pd.DataFrame) -> None:
         self._df = df
+        # Índice hash O(1) para acesso instantâneo de entes por código IBGE (elimina varreduras lineares)
+        self._lookup: dict[str, dict[str, Any]] = {
+            str(row["ibge"]): row for row in df.to_dict("records")
+        }
 
     def get_ente(self, ibge: str) -> dict[str, Any] | None:
-        row = self._df[self._df["ibge"] == ibge]
-        if row.empty:
-            return None
-        return row.iloc[0].to_dict()
+        return self._lookup.get(str(ibge))
 
     def simular_ente(
         self,

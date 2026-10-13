@@ -6,35 +6,51 @@ import streamlit as st
 
 
 def format_currency(valor: float | int | None) -> str:
-    """Formata valor em Reais (BRL)."""
+    """Formata valor em Reais (BRL) no padrão ABNT (milhar '.', decimal ',')."""
     if valor is None or (isinstance(valor, float) and (valor != valor or valor == 0.0)):
         return "R$ 0,00"
-    if abs(valor) >= 1e9:
-        return f"R$ {valor / 1e9:,.2f} bi".replace(",", "X").replace(".", ",").replace("X", ".")
-    if abs(valor) >= 1e6:
-        return f"R$ {valor / 1e6:,.2f} mi".replace(",", "X").replace(".", ",").replace("X", ".")
-    return f"R$ {valor:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
+    sinal = "-" if valor < 0 else ""
+    abs_v = abs(valor)
+    if abs_v >= 1e9:
+        val_str = f"{abs_v / 1e9:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
+        return f"{sinal}R$ {val_str} bi"
+    if abs_v >= 1e6:
+        val_str = f"{abs_v / 1e6:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
+        return f"{sinal}R$ {val_str} mi"
+    return format_currency_full(valor)
 
 
 def format_currency_full(valor: float | int | None) -> str:
-    """Formata valor completo sem abreviação em milhões/bilhões."""
+    """Formata valor monetário completo no padrão ABNT (ex: R$ 1.234.567,89)."""
     if valor is None or (isinstance(valor, float) and valor != valor):
         return "—"
-    return f"R$ {valor:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
+    sinal = "-" if valor < 0 else ""
+    abs_v = abs(valor)
+    fmt = f"{abs_v:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
+    return f"{sinal}R$ {fmt}"
 
 
 def format_percent(valor: float | int | None, decimais: int = 1) -> str:
-    """Formata porcentagem no padrão brasileiro."""
+    """Formata porcentagem no padrão ABNT com vírgula decimal (ex: 15,8%)."""
     if valor is None or (isinstance(valor, float) and valor != valor):
         return "—"
-    return f"{valor:.{decimais}f}%".replace(".", ",")
+    fmt = f"{valor:,.{decimais}f}".replace(",", "X").replace(".", ",").replace("X", ".")
+    return f"{fmt}%"
 
 
 def format_int(valor: int | float | None) -> str:
-    """Formata número inteiro com separador de milhar."""
+    """Formata número inteiro no padrão ABNT com ponto de milhar (ex: 1.234)."""
     if valor is None or (isinstance(valor, float) and valor != valor):
         return "—"
-    return f"{int(valor):,}".replace(",", ".")
+    return f"{int(round(valor)):,}".replace(",", ".")
+
+
+def format_decimal(valor: float | int | None, decimais: int = 2) -> str:
+    """Formata número decimal no padrão ABNT (ex: 3,14 ou 1.250,50)."""
+    if valor is None or (isinstance(valor, float) and valor != valor):
+        return "—"
+    fmt = f"{valor:,.{decimais}f}"
+    return fmt.replace(",", "X").replace(".", ",").replace("X", ".")
 
 
 def metric_card(
