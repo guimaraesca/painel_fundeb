@@ -1,0 +1,2001 @@
+<!doctype html>
+<html lang="pt-BR">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Painel & Simulador Fundeb / VAAR 2026</title>
+<style>
+:root{
+  --bg:#f3f5f9;--surface:#ffffff;--surface-2:#edf0f6;--surface-3:#e1e6f0;--line:#d5dce8;
+  --fg:#0f141d;--fg-2:#465063;--muted:#727e92;
+  --accent:#2563eb;--vaaf:#2563eb;--vaat:#ea580c;--vaar:#0d9488;
+  --good:#16a34a;--crit:#dc2626;--warn:#d97706;--violet:#7c3aed;
+  --grid:#e4e9f2;--shadow:0 1px 3px rgba(15,23,42,.06),0 2px 8px rgba(15,23,42,.04);
+  color-scheme:light;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#0a0d13;--surface:#121721;--surface-2:#1a212f;--surface-3:#232c3e;--line:#263042;
+  --fg:#eef2f8;--fg-2:#9ca7ba;--muted:#6c778c;
+  --accent:#3b82f6;--vaaf:#3b82f6;--vaat:#f97316;--vaar:#14b8a6;
+  --good:#22c55e;--crit:#ef4444;--warn:#f59e0b;--violet:#a78bfa;
+  --grid:#1e2636;--shadow:0 1px 3px rgba(0,0,0,.45),0 2px 12px rgba(0,0,0,.35);
+  color-scheme:dark;
+}}
+:root[data-theme="dark"]{
+  --bg:#0a0d13;--surface:#121721;--surface-2:#1a212f;--surface-3:#232c3e;--line:#263042;
+  --fg:#eef2f8;--fg-2:#9ca7ba;--muted:#6c778c;
+  --accent:#3b82f6;--vaaf:#3b82f6;--vaat:#f97316;--vaar:#14b8a6;
+  --good:#22c55e;--crit:#ef4444;--warn:#f59e0b;--violet:#a78bfa;
+  --grid:#1e2636;--shadow:0 1px 3px rgba(0,0,0,.45),0 2px 12px rgba(0,0,0,.35);
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{margin:0;background:var(--bg);color:var(--fg);font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;line-height:1.4;font-size:13px}
+.wrap{max-width:1860px;width:97vw;margin:0 auto;padding-inline:16px;padding-block:0 44px}
+h1,h2,h3,h4,h5{margin:0;text-wrap:balance}
+.num{font-variant-numeric:tabular-nums}
+
+/* Top Sticky Navigation Header */
+header.top{position:sticky;top:0;z-index:40;background:color-mix(in srgb,var(--bg) 92%,transparent);backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
+.top .wrap{padding-block:7px;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.brand{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
+.brand h1{font-size:16.5px;letter-spacing:-.01em;font-weight:800}
+.brand .sub{font-size:11.5px;color:var(--fg-2)}
+.nav-pills{display:flex;gap:4px;flex-wrap:wrap;margin-left:auto}
+.nav-pill{font:inherit;font-size:11px;font-weight:600;border:1px solid var(--line);background:var(--surface);color:var(--fg-2);border-radius:6px;padding:4px 8px;cursor:pointer;transition:all .12s;white-space:nowrap}
+.nav-pill:hover{border-color:var(--accent);color:var(--fg)}
+.nav-pill.active{background:var(--accent);color:#fff;border-color:var(--accent)}
+.btn{font:inherit;font-size:12px;border:1px solid var(--line);background:var(--surface);color:var(--fg);border-radius:7px;padding:5px 10px;cursor:pointer;transition:all .12s;display:inline-flex;align-items:center;gap:5px;font-weight:600}
+.btn:hover{border-color:var(--accent);background:var(--surface-2)}
+.btn-pres{background:linear-gradient(135deg,var(--accent),var(--violet));color:#fff;border:none;box-shadow:0 2px 8px color-mix(in srgb,var(--accent) 35%,transparent)}
+.btn-pres:hover{opacity:.92;background:linear-gradient(135deg,var(--accent),var(--violet));color:#fff}
+
+/* Presentation / Slide Mode */
+body.slide-mode{overflow:hidden;height:100vh}
+body.slide-mode .wrap{max-width:100vw;width:100vw;height:calc(100vh - 96px);padding:14px 28px;overflow-y:auto}
+body.slide-mode .slide-sec{display:none!important}
+body.slide-mode .slide-sec.active-slide{display:block!important;animation:fadeIn .18s ease-out}
+@keyframes fadeIn{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:translateY(0)}}
+.pres-bar{position:fixed;bottom:0;left:0;right:0;height:46px;background:var(--surface);border-top:1px solid var(--line);z-index:45;display:flex;align-items:center;justify-content:space-between;padding:0 24px;box-shadow:0 -4px 16px rgba(0,0,0,.2)}
+.pres-steps{display:flex;gap:6px;align-items:center;overflow-x:auto}
+.pres-dot{font:inherit;font-size:11.5px;padding:4px 10px;border-radius:6px;border:1px solid var(--line);background:var(--surface-2);color:var(--fg-2);cursor:pointer;white-space:nowrap;font-weight:600}
+.pres-dot.active{background:var(--accent);color:#fff;border-color:var(--accent)}
+
+/* Actionable metric buttons */
+.btnbar{display:flex;flex-wrap:wrap;gap:5px;align-items:center}
+.mbtn{font:inherit;font-size:11.5px;border:1px solid var(--line);background:var(--surface-2);color:var(--fg-2);border-radius:6px;padding:4px 9px;cursor:pointer;transition:all .1s;white-space:nowrap;font-weight:500}
+.mbtn:hover{border-color:var(--accent);color:var(--fg)}
+.mbtn.active{background:var(--accent);color:#fff;border-color:var(--accent);font-weight:600;box-shadow:0 1px 4px color-mix(in srgb,var(--accent) 40%,transparent)}
+.mbtn-grp{display:inline-flex;align-items:center;gap:3px;background:var(--surface-2);padding:3px;border-radius:8px;border:1px solid var(--line);flex-wrap:wrap}
+.mbtn-grp .mbtn{border:none;background:transparent;padding:4px 8px}
+.mbtn-grp .mbtn.active{background:var(--accent);color:#fff;border-radius:5px}
+
+section{margin-top:14px}
+.sectitle{font-size:11px;letter-spacing:.07em;text-transform:uppercase;color:var(--muted);font-weight:700;margin-bottom:7px;display:flex;align-items:center;justify-content:space-between}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:12px 14px;box-shadow:var(--shadow);min-width:0}
+.card h3{font-size:14px;font-weight:700;margin-bottom:2px}
+.card .cap{font-size:11.5px;color:var(--fg-2);margin-bottom:8px}
+
+/* Intro / Reading Guide & Topics */
+.intro-hero{background:linear-gradient(135deg,color-mix(in srgb,var(--accent) 9%,var(--surface)),color-mix(in srgb,var(--vaar) 7%,var(--surface)));border:1px solid color-mix(in srgb,var(--accent) 28%,var(--line));border-radius:12px;padding:14px 16px;box-shadow:var(--shadow)}
+.intro-grid{display:grid;grid-template-columns:1.15fr 1.85fr;gap:14px;margin-top:10px;align-items:stretch}
+@media(max-width:1150px){.intro-grid{grid-template-columns:1fr}}
+.how-to-read{background:var(--surface);border:1px solid var(--line);border-radius:9px;padding:11px 13px;display:flex;flex-direction:column;gap:8px;justify-content:space-between}
+.how-step{display:flex;gap:9px;align-items:flex-start;font-size:11.8px;color:var(--fg-2)}
+.how-step b{color:var(--fg)}
+.how-badge{padding:2px 6px;border-radius:5px;font-size:10.5px;font-weight:700;flex:none;margin-top:1px}
+.topics-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+@media(max-width:900px){.topics-grid{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:560px){.topics-grid{grid-template-columns:1fr}}
+.topic-card{background:var(--surface);border:1px solid var(--line);border-radius:9px;padding:9px 11px;cursor:pointer;transition:all .14s;display:flex;flex-direction:column;justify-content:space-between;gap:4px}
+.topic-card:hover{border-color:var(--accent);transform:translateY(-1px);box-shadow:0 4px 12px rgba(0,0,0,.08)}
+.topic-card .t-hd{display:flex;align-items:center;gap:7px;font-weight:700;font-size:12.5px;color:var(--fg)}
+.topic-card .t-num{width:20px;height:20px;border-radius:5px;background:color-mix(in srgb,var(--accent) 15%,transparent);color:var(--accent);display:inline-flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;flex:none}
+.topic-card .t-desc{font-size:11px;color:var(--fg-2);line-height:1.35}
+.topic-card .t-foot{font-size:10.5px;color:var(--accent);font-weight:600;margin-top:2px}
+
+/* Overview Grid: KPIs + Composition + Transition */
+.overview-grid{display:grid;grid-template-columns:1.35fr 1fr;gap:12px;align-items:stretch;margin-top:12px}
+@media(max-width:1200px){.overview-grid{grid-template-columns:1fr}}
+.kpis{display:grid;grid-template-columns:repeat(6,1fr);gap:8px}
+@media(max-width:960px){.kpis{grid-template-columns:repeat(3,1fr)}}
+.kpi{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:10px 12px;box-shadow:var(--shadow);min-width:0;display:flex;flex-direction:column;justify-content:space-between}
+.kpi .lab{font-size:11.5px;color:var(--fg-2);display:flex;align-items:center;gap:5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.kpi .val{font-size:18.5px;font-weight:800;margin-top:4px;letter-spacing:-.02em;white-space:nowrap}
+.kpi .foot{font-size:10.8px;color:var(--muted);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.dot{width:8px;height:8px;border-radius:2px;flex:none}
+.cards2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+@media(max-width:760px){.cards2{grid-template-columns:1fr}}
+.legend{display:flex;flex-wrap:wrap;gap:10px;margin-top:8px;font-size:11.5px}
+.legend span{display:inline-flex;align-items:center;gap:5px;color:var(--fg-2)}
+.legend b{color:var(--fg);font-variant-numeric:tabular-nums}
+.stack,.trseg{display:flex;height:22px;border-radius:6px;overflow:hidden;background:var(--surface-2)}
+
+/* Conditionality Section */
+.cond-layout{display:grid;grid-template-columns:360px 1fr 340px;gap:12px;align-items:stretch}
+@media(max-width:1300px){.cond-layout{grid-template-columns:1fr 1fr}}
+@media(max-width:860px){.cond-layout{grid-template-columns:1fr}}
+.cond-summary{background:var(--surface-2);border:1px solid var(--line);border-radius:9px;padding:11px 13px;display:flex;flex-direction:column;justify-content:space-between;gap:8px}
+.cond-stat-grid{display:grid;grid-template-columns:1fr 1fr;gap:7px}
+.cond-stat{background:var(--surface);border:1px solid var(--line);border-radius:7px;padding:7px 9px}
+.cond-stat .k{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.03em;font-weight:700}
+.cond-stat .v{font-size:15px;font-weight:800;margin-top:1px;font-variant-numeric:tabular-nums}
+.cond-stat .s{font-size:10.5px;color:var(--fg-2)}
+.cond-list{display:flex;flex-direction:column;gap:6px;justify-content:space-between}
+.cond-item{display:grid;grid-template-columns:255px 1fr 150px;align-items:center;gap:10px;padding:6px 9px;border-radius:8px;background:var(--surface-2);border:1px solid transparent;cursor:pointer;transition:border-color .12s}
+.cond-item:hover{border-color:var(--accent)}
+.cond-item.active{border-color:var(--crit);background:color-mix(in srgb,var(--crit) 8%,var(--surface-2))}
+@media(max-width:700px){.cond-item{grid-template-columns:1fr}}
+.cond-info .title{font-weight:700;font-size:12px;color:var(--fg);display:flex;align-items:center;gap:6px}
+.cond-info .badge{font-size:10px;font-weight:700;padding:1px 6px;border-radius:4px;background:color-mix(in srgb,var(--crit) 15%,transparent);color:var(--crit);flex:none}
+.cond-info .desc{font-size:10.8px;color:var(--fg-2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cond-track{height:14px;background:var(--surface);border-radius:4px;overflow:hidden;border:1px solid var(--line)}
+.cond-fill{height:100%;background:var(--crit);border-radius:3px}
+.cond-nums{text-align:right;font-variant-numeric:tabular-nums;font-size:11.5px;white-space:nowrap}
+.cond-nums b{font-size:12.5px;color:var(--fg)}
+.cond-nums span{color:var(--muted);font-size:10px;display:block}
+
+/* Historical Trajectory & Action Plan Section */
+.hist-layout{display:grid;grid-template-columns:1.05fr 1.25fr;gap:14px;align-items:stretch}
+@media(max-width:1150px){.hist-layout{grid-template-columns:1fr}}
+.timeline-bars{display:grid;grid-template-columns:repeat(6,1fr);gap:8px;align-items:end;height:148px;padding:14px 8px 4px;background:var(--surface-2);border-radius:8px;border:1px solid var(--line)}
+.tcol{display:flex;flex-direction:column;align-items:center;height:100%;justify-content:flex-end;gap:3px}
+.tbar-wrap{width:100%;max-width:48px;display:flex;flex-direction:column-reverse;border-radius:4px 4px 0 0;overflow:hidden}
+.tcol .tlbl{font-size:11px;font-weight:700;color:var(--fg-2)}
+.tcol .tval{font-size:10px;font-weight:700;color:var(--fg);font-variant-numeric:tabular-nums}
+.action-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+@media(max-width:700px){.action-grid{grid-template-columns:1fr}}
+.action-card{background:var(--surface-2);border:1px solid var(--line);border-left:3.5px solid var(--accent);border-radius:8px;padding:9px 11px;display:flex;flex-direction:column;gap:4px}
+.action-card.urgent{border-left-color:var(--crit)}
+.action-card.good{border-left-color:var(--good)}
+.action-card.warn{border-left-color:var(--warn)}
+.action-card h5{font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:space-between;gap:6px}
+.action-card p{margin:0;font-size:11.2px;color:var(--fg-2);line-height:1.38}
+
+/* VAAR Simulator (Estadual vs Municipal aligned with Simulador-VAAR-PI) */
+.sim-header{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between;padding-bottom:10px;border-bottom:1px solid var(--line);margin-bottom:12px}
+.sim-mode-switch{display:inline-flex;gap:6px;background:var(--surface-2);padding:4px;border-radius:9px;border:1px solid var(--line)}
+.sim-mode-btn{font:inherit;font-size:12.5px;font-weight:700;padding:6px 14px;border-radius:6px;border:none;background:transparent;color:var(--fg-2);cursor:pointer;display:inline-flex;align-items:center;gap:6px}
+.sim-mode-btn.active{background:var(--accent);color:#fff;box-shadow:0 2px 6px color-mix(in srgb,var(--accent) 40%,transparent)}
+.sim-grid{display:grid;grid-template-columns:1.1fr 1.1fr 1fr;gap:12px;align-items:stretch}
+@media(max-width:1280px){.sim-grid{grid-template-columns:1fr 1fr}}
+@media(max-width:820px){.sim-grid{grid-template-columns:1fr}}
+.sim-panel{background:var(--surface-2);border:1px solid var(--line);border-radius:9px;padding:11px 13px;display:flex;flex-direction:column;gap:9px;justify-content:space-between}
+.sim-panel h4{font-size:12.5px;font-weight:700;display:flex;align-items:center;justify-content:space-between;padding-bottom:5px;border-bottom:1px solid var(--line)}
+.sim-control{display:flex;flex-direction:column;gap:3px}
+.sim-control label{font-size:11px;font-weight:600;color:var(--fg-2);display:flex;justify-content:space-between}
+.sim-control label b{color:var(--fg);font-variant-numeric:tabular-nums}
+.sim-control input[type=range]{width:100%;accent-color:var(--accent);cursor:pointer;margin:0}
+.sim-scen-table{width:100%;border-collapse:collapse;font-size:11px;background:var(--surface);border-radius:6px;overflow:hidden;border:1px solid var(--line)}
+.sim-scen-table th,.sim-scen-table td{padding:4px 7px;border-bottom:1px solid var(--line)}
+.sim-scen-table tr.active-scen{background:color-mix(in srgb,var(--accent) 12%,transparent);font-weight:700}
+.sim-res-box{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:9px 11px;display:flex;flex-direction:column;gap:5px}
+.sim-big-num{font-size:21px;font-weight:800;font-variant-numeric:tabular-nums;color:var(--vaar)}
+.mat-bars{display:grid;grid-template-columns:repeat(7,1fr);gap:5px;align-items:end;height:78px;padding:10px 6px 2px;background:var(--surface);border:1px solid var(--line);border-radius:7px}
+.mbar-col{display:flex;flex-direction:column;align-items:center;height:100%;justify-content:flex-end;gap:2px}
+.mbar{width:100%;background:var(--accent);border-radius:3px 3px 0 0;min-height:4px;transition:height .15s}
+.mbar-col span{font-size:9.5px;color:var(--muted);font-variant-numeric:tabular-nums}
+.mbar-col b{font-size:9.5px;color:var(--fg);font-variant-numeric:tabular-nums}
+
+/* 3-Phase Maps */
+.map-header{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between;margin-bottom:10px}
+.map3-grid{display:grid;grid-template-columns:1fr 1fr 1.15fr;gap:12px;align-items:stretch}
+@media(max-width:1150px){.map3-grid{grid-template-columns:1fr 1fr}}
+@media(max-width:760px){.map3-grid{grid-template-columns:1fr}}
+.map-stage{background:var(--surface-2);border:1px solid var(--line);border-radius:9px;padding:10px;display:flex;flex-direction:column;justify-content:space-between;min-width:0}
+.stage-top{display:flex;align-items:center;justify-content:space-between;gap:6px;margin-bottom:6px;flex-wrap:wrap}
+.stage-title{display:flex;align-items:center;gap:6px;font-size:12.5px;font-weight:700}
+.stage-num{width:20px;height:20px;border-radius:50%;background:var(--accent);color:#fff;font-size:11px;font-weight:700;display:inline-flex;align-items:center;justify-content:center;flex:none}
+.stage-sub{font-size:11px;color:var(--fg-2)}
+.mapbox{width:100%;aspect-ratio:4/3;max-height:295px;display:flex;align-items:center;justify-content:center;background:var(--surface);border-radius:7px;border:1px solid var(--line);overflow:hidden;position:relative}
+.mapbox svg{width:100%;height:100%;display:block}
+.mp{stroke:var(--surface);stroke-width:.55;cursor:pointer;transition:opacity .1s}
+.mp:hover{stroke:var(--fg);stroke-width:1.3}
+.mp.sel{stroke:var(--fg);stroke-width:1.8}
+.mp.dim{opacity:.28}
+.scalebar{display:flex;align-items:center;gap:8px;font-size:11px;color:var(--fg-2);margin-top:8px;flex-wrap:wrap}
+.scalebar i{display:inline-block;width:18px;height:10px;border-radius:2px;border:1px solid rgba(0,0,0,.15)}
+
+/* Compact Municipality Inspector (Inline + Modal) */
+.ficha-inline{margin-top:10px;background:var(--surface-2);border:1.5px solid var(--accent);border-radius:9px;padding:10px 12px}
+.ficha-top{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;padding-bottom:8px;border-bottom:1px solid var(--line);margin-bottom:8px}
+.ficha-title{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.ficha-title h3{font-size:14.5px;font-weight:700}
+.ficha-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+@media(max-width:1100px){.ficha-grid{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:600px){.ficha-grid{grid-template-columns:1fr}}
+.fbox{background:var(--surface);border:1px solid var(--line);border-radius:7px;padding:7px 9px}
+.fbox h5{margin:0 0 5px;font-size:10.5px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);font-weight:700;border-bottom:1px solid var(--line);padding-bottom:3px;display:flex;justify-content:space-between}
+.fkv{display:grid;grid-template-columns:repeat(3,1fr);gap:4px 6px}
+.fk{font-size:10px;color:var(--muted);line-height:1.1}
+.fv{font-size:11.8px;font-weight:700;font-variant-numeric:tabular-nums;color:var(--fg)}
+
+/* Tables & Row SparkCharts */
+.tablewrap{overflow-x:auto;border:1px solid var(--line);border-radius:9px;background:var(--surface);box-shadow:var(--shadow)}
+table{border-collapse:collapse;width:100%;font-size:12px}
+th,td{padding:5.5px 8px;text-align:left;border-bottom:1px solid var(--line);white-space:nowrap}
+th{position:sticky;top:0;background:var(--surface-2);font-size:10.8px;color:var(--fg-2);cursor:pointer;user-select:none;z-index:2;font-weight:700}
+th:hover{color:var(--fg);background:var(--surface-3)}
+th.active-col{color:var(--accent);border-bottom:2px solid var(--accent)}
+th.r,td.r{text-align:right;font-variant-numeric:tabular-nums}
+th.c,td.c{text-align:center}
+tbody tr{cursor:pointer;transition:background .08s}
+tbody tr:hover{background:var(--surface-2)}
+tbody tr.sel-row{outline:1.5px solid var(--accent);background:color-mix(in srgb,var(--accent) 8%,transparent)}
+.hm{border-radius:4px;padding:2.5px 6px;display:inline-block;min-width:64px;text-align:right;font-weight:600;font-variant-numeric:tabular-nums}
+.reg-dot{display:inline-block;width:7px;height:7px;border-radius:50%;margin-right:4px}
+
+/* Inline Row Summary Charts */
+.row-spark{display:inline-flex;align-items:center;gap:6px;vertical-align:middle}
+.mini-stack{width:76px;height:10px;border-radius:3px;overflow:hidden;display:inline-flex;background:var(--surface-3);border:1px solid var(--line)}
+.mini-dual{display:inline-flex;align-items:flex-end;gap:2px;height:14px;width:32px;padding-bottom:1px}
+.mini-dual i{flex:1;border-radius:1.5px 1.5px 0 0;min-height:2px}
+
+/* Toolbar & Badges */
+.toolbar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:8px;background:var(--surface);padding:8px 10px;border-radius:9px;border:1px solid var(--line)}
+.field{display:flex;align-items:center;gap:5px}
+.field label{font-size:10.5px;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;font-weight:700}
+select,input[type=search]{font:inherit;font-size:12px;background:var(--surface-2);color:var(--fg);border:1px solid var(--line);border-radius:6px;padding:4px 8px}
+input[type=search]{min-width:175px}
+.toolbar .spacer{flex:1}
+.count{font-size:12px;color:var(--fg-2);font-weight:600}
+
+.pill{display:inline-flex;align-items:center;gap:4px;font-size:10.8px;font-weight:600;padding:1px 7px;border-radius:12px;border:1px solid transparent}
+.pill.ok{color:var(--good);background:color-mix(in srgb,var(--good) 13%,transparent);border-color:color-mix(in srgb,var(--good) 30%,transparent)}
+.pill.no{color:var(--crit);background:color-mix(in srgb,var(--crit) 13%,transparent);border-color:color-mix(in srgb,var(--crit) 30%,transparent)}
+.pill.warn{color:var(--warn);background:color-mix(in srgb,var(--warn) 13%,transparent);border-color:color-mix(in srgb,var(--warn) 30%,transparent)}
+.tag{font-size:10px;font-weight:700;padding:1px 5px;border-radius:4px;background:var(--surface-2);color:var(--fg-2);border:1px solid var(--line)}
+.cnd{font-size:10.5px;font-weight:700;padding:2px 6px;border-radius:5px;border:1px solid var(--line);display:inline-flex;align-items:center;gap:3px}
+.cnd.y{color:var(--good);background:color-mix(in srgb,var(--good) 11%,transparent);border-color:color-mix(in srgb,var(--good) 28%,transparent)}
+.cnd.n{color:var(--crit);background:color-mix(in srgb,var(--crit) 11%,transparent);border-color:color-mix(in srgb,var(--crit) 28%,transparent)}
+.pend{font-size:11px;color:var(--fg-2);background:color-mix(in srgb,var(--crit) 8%,transparent);border:1px solid color-mix(in srgb,var(--crit) 24%,transparent);border-radius:6px;padding:4px 8px;margin-top:5px}
+.note{font-size:11px;color:var(--muted)}
+
+/* Modal Overlay */
+.overlay{position:fixed;inset:0;background:rgba(8,10,16,.55);backdrop-filter:blur(2px);z-index:50;display:flex;justify-content:center;align-items:center;padding:14px;overflow:auto}
+.sheet{background:var(--surface);border:1px solid var(--line);border-radius:12px;max-width:1180px;width:100%;box-shadow:0 16px 48px rgba(0,0,0,.45);padding:14px 16px}
+.close{font-size:16px;border:1px solid var(--line);background:var(--surface-2);color:var(--fg);border-radius:6px;width:26px;height:26px;cursor:pointer;display:inline-flex;align-items:center;justify-content:center}
+.close:hover{border-color:var(--crit);color:var(--crit)}
+
+.tt{position:fixed;z-index:60;pointer-events:none;background:var(--fg);color:var(--bg);font-size:11.5px;padding:5px 8px;border-radius:6px;opacity:0;transition:opacity .08s;font-variant-numeric:tabular-nums;white-space:nowrap;box-shadow:0 4px 14px rgba(0,0,0,.3);max-width:340px}
+footer{margin-top:20px;font-size:11px;color:var(--muted);text-align:center;line-height:1.5}
+</style>
+
+<header class="top"><div class="wrap">
+  <div class="brand">
+    <h1>Painel Estratégico & Simulador Fundeb 2026</h1>
+    <span class="sub">Financiamento (VAAF·VAAT·VAAR) · Condicionalidades · Série Histórica · Simulador VAAR (Estadual/Municipal)</span>
+  </div>
+  <nav class="nav-pills" id="topNavPills">
+    <button class="nav-pill active" data-slide="0">1. Guia & Visão Geral</button>
+    <button class="nav-pill" data-slide="1">2. Condicionalidades</button>
+    <button class="nav-pill" data-slide="2">3. Histórico & Como Agir</button>
+    <button class="nav-pill" data-slide="3">4. Simulador VAAR</button>
+    <button class="nav-pill" data-slide="4">5. Mapas (3 Fases)</button>
+    <button class="nav-pill" data-slide="5">6. Ranking UF</button>
+    <button class="nav-pill" data-slide="6">7. Explorar Entes</button>
+  </nav>
+  <div style="display:flex;gap:6px;align-items:center">
+    <button class="btn btn-pres" id="presBtn" title="Ativar modo de apresentação em slides para reuniões (Tecla P)">▶ Modo Reunião (Slides)</button>
+    <button class="btn" id="fullBtn" title="Tela cheia">⛶</button>
+    <button class="btn" id="themeBtn">◐ Tema</button>
+  </div>
+</div></header>
+
+<div class="wrap">
+  <!-- SLIDE 1 / SEÇÃO 1: PÁGINA INICIAL (GUIA DE LEITURA + TÓPICOS + VISÃO NACIONAL) -->
+  <section class="slide-sec active-slide" id="sec-0" data-title="1. Guia de Leitura & Visão Nacional 2026">
+    <div class="intro-hero">
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap">
+        <div>
+          <h2 style="font-size:16px;font-weight:800">Guia de Leitura do Painel & Arquitetura do Novo Fundeb (Lei nº 14.113/2020)</h2>
+          <div class="note" style="color:var(--fg-2)">Compreenda como a União distribui R$ 69,92 bi em 2026 para 5.596 redes públicas (27 estaduais e 5.569 municipais) e navegue pelos 7 módulos abaixo.</div>
+        </div>
+        <button class="btn" id="toggleGuideBtn">▲ Recolher Guia Inicial</button>
+      </div>
+
+      <div class="intro-grid" id="guideBody">
+        <div class="how-to-read">
+          <div style="font-size:11.5px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;color:var(--accent)">Como ler os mecanismos de financiamento</div>
+          <div class="how-step">
+            <span class="how-badge" style="background:color-mix(in srgb,var(--vaaf) 16%,transparent);color:var(--vaaf)">VAAF · 10%</span>
+            <div><b>Valor Aluno Ano Fundeb (R$ 30,40 bi):</b> Complementação da União para estados onde a cesta de impostos estaduais/municipais por matrícula ponderada não atinge o mínimo nacional.</div>
+          </div>
+          <div class="how-step">
+            <span class="how-badge" style="background:color-mix(in srgb,var(--vaat) 16%,transparent);color:var(--vaat)">VAAT · 10,5%</span>
+            <div><b>Valor Aluno Ano Total (R$ 31,92 bi):</b> Calculado <i>por rede individual</i> (estadual ou municipal), garantindo o piso de R$ 10.194,38/aluno após receitas vinculadas (50% vinculados à Educação Infantil via IEI).</div>
+          </div>
+          <div class="how-step">
+            <span class="how-badge" style="background:color-mix(in srgb,var(--vaar) 16%,transparent);color:var(--vaar)">VAAR · 2,5%</span>
+            <div><b>Valor Aluno Ano por Resultados (R$ 7,60 bi):</b> Premia redes que <b>(1) cumprem as 5 condicionalidades de gestão</b> (Art. 14, §1º) e <b>(2) evoluem nos indicadores</b> de Atendimento (50% = R$ 3,80 bi) e Aprendizagem com Equidade (50% = R$ 3,80 bi).</div>
+          </div>
+          <div class="how-step">
+            <span class="how-badge" style="background:color-mix(in srgb,var(--violet) 16%,transparent);color:var(--violet)">Est. vs Mun.</span>
+            <div><b>Diferenciação de Rede:</b> No VAAR, a <b>Rede Estadual</b> é aferida na expansão do <b>Ensino Médio</b> e no Saeb (5º EF, 9º EF e 3ª EM); a <b>Rede Municipal</b> é aferida na expansão da <b>Educação Infantil</b> e no Saeb (5º e 9º EF).</div>
+          </div>
+        </div>
+
+        <div class="topics-grid">
+          <div class="topic-card" data-goto="1">
+            <div>
+              <div class="t-hd"><span class="t-num">2</span> Condicionalidades VAAR</div>
+              <div class="t-desc">Resumo das 5 travas de gestão (Art. 14, §1º) e a regra de redução de desigualdades raciais e socioeconômicas (NT 5/2024 INEP).</div>
+            </div>
+            <div class="t-foot">2.520 redes inabilitadas (76,6% na Cond. III) →</div>
+          </div>
+          <div class="topic-card" data-goto="2">
+            <div>
+              <div class="t-hd"><span class="t-num">3</span> Linha Histórica & Como Agir</div>
+              <div class="t-desc">Evolução dos recursos 2021–2026, série de matrículas 2017–2023 e plano prático de ação para ampliar o próximo recebimento.</div>
+            </div>
+            <div class="t-foot">Ver diagnóstico e alavancas de gestão →</div>
+          </div>
+          <div class="topic-card" data-goto="3">
+            <div>
+              <div class="t-hd"><span class="t-num">4</span> Simulador VAAR (Est. / Mun.)</div>
+              <div class="t-desc">Simulador interativo alinhado ao modelo SEDUC-PI (IEE, IAE, IAPE, INE, IDE Raça/Social) diferenciando Rede Estadual e Municipal.</div>
+            </div>
+            <div class="t-foot">Simular cenários financeiros em R$ →</div>
+          </div>
+          <div class="topic-card" data-goto="4">
+            <div>
+              <div class="t-hd"><span class="t-num">5</span> Mapas em 3 Fases</div>
+              <div class="t-desc">Visão geográfica simultânea (1. Brasil → 2. Região → 3. Municípios) com 11 métricas acionáveis e ficha compacta.</div>
+            </div>
+            <div class="t-foot">Explorar mapas interativos →</div>
+          </div>
+          <div class="topic-card" data-goto="5">
+            <div>
+              <div class="t-hd"><span class="t-num">6</span> Ranking UF (Mapa de Calor)</div>
+              <div class="t-desc">Tabela comparativa das 27 UFs com células coloridas, números e minigráfico de composição financeira por linha.</div>
+            </div>
+            <div class="t-foot">Comparar estados e regiões →</div>
+          </div>
+          <div class="topic-card" data-goto="6">
+            <div>
+              <div class="t-hd"><span class="t-num">7</span> Explorar 5.596 Redes</div>
+              <div class="t-desc">Busca e filtros rápidos por rede, situação VAAR e condicionalidade, com gráficos resumidos por linha e atalho para simulação.</div>
+            </div>
+            <div class="t-foot">Filtrar redes estaduais e municipais →</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="overview-grid">
+      <div class="kpis" id="kpis"></div>
+      <div class="cards2">
+        <div class="card">
+          <h3>Composição da complementação 2026</h3>
+          <div class="cap">Total R$ <span id="totComp"></span> — repartição por modalidade</div>
+          <div class="stack" id="compStack"></div>
+          <div class="legend" id="compLegend"></div>
+        </div>
+        <div class="card">
+          <h3>VAAR 2025 → 2026</h3>
+          <div class="cap">Transição de recebimento entre os dois exercícios</div>
+          <div class="trseg" id="transSeg"></div>
+          <div class="legend" id="transLegend"></div>
+          <div class="note" id="transNote" style="margin-top:6px"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SLIDE 2 / SEÇÃO 2: CONDICIONALIDADES COM RESUMO E NOTA TÉCNICA 5/2024 -->
+  <section class="card slide-sec" id="sec-1" data-title="2. Perda de Habilitação ao VAAR — Condicionalidades">
+    <div style="display:flex;flex-wrap:wrap;gap:8px;align-items:baseline;justify-content:space-between;margin-bottom:8px">
+      <div>
+        <h3>Perda de habilitação ao VAAR 2026 — Resumo das Condicionalidades (Art. 14, § 1º da Lei nº 14.113/2020)</h3>
+        <div class="cap" style="margin-bottom:0">Redes não habilitadas que reprovaram em cada condicionalidade (uma rede pode reprovar em várias). Clique em qualquer condicionalidade para filtrar a tabela de entes.</div>
+      </div>
+      <button class="btn" id="clearCondBtn" hidden>✕ Limpar filtro de condicionalidade</button>
+    </div>
+    <div class="cond-layout">
+      <div class="cond-summary" id="condSummary"></div>
+      <div class="cond-list" id="condChart"></div>
+      <div class="cond-summary" id="condNT5Box">
+        <div>
+          <h4><span>Critério Cond. III (NT 5/2024 INEP)</span><span class="tag">Equidade Saeb</span></h4>
+          <div class="note" style="color:var(--fg-2);margin-top:5px">Monitora a redução da proporção de alunos vulneráveis (<b>PPI</b> e <b>Baixo NSE</b>) abaixo do nível adequado no Saeb entre ciclos:</div>
+          <table class="sim-scen-table" style="margin-top:6px">
+            <thead><tr><th>Etapa Avaliada</th><th>Rede</th><th class="r">Adequado LP</th><th class="r">Adequado MT</th></tr></thead>
+            <tbody>
+              <tr><td><b>5º ano EF (AI)</b></td><td>Est. + Mun.</td><td class="r">&gt; 200 pts</td><td class="r">&gt; 225 pts</td></tr>
+              <tr><td><b>9º ano EF (AF)</b></td><td>Est. + Mun.</td><td class="r">&gt; 275 pts</td><td class="r">&gt; 300 pts</td></tr>
+              <tr><td><b>3ª/4ª série EM</b></td><td>Só Estadual</td><td class="r">&gt; 300 pts</td><td class="r">&gt; 350 pts</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="note" style="border-top:1px solid var(--line);padding-top:5px">
+          <b>Margem de estabilidade por porte:</b> &gt;10 mil alunos: <b>1,0 p.p.</b> · 1–10 mil: <b>2,5 p.p.</b> · 501–1.000: <b>5,0 p.p.</b> · 201–500: <b>7,5 p.p.</b> · 101–200: <b>10,0 p.p.</b> · ≤100: <b>15,0 p.p.</b>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SLIDE 3 / SEÇÃO 3: LINHA HISTÓRICA DE RECURSOS & COMO AGIR PARA MELHORAR OS PRÓXIMOS RECEBIMENTOS -->
+  <section class="card slide-sec" id="sec-2" data-title="3. Linha Histórica de Recursos & Plano de Ação">
+    <div style="display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between;margin-bottom:10px">
+      <div>
+        <h3>Linha Histórica de Recursos (2021–2026) & Como Agir para Ampliar os Próximos Recebimentos</h3>
+        <div class="cap" style="margin-bottom:0">Evolução da rampa constitucional da complementação da União (EC 108/2020) e diagnóstico acionável para a rede selecionada</div>
+      </div>
+      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+        <span class="note" style="font-weight:700;color:var(--fg-2)">Rede em análise no Plano de Ação:</span>
+        <span class="pill ok" id="actionTargetLabel">PI — GOVERNO DO ESTADO (Estadual)</span>
+        <button class="btn" id="gotoSimFromActionBtn">⚡ Abrir no Simulador VAAR</button>
+      </div>
+    </div>
+
+    <div class="hist-layout">
+      <!-- Left: Historical Timeline (National + Selected Network) -->
+      <div style="display:flex;flex-direction:column;gap:10px;justify-content:space-between">
+        <div>
+          <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:5px">
+            <b style="font-size:12px">Evolução da Complementação da União (2021 → 2026 · % Mínimo Constitucional e Valores)</b>
+            <span class="note">Rampa EC 108/2020: 12% → 23%</span>
+          </div>
+          <div class="timeline-bars" id="natHistChart"></div>
+          <div class="legend" style="margin-top:6px">
+            <span><span class="dot" style="background:var(--vaaf)"></span>VAAF (10,0%)</span>
+            <span><span class="dot" style="background:var(--vaat)"></span>VAAT (2,0% → 10,5%)</span>
+            <span><span class="dot" style="background:var(--vaar)"></span>VAAR (0,75% em 2023 → 2,5% em 2026 = R$ 7,60 bi)</span>
+          </div>
+        </div>
+
+        <div class="sim-panel" id="netHistBox"></div>
+      </div>
+
+      <!-- Right: Actionable Recommendations ("Como Agir") -->
+      <div style="display:flex;flex-direction:column;gap:8px;justify-content:space-between">
+        <div style="display:flex;justify-content:space-between;align-items:center">
+          <b style="font-size:12.5px">Plano de Ação Estratégico: Como Agir para Melhorar os Próximos Recebimentos</b>
+          <span class="tag" id="actionScopeTag">Rede Estadual</span>
+        </div>
+        <div class="action-grid" id="actionCards"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SLIDE 4 / SEÇÃO 4: SIMULADOR VAAR (REDE ESTADUAL VS MUNICIPAL — METODOLOGIA SIMULADOR-VAAR-PI) -->
+  <section class="card slide-sec" id="sec-3" data-title="4. Simulador VAAR (Estadual vs. Municipal)">
+    <div class="sim-header">
+      <div>
+        <h3>Simulador VAAR (Atendimento + Aprendizagem) — Alinhado ao Modelo SEDUC-PI (<code style="font-size:12px">Simulador-VAAR-PI</code>)</h3>
+        <div class="cap" style="margin-bottom:0">Reproduz as fórmulas das Notas Técnicas nº 23/2022 e nº 5/2024 (INEP/MEC) com diferenciação automática de parâmetros para <b>Rede Estadual</b> e <b>Rede Municipal</b>.</div>
+      </div>
+      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+        <div class="sim-mode-switch" id="simModeSwitch">
+          <button class="sim-mode-btn active" data-rd="E">🏛️ Rede Estadual (27 UFs)</button>
+          <button class="sim-mode-btn" data-rd="M">🏫 Rede Municipal (5.569 Municípios)</button>
+        </div>
+        <div class="field"><label for="simUF">UF</label><select id="simUF"></select></div>
+        <div class="field" id="simMunField" hidden><label for="simEnte">Município</label><select id="simEnte"></select></div>
+        <button class="btn" id="simResetBtn">↺ Restaurar Dados Oficiais</button>
+      </div>
+    </div>
+
+    <!-- Banner de Diferenciação Metodológica Estadual vs Municipal -->
+    <div id="simDiffBanner" style="background:color-mix(in srgb,var(--accent) 8%,var(--surface-2));border:1px solid color-mix(in srgb,var(--accent) 28%,var(--line));border-radius:8px;padding:7px 11px;margin-bottom:10px;display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;font-size:11.5px"></div>
+
+    <div class="sim-grid">
+      <!-- Coluna 1: Condicionalidades + VAAR Atendimento (IEE & IAE) -->
+      <div class="sim-panel">
+        <div>
+          <h4><span>1. Habilitação & VAAR-Atendimento (50%)</span><span class="tag" id="simStageBadge">Ensino Médio</span></h4>
+          <div style="margin-top:7px">
+            <div style="font-size:11px;font-weight:700;color:var(--fg-2);margin-bottom:4px">Cumprimento das 5 Condicionalidades (clique p/ simular habilitação):</div>
+            <div style="display:flex;gap:5px;flex-wrap:wrap" id="simCondToggles"></div>
+          </div>
+
+          <div style="margin-top:9px">
+            <div style="font-size:11px;font-weight:700;color:var(--fg-2);margin-bottom:4px;display:flex;justify-content:space-between">
+              <span id="simMatTitle">Série Histórica de Matrículas Censo (2017–2023)</span>
+              <span id="simMatGrowthLabel" class="num"></span>
+            </div>
+            <div class="mat-bars" id="simMatBars"></div>
+          </div>
+
+          <div class="sim-control" style="margin-top:8px">
+            <label><span>Simular Variação de Matrículas na Etapa Prioritária (IEE)</span><b id="simIeeVal">1,000</b></label>
+            <input type="range" id="simIeeRange" min="0.80" max="1.30" step="0.005" value="1.00">
+          </div>
+
+          <div class="sim-control" style="margin-top:6px">
+            <label><span>Taxa de Abandono Ponderada (<span id="simIaeScopeLbl">AI+AF+EM</span>) — IAE</span><b id="simIaeVal">2,0%</b></label>
+            <input type="range" id="simIaeRange" min="0" max="15" step="0.1" value="2.0">
+          </div>
+        </div>
+
+        <div>
+          <div style="font-size:10.5px;font-weight:700;color:var(--muted);text-transform:uppercase;margin-bottom:4px">Cenários de Cálculo do IEE (<code style="font-size:10px">Simulador_VAAR_Atendimento.xlsx</code>)</div>
+          <table class="sim-scen-table" id="simScenTable"></table>
+        </div>
+      </div>
+
+      <!-- Coluna 2: VAAR Aprendizagem com Equidade (IAPE + IPA + INE + IDE Raça & Social) -->
+      <div class="sim-panel">
+        <div>
+          <h4><span>2. VAAR-Aprendizagem com Equidade (50%)</span><span class="tag" id="simSaebScopeBadge">Saeb 5º, 9º e 3ª EM</span></h4>
+
+          <div class="sim-control" style="margin-top:8px">
+            <label><span>Taxa de Aprovação Ponderada (IAPE · <span id="simIapeScopeLbl">AI+AF+EM</span>)</span><b id="simIapeVal">95,0%</b></label>
+            <input type="range" id="simIapeRange" min="70" max="100" step="0.2" value="95.0">
+          </div>
+
+          <div class="sim-control" style="margin-top:8px">
+            <label><span>Índice de Nível de Escala Saeb (INE · 0 a 2,00)</span><b id="simIneVal">1,00</b></label>
+            <input type="range" id="simIneRange" min="0.20" max="2.00" step="0.02" value="1.00">
+          </div>
+
+          <div class="sim-control" style="margin-top:8px">
+            <label><span>Equidade Racial — IDE Raça (Proficiência PPI / Branco-Amarelo)</span><b id="simIdeRacaVal">0,965</b></label>
+            <input type="range" id="simIdeRacaRange" min="0.70" max="1.10" step="0.005" value="0.965">
+          </div>
+
+          <div class="sim-control" style="margin-top:8px">
+            <label><span>Equidade Socioeconômica — IDE Social (1º Quartil / 4º Quartil)</span><b id="simIdeSocVal">0,820</b></label>
+            <input type="range" id="simIdeSocRange" min="0.65" max="1.10" step="0.005" value="0.820">
+          </div>
+
+          <div class="sim-control" style="margin-top:8px">
+            <label><span>Indicador Consolidado de Aprendizagem (<code style="font-size:10px">IND_VAAR_Aprend</code>)</span><b id="simIpVal">1,000</b></label>
+            <input type="range" id="simIpRange" min="0.00" max="3.00" step="0.01" value="1.00">
+          </div>
+        </div>
+
+        <div class="sim-res-box" id="simFormulaMemory"></div>
+      </div>
+
+      <!-- Coluna 3: Resultado Financeiro Simulado & Comparativo -->
+      <div class="sim-panel">
+        <div>
+          <h4><span>3. Resultado Financeiro Estimado (VAAR)</span><span class="tag">Em Reais (R$)</span></h4>
+          <div style="margin-top:7px">
+            <div style="font-size:11px;font-weight:600;color:var(--fg-2);margin-bottom:4px">Bolo Nacional Total do VAAR (2,5% Fundeb):</div>
+            <div class="mbtn-grp" id="simPoolBtns">
+              <button class="mbtn" data-pool="3640000000">2024 (R$ 3,64 bi)</button>
+              <button class="mbtn" data-pool="5090802006">2025 (R$ 5,09 bi)</button>
+              <button class="mbtn active" data-pool="7599798279">2026 (R$ 7,60 bi)</button>
+              <button class="mbtn" data-pool="8500000000">Proj. 2027 (R$ 8,50 bi)</button>
+            </div>
+          </div>
+
+          <div id="simFinancialCards" style="margin-top:10px;display:flex;flex-direction:column;gap:8px"></div>
+        </div>
+
+        <div id="simDiagnosticFooter" class="note" style="border-top:1px solid var(--line);padding-top:6px"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SLIDE 5 / SEÇÃO 5: MAPAS EM 3 FASES (BRASIL -> REGIÃO -> MUNICÍPIOS) -->
+  <section class="card slide-sec" id="sec-4" data-title="5. Mapas em 3 Fases (Brasil → Região → Municípios)">
+    <div class="map-header">
+      <div>
+        <h3>Mapas Interativos em 3 Fases: Brasil → Região do País → Municípios</h3>
+        <div class="cap" style="margin-bottom:0">Selecione a métrica nos botões acionáveis e clique em uma Região, UF ou Município</div>
+      </div>
+      <div class="btnbar" id="mapMetricBtns" role="group" aria-label="Métrica dos mapas"></div>
+    </div>
+
+    <div class="map3-grid">
+      <div class="map-stage">
+        <div>
+          <div class="stage-top">
+            <div class="stage-title"><span class="stage-num">1</span> Brasil por UF</div>
+            <span class="stage-sub">Clique num estado</span>
+          </div>
+          <div class="mapbox" id="mapBrasil"></div>
+        </div>
+        <div class="scalebar" id="mapScale"></div>
+      </div>
+
+      <div class="map-stage">
+        <div>
+          <div class="stage-top">
+            <div class="stage-title"><span class="stage-num">2</span> Região: <span id="regTitle">Nordeste</span></div>
+            <div class="btnbar" id="regBtns"></div>
+          </div>
+          <div class="mapbox" id="mapRegiao"></div>
+        </div>
+        <div class="note" style="margin-top:6px;text-align:center">Clique num estado da região para carregar seus municípios na Fase 3</div>
+      </div>
+
+      <div class="map-stage">
+        <div>
+          <div class="stage-top">
+            <div class="stage-title"><span class="stage-num">3</span> <span id="mapTitle">Municípios</span></div>
+            <div class="btnbar" id="ufQuickBtns"></div>
+          </div>
+          <div class="mapbox" id="mapUF"></div>
+        </div>
+        <div class="scalebar" id="mapUFhint" style="justify-content:center"></div>
+      </div>
+    </div>
+
+    <div id="inlineFicha" class="ficha-inline" hidden></div>
+  </section>
+
+  <!-- SLIDE 6 / SEÇÃO 6: RANKING POR UF (TABELA COM CORES, NÚMEROS E GRÁFICO POR LINHA) -->
+  <section class="card slide-sec" id="sec-5" data-title="6. Ranking por UF (Mapa de Calor + Gráfico por Linha)">
+    <div style="display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between;margin-bottom:10px">
+      <div>
+        <h3>Ranking por UF — Tabela com Cores, Números e Gráfico Resumido por Linha</h3>
+        <div class="cap" style="margin-bottom:0">Clique nos botões ou em qualquer coluna para ordenar · Clique em uma UF para inspecionar nos mapas, simulador e tabela</div>
+      </div>
+      <div style="display:flex;flex-wrap:wrap;gap:8px;align-items:center">
+        <div class="mbtn-grp" id="rkRegBtns"></div>
+        <div class="btnbar" id="rkMetricBtns"></div>
+      </div>
+    </div>
+    <div class="tablewrap">
+      <table id="ufTable">
+        <thead id="ufThead"></thead>
+        <tbody id="ufTbody"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- SLIDE 7 / SEÇÃO 7: EXPLORAR ENTES COM GRÁFICO RESUMIDO POR LINHA E ATALHO SIMULADOR -->
+  <section class="slide-sec" id="sec-6" data-title="7. Explorar 5.596 Entes (Redes Estaduais e Municipais)">
+    <div class="sectitle">
+      <span>Explorar Entes (Redes Estaduais e Municipais) — Com Gráfico Resumido por Linha</span>
+      <span id="activeFilterBadge" class="note"></span>
+    </div>
+    <div class="toolbar">
+      <div class="field"><label>Região</label>
+        <div class="mbtn-grp" id="fRegBtns">
+          <button class="mbtn active" data-val="">Todas</button>
+          <button class="mbtn" data-val="Norte">Norte</button>
+          <button class="mbtn" data-val="Nordeste">Nordeste</button>
+          <button class="mbtn" data-val="Centro-Oeste">C.-Oeste</button>
+          <button class="mbtn" data-val="Sudeste">Sudeste</button>
+          <button class="mbtn" data-val="Sul">Sul</button>
+        </div>
+      </div>
+      <div class="field"><label for="fUF">UF</label><select id="fUF"></select></div>
+      <div class="field"><label>Rede</label>
+        <div class="mbtn-grp" id="fRedeBtns">
+          <button class="mbtn active" data-val="">Todas</button>
+          <button class="mbtn" data-val="M">Municipal</button>
+          <button class="mbtn" data-val="E">Estadual</button>
+        </div>
+      </div>
+      <div class="field"><label>VAAR</label>
+        <div class="mbtn-grp" id="fSitBtns">
+          <button class="mbtn active" data-val="">Todas</button>
+          <button class="mbtn" data-val="hab">Habilitadas</button>
+          <button class="mbtn" data-val="nao">Não hab.</button>
+          <button class="mbtn" data-val="perdeu">Perderam (25→26)</button>
+          <button class="mbtn" data-val="ben">Beneficiárias</button>
+        </div>
+      </div>
+      <div class="field"><label>Visão</label>
+        <div class="mbtn-grp" id="fColsBtns">
+          <button class="mbtn active" data-val="all">Completa</button>
+          <button class="mbtn" data-val="fin">Financiamento</button>
+          <button class="mbtn" data-val="edu">Educacional</button>
+        </div>
+      </div>
+      <div class="field"><input type="search" id="fBusca" placeholder="Buscar município ou rede..."></div>
+      <div class="spacer"></div>
+      <div class="count" id="count"></div>
+    </div>
+    <div class="tablewrap"><table><thead id="thead"></thead><tbody id="tbody"></tbody></table></div>
+    <div class="note" id="tableNote" style="margin-top:6px"></div>
+  </section>
+
+  <footer>
+    Fontes: FNDE — Fundeb 2026 e 2025 e Lista de beneficiários/não beneficiários VAAR; INEP — Notas Técnicas nº 23/2022 e nº 5/2024, Ideb 2025, Saeb, taxas de rendimento 2025, Censo Escolar (2017–2023) e INSE 2023; SIMET/Educação Conectada 2023 (NIC.br); Metodologia Simulador VAAR alinhada a <code>guimaraesca/Simulador-VAAR-PI</code> (SEDUC-PI).
+  </footer>
+</div>
+
+<!-- Barra Inferior do Modo Apresentação (Slides p/ Reunião) -->
+<div class="pres-bar" id="presBar" hidden>
+  <div style="display:flex;gap:8px;align-items:center">
+    <button class="btn" id="prevSlideBtn">◀ Anterior</button>
+    <button class="btn" id="nextSlideBtn">Próximo ▶</button>
+    <span class="tag" id="slideCounterLbl" style="font-size:11.5px;padding:3px 8px">Slide 1 / 7</span>
+  </div>
+  <div class="pres-steps" id="presDots"></div>
+  <div style="display:flex;gap:8px;align-items:center">
+    <button class="btn" id="exitPresBtn" style="border-color:var(--crit);color:var(--crit)">✕ Sair do Modo Slides (Esc)</button>
+  </div>
+</div>
+
+<div class="tt" id="tt"></div>
+<div class="overlay" id="overlay" hidden><div class="sheet" id="sheet"></div></div>
+
+<script id="data" type="application/json">/*__PAYLOAD__*/</script>
+<script id="geouf" type="application/json">/*__GEOUF__*/</script>
+<script id="geomun" type="application/json">/*__GEOMUN__*/</script>
+<script>
+(function(){
+"use strict";
+var DB=JSON.parse(document.getElementById('data').textContent);
+var GUF=JSON.parse(document.getElementById('geouf').textContent);
+var GMUN=JSON.parse(document.getElementById('geomun').textContent);
+var C={};DB.cols.forEach(function(c,i){C[c]=i;});
+var rows=DB.rows, nat=DB.nat, byuf=DB.byuf;
+function g(r,k){return r[C[k]];}
+function brl(x){if(x==null)x=0;return Math.round(x).toLocaleString('pt-BR',{maximumFractionDigits:0});}
+function abbr(x){x=x||0;var a=Math.abs(x);if(a>=1e9)return (x/1e9).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2})+' bi';if(a>=1e6)return (x/1e6).toLocaleString('pt-BR',{minimumFractionDigits:1,maximumFractionDigits:1})+' mi';if(a>=1e3)return (x/1e3).toLocaleString('pt-BR',{maximumFractionDigits:0})+' mil';return brl(x);}
+function pctf(x){return (x*100).toLocaleString('pt-BR',{minimumFractionDigits:1,maximumFractionDigits:1})+'%';}
+function dec(x,n){return x==null||isNaN(x)?'—':x.toLocaleString('pt-BR',{minimumFractionDigits:n,maximumFractionDigits:n});}
+
+var REG={AC:'Norte',AM:'Norte',AP:'Norte',PA:'Norte',RO:'Norte',RR:'Norte',TO:'Norte',AL:'Nordeste',BA:'Nordeste',CE:'Nordeste',MA:'Nordeste',PB:'Nordeste',PE:'Nordeste',PI:'Nordeste',RN:'Nordeste',SE:'Nordeste',DF:'Centro-Oeste',GO:'Centro-Oeste',MT:'Centro-Oeste',MS:'Centro-Oeste',ES:'Sudeste',MG:'Sudeste',RJ:'Sudeste',SP:'Sudeste',PR:'Sul',RS:'Sul',SC:'Sul'};
+var REGCOL={Norte:'#2563eb',Nordeste:'#ea580c',"Centro-Oeste":'#d97706',Sudeste:'#0d9488',Sul:'#7c3aed'};
+var UFCOD2SIG={}, UFSIG2COD={};
+for(var _c in GUF){UFCOD2SIG[_c]=GUF[_c].s; UFSIG2COD[GUF[_c].s]=_c;}
+
+var rowByIb={}; rows.forEach(function(r){rowByIb[g(r,'ib')]=r;});
+
+var ufExtra={};
+Object.keys(byuf).forEach(function(u){ufExtra[u]={cd_s:0,cd_n:0,c1:0,c2:0,c3:0,c4:0,c5:0};});
+rows.forEach(function(r){
+  var u=g(r,'uf'), ex=ufExtra[u]; if(!ex)return;
+  if(g(r,'rd')==='M' && g(r,'cdown')!=null){ex.cd_s+=g(r,'cdown');ex.cd_n++;}
+  if(g(r,'hab')===0){['c1','c2','c3','c4','c5'].forEach(function(k){if(g(r,k)===0)ex[k]++;});}
+});
+Object.keys(byuf).forEach(function(u){
+  var ex=ufExtra[u];
+  byuf[u].cdown=ex.cd_n?+(ex.cd_s/ex.cd_n).toFixed(1):null;
+});
+
+// ===== NAVIGATION & PRESENTATION / SLIDE MODE =====
+var slideMode=false, curSlide=0, totalSlides=7;
+var slideSecs=document.querySelectorAll('.slide-sec');
+
+function goToSectionOrSlide(idx){
+  curSlide=Math.max(0,Math.min(totalSlides-1,idx));
+  document.querySelectorAll('#topNavPills .nav-pill').forEach(function(b,i){
+    b.classList.toggle('active', i===curSlide);
+  });
+  if(slideMode){
+    slideSecs.forEach(function(s,i){s.classList.toggle('active-slide', i===curSlide);});
+    document.getElementById('slideCounterLbl').textContent='Slide '+(curSlide+1)+' / '+totalSlides;
+    document.querySelectorAll('#presDots .pres-dot').forEach(function(d,i){
+      d.classList.toggle('active', i===curSlide);
+    });
+  } else {
+    var target=document.getElementById('sec-'+curSlide);
+    if(target) target.scrollIntoView({behavior:'smooth',block:'start'});
+  }
+}
+
+function setSlideMode(on){
+  slideMode=on;
+  document.body.classList.toggle('slide-mode', on);
+  document.getElementById('presBar').hidden=!on;
+  document.getElementById('presBtn').textContent=on?'✕ Sair dos Slides':'▶ Modo Reunião (Slides)';
+  if(on) goToSectionOrSlide(curSlide);
+}
+
+document.getElementById('presBtn').addEventListener('click',function(){setSlideMode(!slideMode);});
+document.getElementById('exitPresBtn').addEventListener('click',function(){setSlideMode(false);});
+document.getElementById('prevSlideBtn').addEventListener('click',function(){goToSectionOrSlide(curSlide-1);});
+document.getElementById('nextSlideBtn').addEventListener('click',function(){goToSectionOrSlide(curSlide+1);});
+document.getElementById('fullBtn').addEventListener('click',function(){
+  if(!document.fullscreenElement){document.documentElement.requestFullscreen().catch(function(){});}
+  else{document.exitFullscreen().catch(function(){});}
+});
+
+document.getElementById('presDots').innerHTML=Array.from(slideSecs).map(function(s,i){
+  return '<button class="pres-dot'+(i===0?' active':'')+'" data-i="'+i+'">'+s.getAttribute('data-title')+'</button>';
+}).join('');
+document.querySelectorAll('#presDots .pres-dot').forEach(function(b){
+  b.addEventListener('click',function(){goToSectionOrSlide(+b.getAttribute('data-i'));});
+});
+document.querySelectorAll('#topNavPills .nav-pill').forEach(function(b){
+  b.addEventListener('click',function(){goToSectionOrSlide(+b.getAttribute('data-slide'));});
+});
+document.querySelectorAll('.topic-card[data-goto]').forEach(function(c){
+  c.addEventListener('click',function(){goToSectionOrSlide(+c.getAttribute('data-goto'));});
+});
+document.getElementById('toggleGuideBtn').addEventListener('click',function(){
+  var gb=document.getElementById('guideBody');
+  gb.hidden=!gb.hidden;
+  this.textContent=gb.hidden?'▼ Expandir Guia Inicial':'▲ Recolher Guia Inicial';
+});
+
+document.addEventListener('keydown',function(e){
+  if(e.target.tagName==='INPUT'||e.target.tagName==='SELECT') return;
+  if(slideMode){
+    if(e.key==='ArrowRight'||e.key==='PageDown') {e.preventDefault();goToSectionOrSlide(curSlide+1);}
+    else if(e.key==='ArrowLeft'||e.key==='PageUp') {e.preventDefault();goToSectionOrSlide(curSlide-1);}
+    else if(e.key==='Escape' && document.getElementById('overlay').hidden) {setSlideMode(false);}
+  }
+});
+
+// ===== 1. KPIs & OVERVIEW =====
+var dv=nat.vaar-nat.vaar2025;
+document.getElementById('kpis').innerHTML=[
+ {l:'União — total',v:'R$ '+abbr(nat.total),f:nat.n.toLocaleString('pt-BR')+' redes',d:'var(--accent)'},
+ {l:'VAAF (10%)',v:'R$ '+abbr(nat.vaaf),f:pctf(nat.vaaf/nat.total)+' da União',d:'var(--vaaf)'},
+ {l:'VAAT (10,5%)',v:'R$ '+abbr(nat.vaat),f:pctf(nat.vaat/nat.total)+' da União',d:'var(--vaat)'},
+ {l:'VAAR 2026 (2,5%)',v:'R$ '+abbr(nat.vaar),f:'2025: R$ '+abbr(nat.vaar2025)+' ('+(dv>=0?'+':'')+abbr(dv)+')',d:'var(--vaar)'},
+ {l:'Habilitadas VAAR',v:nat.hab.toLocaleString('pt-BR'),f:pctf(nat.hab/nat.n)+' (3.034 benef.)',d:'var(--good)'},
+ {l:'Não habilitadas',v:nat.naohab.toLocaleString('pt-BR'),f:pctf(nat.naohab/nat.n)+' reprovaram',d:'var(--crit)'}
+].map(function(k){return '<div class="kpi"><div class="lab"><span class="dot" style="background:'+k.d+'"></span>'+k.l+'</div><div class="val num">'+k.v+'</div><div class="foot">'+k.f+'</div></div>';}).join('');
+
+document.getElementById('totComp').textContent=abbr(nat.total);
+var comp=[{k:'VAAF',v:nat.vaaf,c:'var(--vaaf)'},{k:'VAAT',v:nat.vaat,c:'var(--vaat)'},{k:'VAAR',v:nat.vaar,c:'var(--vaar)'}];
+document.getElementById('compStack').innerHTML=comp.map(function(s,i){return '<div data-tip="'+s.k+': R$ '+brl(s.v)+' ('+pctf(s.v/nat.total)+')" style="width:'+(s.v/nat.total*100)+'%;background:'+s.c+';'+(i<2?'margin-right:2px':'')+'"></div>';}).join('');
+document.getElementById('compLegend').innerHTML=comp.map(function(s){return '<span><span class="dot" style="background:'+s.c+'"></span>'+s.k+' <b>R$ '+abbr(s.v)+'</b> · '+pctf(s.v/nat.total)+'</span>';}).join('');
+
+var tr=nat.trans, tN=nat.n;
+var tseg=[{k:'Mantiveram',n:tr.mantem,c:'var(--good)'},{k:'Entraram',n:tr.entrou,c:'var(--accent)'},{k:'Perderam',n:tr.perdeu,c:'var(--crit)'},{k:'Seguem fora',n:tr.fora,c:'var(--surface-3)'}];
+document.getElementById('transSeg').innerHTML=tseg.map(function(s,i){return '<div data-tip="'+s.k+': '+s.n.toLocaleString('pt-BR')+' redes ('+pctf(s.n/tN)+')" style="width:'+(s.n/tN*100)+'%;background:'+s.c+';'+(i<3?'margin-right:2px':'')+'"></div>';}).join('');
+document.getElementById('transLegend').innerHTML=tseg.map(function(s){return '<span><span class="dot" style="background:'+s.c+'"></span>'+s.k+' <b>'+s.n.toLocaleString('pt-BR')+'</b></span>';}).join('');
+document.getElementById('transNote').innerHTML='<b style="color:var(--crit)">'+tr.perdeu+' redes</b> perderam VAAR em 2026 (−R$ '+abbr(nat.tsum.perdeu)+') · <b style="color:var(--accent)">'+tr.entrou+'</b> entraram (+R$ '+abbr(nat.tsum.entrou)+').';
+
+// ===== 2. CONDITIONALITIES =====
+var COND_META={
+  c3:{code:'Cond. III',short:'Redução das desigualdades educacionais',desc:'Redução de desigualdades socioeconômicas e raciais medidas no Saeb (Art. 14, § 1º, III)'},
+  c1:{code:'Cond. I',short:'Gestão escolar por mérito e desempenho',desc:'Provimento de cargo/função de gestor escolar por critérios técnicos de mérito e desempenho (Art. 14, § 1º, I)'},
+  c2:{code:'Cond. II',short:'Participação mínima de 80% no Saeb',desc:'Participação de pelo menos 80% dos estudantes de cada ano escolar avaliado no Saeb (Art. 14, § 1º, II)'},
+  c4:{code:'Cond. IV',short:'Regime de colaboração (ICMS Educacional)',desc:'Legislação estadual de rateio da cota-parte do ICMS vinculada a melhoria de aprendizagem (Art. 14, § 1º, IV)'},
+  c5:{code:'Cond. V',short:'Referenciais curriculares alinhados à BNCC',desc:'Referenciais curriculares alinhados à Base Nacional Comum Curricular aprovados (Art. 14, § 1º, V)'}
+};
+var cf={c1:0,c2:0,c3:0,c4:0,c5:0}, cfOnly={c1:0,c2:0,c3:0,c4:0,c5:0};
+var fail1=0, failMulti=0, habSemBen=0;
+for(var i=0;i<rows.length;i++){
+  var r=rows[i];
+  if(g(r,'hab')===1 && g(r,'ben')===0) habSemBen++;
+  if(g(r,'hab')===0){
+    var fks=[];
+    ['c1','c2','c3','c4','c5'].forEach(function(k){if(g(r,k)===0){cf[k]++;fks.push(k);}});
+    if(fks.length===1){fail1++;cfOnly[fks[0]]++;}
+    else if(fks.length>1){failMulti++;}
+  }
+}
+var maxcf=Math.max(cf.c1,cf.c2,cf.c3,cf.c4,cf.c5);
+
+document.getElementById('condSummary').innerHTML=
+  '<div><h4><span>Resumo Geral da Habilitação</span><span class="tag">'+nat.n.toLocaleString('pt-BR')+' redes</span></h4>'+
+  '<div class="cond-stat-grid" style="margin-top:8px">'+
+    '<div class="cond-stat"><div class="k">Não habilitadas</div><div class="v" style="color:var(--crit)">'+nat.naohab.toLocaleString('pt-BR')+' <span style="font-size:11px;font-weight:500">('+pctf(nat.naohab/nat.n)+')</span></div><div class="s">Reprovaram em ≥1 cond.</div></div>'+
+    '<div class="cond-stat"><div class="k">Reprovaram em só 1</div><div class="v">'+fail1.toLocaleString('pt-BR')+' <span style="font-size:11px;font-weight:500">('+pctf(fail1/nat.naohab)+')</span></div><div class="s">1.502 só na Cond. III</div></div>'+
+    '<div class="cond-stat"><div class="k">Reprovaram em 2+</div><div class="v">'+failMulti.toLocaleString('pt-BR')+' <span style="font-size:11px;font-weight:500">('+pctf(failMulti/nat.naohab)+')</span></div><div class="s">Múltiplas pendências</div></div>'+
+    '<div class="cond-stat"><div class="k">Hab. sem benefício</div><div class="v" style="color:var(--warn)">'+habSemBen+' redes</div><div class="s">Sem avanço atend./aprend.</div></div>'+
+  '</div></div>'+
+  '<div class="note" style="border-top:1px solid var(--line);padding-top:6px"><b>Gargalo central:</b> A <b>Cond. III</b> responde por <b>'+pctf(cf.c3/nat.naohab)+'</b> das inabilitações (1.502 redes ficariam habilitadas imediatamente se cumprissem apenas a Cond. III).</div>';
+
+var activeCondFilter='';
+function renderCondChart(){
+  document.getElementById('condChart').innerHTML=['c3','c1','c2','c4','c5'].map(function(k){
+    var m=COND_META[k], tot=cf[k], only=cfOnly[k];
+    var isAct=(activeCondFilter===k);
+    return '<div class="cond-item'+(isAct?' active':'')+'" data-cond="'+k+'" data-tip="Clique para filtrar as '+tot.toLocaleString('pt-BR')+' redes que reprovaram na '+m.code+' ('+only.toLocaleString('pt-BR')+' reprovaram exclusivamente nela)">'+
+      '<div class="cond-info">'+
+        '<div class="title"><span class="badge">'+m.code+'</span><span>'+m.short+'</span></div>'+
+        '<div class="desc" title="'+m.desc+'">'+m.desc+'</div>'+
+      '</div>'+
+      '<div class="cond-track"><div class="cond-fill" style="width:'+(tot/maxcf*100)+'%"></div></div>'+
+      '<div class="cond-nums"><b>'+tot.toLocaleString('pt-BR')+'</b> ('+pctf(tot/nat.naohab)+')<span>'+only.toLocaleString('pt-BR')+' só nesta cond.</span></div>'+
+    '</div>';
+  }).join('');
+  document.querySelectorAll('#condChart .cond-item').forEach(function(el){
+    el.addEventListener('click',function(){
+      var k=el.getAttribute('data-cond');
+      activeCondFilter=(activeCondFilter===k)?'':k;
+      document.getElementById('clearCondBtn').hidden=!activeCondFilter;
+      renderCondChart();
+      renderTable();
+      if(activeCondFilter && !slideMode){
+        document.getElementById('sec-6').scrollIntoView({behavior:'smooth',block:'start'});
+      }
+    });
+  });
+}
+document.getElementById('clearCondBtn').addEventListener('click',function(){
+  activeCondFilter='';this.hidden=true;renderCondChart();renderTable();
+});
+renderCondChart();
+
+// Tooltip
+var tt=document.getElementById('tt');
+document.addEventListener('mouseover',function(e){var el=e.target.closest('[data-tip]');if(!el)return;tt.textContent=el.getAttribute('data-tip');tt.style.opacity='1';});
+document.addEventListener('mousemove',function(e){if(tt.style.opacity==='1'){var x=e.clientX+12,y=e.clientY+14;if(x+tt.offsetWidth>innerWidth-8)x=e.clientX-tt.offsetWidth-12;tt.style.left=x+'px';tt.style.top=y+'px';}});
+document.addEventListener('mouseout',function(e){if(e.target.closest('[data-tip]'))tt.style.opacity='0';});
+
+// ===== 3. HISTORICAL TIMELINE & ACTION PLAN ("COMO AGIR") =====
+// Constitutional progression EC 108/2020 (2021 to 2026)
+var NAT_HIST=[
+  {yr:'2021',pct:'12,0%',vaaf:10.0,vaat:2.0,vaar:0.0,tot:'R$ 23,5 bi'},
+  {yr:'2022',pct:'15,0%',vaaf:10.0,vaat:5.0,vaar:0.0,tot:'R$ 34,2 bi'},
+  {yr:'2023',pct:'17,0%',vaaf:10.0,vaat:6.25,vaar:0.75,tot:'R$ 41,8 bi'},
+  {yr:'2024',pct:'19,0%',vaaf:10.0,vaat:7.5,vaar:1.5,tot:'R$ 49,5 bi'},
+  {yr:'2025',pct:'21,0%',vaaf:10.0,vaat:9.0,vaar:2.0,tot:'R$ 58,9 bi'},
+  {yr:'2026',pct:'23,0%',vaaf:10.0,vaat:10.5,vaar:2.5,tot:'R$ 69,92 bi'}
+];
+document.getElementById('natHistChart').innerHTML=NAT_HIST.map(function(h){
+  var hVf=Math.round(h.vaaf/23*100), hVt=Math.round(h.vaat/23*100), hVr=Math.max(h.vaar?6:0, Math.round(h.vaar/23*100));
+  return '<div class="tcol" data-tip="'+h.yr+': Complementação União '+h.pct+' ('+h.tot+') — VAAF '+h.vaaf+'% · VAAT '+h.vaat+'% · VAAR '+h.vaar+'%">'+
+    '<div class="tval">'+h.tot+'</div>'+
+    '<div class="tbar-wrap" style="height:100px">'+
+      '<div style="height:'+hVf+'px;background:var(--vaaf)"></div>'+
+      '<div style="height:'+hVt+'px;background:var(--vaat)"></div>'+
+      (hVr?'<div style="height:'+hVr+'px;background:var(--vaar)"></div>':'')+
+    '</div>'+
+    '<div class="tlbl">'+h.yr+' ('+h.pct+')</div>'+
+  '</div>';
+}).join('');
+
+var curSimIb='22'; // Default: PI - Governo do Estado (SEDUC-PI)
+
+function renderHistoricalAndActions(ib){
+  var r=rowByIb[ib]||rowByIb['22'];
+  var isEst=(g(r,'rd')==='E');
+  var nm=g(r,'nm')+' ('+g(r,'uf')+')';
+  document.getElementById('actionTargetLabel').textContent=nm+' · '+(isEst?'Rede Estadual':'Rede Municipal');
+  document.getElementById('actionScopeTag').textContent=isEst?'Escopo Rede Estadual (Ensino Médio + EF)':'Escopo Rede Municipal (Ed. Infantil + EF AI/AF)';
+
+  var vr25=g(r,'vr25')||0, vr26=g(r,'vr')||0, vra=g(r,'vra')||0, vrp=g(r,'vrp')||0;
+  var vf=g(r,'vf')||0, vt=g(r,'vt')||0, rc=g(r,'rc')||0, tot=g(r,'tot')||0;
+  var hab=g(r,'hab')===1, eva=g(r,'eva')===1, evp=g(r,'evp')===1;
+  var ia=g(r,'ia')||0, ip=g(r,'ip')||0;
+
+  // Potential VAAR if both dimensions active
+  var potVaar = calcNetworkPotentialVaar(r);
+  var maxBar = Math.max(vr25, vr26, potVaar.tot, 1);
+
+  document.getElementById('netHistBox').innerHTML=
+    '<h4><span>Trajetória de Recursos da Rede: '+nm+'</span><span class="tag">IBGE '+g(r,'ib')+'</span></h4>'+
+    '<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:7px">'+
+      '<div class="cond-stat"><div class="k">Receita Própria (20%)</div><div class="v">R$ '+abbr(rc)+'</div><div class="s">Cesta impostos est./mun.</div></div>'+
+      '<div class="cond-stat"><div class="k">VAAR 2025 Recebido</div><div class="v">R$ '+abbr(vr25)+'</div><div class="s">Exercício anterior</div></div>'+
+      '<div class="cond-stat"><div class="k">VAAR 2026 Oficial</div><div class="v" style="color:var(--vaar)">R$ '+abbr(vr26)+'</div><div class="s">Atend: '+abbr(vra)+' · Apr: '+abbr(vrp)+'</div></div>'+
+      '<div class="cond-stat"><div class="k">Potencial Pleno 2026/27</div><div class="v" style="color:var(--good)">R$ '+abbr(potVaar.tot)+'</div><div class="s">+'+abbr(Math.max(0,potVaar.tot-vr26))+' destravável</div></div>'+
+    '</div>'+
+    '<div style="display:flex;flex-direction:column;gap:5px;margin-top:4px">'+
+      '<div style="display:grid;grid-template-columns:130px 1fr 95px;align-items:center;gap:8px;font-size:11.5px"><span>VAAR 2025:</span><div class="cond-track"><div class="cond-fill" style="width:'+(vr25/maxBar*100)+'%;background:var(--muted)"></div></div><b class="r">R$ '+abbr(vr25)+'</b></div>'+
+      '<div style="display:grid;grid-template-columns:130px 1fr 95px;align-items:center;gap:8px;font-size:11.5px"><span>VAAR 2026 (Atual):</span><div class="cond-track"><div class="cond-fill" style="width:'+(vr26/maxBar*100)+'%;background:var(--vaar)"></div></div><b class="r">R$ '+abbr(vr26)+'</b></div>'+
+      '<div style="display:grid;grid-template-columns:130px 1fr 95px;align-items:center;gap:8px;font-size:11.5px"><span>Potencial c/ Ações:</span><div class="cond-track"><div class="cond-fill" style="width:'+(potVaar.tot/maxBar*100)+'%;background:var(--good)"></div></div><b class="r" style="color:var(--good)">R$ '+abbr(potVaar.tot)+'</b></div>'+
+    '</div>';
+
+  // Generate 4 Custom Action Cards ("Como Agir")
+  var failedConds=[];
+  [['I','c1','Gestão Escolar (mérito/desempenho)'],['II','c2','Participação ≥80% no Saeb'],['III','c3','Redução de desigualdades (PPI/NSE no Saeb)'],['IV','c4','ICMS Educacional estadual'],['V','c5','Referencial Curricular BNCC']].forEach(function(p){
+    if(g(r,p[1])===0) failedConds.push('<b>Cond. '+p[0]+'</b> ('+p[2]+')');
+  });
+
+  var c1Html = hab
+    ? '<div class="action-card good"><h5><span>1. Manutenção da Habilitação (Cond. I a V)</span><span class="pill ok">✓ Habilitada</span></h5><p>A rede cumpriu as 5 condicionalidades para 2026. <b>Como agir p/ 2027:</b> monitorar a participação mínima de 80% no Saeb ('+(isEst?'5º, 9º EF e 3ª EM':'5º e 9º EF')+') e manter a queda da proporção de alunos PPI e Baixo NSE abaixo do nível adequado (NT 5/2024).</p></div>'
+    : '<div class="action-card urgent"><h5><span>1. Destravar Habilitação VAAR (Urgente)</span><span class="pill no">✗ Inabilitada</span></h5><p>Reprovou em: '+failedConds.join(', ')+'. <b>Como agir:</b> '+(g(r,'c3')===0?'Focar reforço nos alunos <b>PPI e Baixo NSE</b> abaixo do corte adequado do Saeb ('+(isEst?'LP>200/MT>225 5ºEF, LP>275/MT>300 9ºEF, LP>300/MT>350 3ªEM':'LP>200/MT>225 5ºEF e LP>275/MT>300 9ºEF')+'). ':'')+(g(r,'c1')===0?'Homologar lei/ato de provimento de diretores por mérito no Simec. ':'')+(g(r,'c2')===0?'Garantir mobilização para atingir ≥80% de presença no Saeb.':'')+'</p></div>';
+
+  var m17=g(r,'m17')||0, m23=g(r,'m23')||0;
+  var stageName = isEst ? 'Ensino Médio' : 'Educação Infantil (Creche + Pré-escola)';
+  var c2Html = (eva && vra>0)
+    ? '<div class="action-card good"><h5><span>2. Parcela VAAR-Atendimento (50% do Fundo)</span><span class="pill ok">Recebe R$ '+abbr(vra)+'</span></h5><p>Indicador de Atendimento atual: <b>'+dec(ia,4)+'</b> (IEE &gt; 1 no '+stageName+'). <b>Como agir:</b> manter expansão de matrículas no '+stageName+' e reduzir o abandono escolar ('+(isEst?'foco no Ensino Médio, que pesa ~50% do IAE estadual':'foco nos Anos Finais do EF')+') para elevar o peso <code>2 − exp(−4·IND)</code>.</p></div>'
+    : '<div class="action-card warn"><h5><span>2. Destravar VAAR-Atendimento (50% = +R$ '+abbr(potVaar.atend)+')</span><span class="pill warn">Zerado em 2026</span></h5><p>A rede não pontuou em Atendimento (<code>IndAtend = '+dec(ia,4)+'</code>; matrículas '+stageName+' 2017→2023: '+m17.toLocaleString('pt-BR')+' → '+m23.toLocaleString('pt-BR')+'). <b>Como agir:</b> elevar a matrícula no <b>'+stageName+'</b> para superar <b>IEE &gt; 1,000</b> e combater a evasão (IAE), destravando cerca de <b>R$ '+abbr(potVaar.atend)+'</b> adicionais!</p></div>';
+
+  var c3Html = (evp && vrp>0)
+    ? '<div class="action-card good"><h5><span>3. Parcela VAAR-Aprendizagem (50% do Fundo)</span><span class="pill ok">Recebe R$ '+abbr(vrp)+'</span></h5><p>Indicador de Aprendizagem atual: <b>'+dec(ip,4)+'</b>. <b>Como agir:</b> elevar a taxa de aprovação escolar (<b>IAPE</b> = '+dec(g(r,'apf'),1)+'% EF'+(isEst?' / '+dec(g(r,'apm'),1)+'% EM':'')+'), reduzir alunos no Nível 1/2 da escala Saeb (<b>INE</b>) e estreitar a razão de proficiência <b>IDE Raça (PPI/BA)</b> e <b>IDE Social (Q1/Q4)</b>.</p></div>'
+    : '<div class="action-card urgent"><h5><span>3. Capturar VAAR-Aprendizagem (+R$ '+abbr(potVaar.aprend)+')</span><span class="pill no">Não Recebido</span></h5><p>Indicador de Aprendizagem: <b>'+dec(ip,4)+'</b>. <b>Como agir:</b> combinar recomposição da aprendizagem em LP e Matemática ('+(isEst?'5º EF, 9º EF e 3ª EM':'5º e 9º EF')+') com busca ativa para elevar aprovação (IAPE) e equidade racial/socioeconômica.</p></div>';
+
+  var vta=g(r,'vta')||0, vtc=g(r,'vtc')||0, vtei=g(r,'vtei')||0;
+  var c4Html = '<div class="action-card"><h5><span>4. Otimização de VAAT & Educação Infantil</span><span class="tag">VAAT: R$ '+abbr(vt)+'</span></h5><p>VAAT por aluno: <b>R$ '+brl(vta)+'</b> → piso <b>R$ '+brl(vtc||10194)+'</b>. '+(isEst?'Para a Rede Estadual, ampliar matrículas em <b>Ensino Médio em Tempo Integral (peso 1,30)</b> e Educação Profissional amplia a ponderação no VAAF/VAAT.':'Para a Rede Municipal, '+(vtei?'já recebe R$ '+abbr(vtei)+' vinculados à Ed. Infantil (IEI '+pctf(g(r,'iei'))+'). ':'')+'Ampliar matrículas em <b>Creche e Tempo Integral</b> maximiza o repasse VAAT e simultaneamente eleva o IEE do VAAR!')+'</p></div>';
+
+  document.getElementById('actionCards').innerHTML = c1Html + c2Html + c3Html + c4Html;
+}
+
+document.getElementById('gotoSimFromActionBtn').addEventListener('click',function(){
+  goToSectionOrSlide(3);
+});
+
+// ===== 4. SIMULADOR VAAR (REDE ESTADUAL VS MUNICIPAL — METODOLOGIA SIMULADOR-VAAR-PI) =====
+// Calibrate base enrollment factor per network from official 2026 FNDE values
+function calcNetworkPotentialVaar(r){
+  var ia=g(r,'ia')||0.98, ip=g(r,'ip')||1.0;
+  var wa=2-Math.exp(-4*Math.max(0.5,ia)), wp=2-Math.exp(-4*Math.max(0.5,ip));
+  var vra=g(r,'vra')||0, vrp=g(r,'vrp')||0;
+  var rc=g(r,'rc')||0, vf=g(r,'vf')||0, vt=g(r,'vt')||0, vtc=g(r,'vtc')||10194.38;
+  var baseAp, baseAt;
+  if(vrp>0 && ip>0){
+    baseAp = vrp / (2 - Math.exp(-4*ip));
+    baseAt = vra>0 && ia>0 ? (vra / (2 - Math.exp(-4*ia))) : (baseAp * 1.0724);
+  } else if(vra>0 && ia>0){
+    baseAt = vra / (2 - Math.exp(-4*ia));
+    baseAp = baseAt / 1.0724;
+  } else {
+    var estMat = (rc + vf + vt) / (vtc>0 ? vtc : 10194.38);
+    baseAp = estMat * 176.13;
+    baseAt = estMat * 188.88;
+  }
+  return {baseAt:baseAt, baseAp:baseAp, atend:baseAt*wa, aprend:baseAp*wp, tot:baseAt*wa + baseAp*wp};
+}
+
+var simState={
+  rd:'E',
+  uf:'PI',
+  ib:'22',
+  pool:7599798279,
+  conds:[1,1,1,1,1],
+  iee:0.9626,
+  iae:2.0,
+  iape:95.0,
+  ine:1.05,
+  ideRaca:0.965,
+  ideSoc:0.811,
+  ip:0.6279,
+  scenIdx:0
+};
+
+var simUF=document.getElementById('simUF'), simEnte=document.getElementById('simEnte'), simMunField=document.getElementById('simMunField');
+simUF.innerHTML=Object.keys(byuf).sort().map(function(u){return '<option value="'+u+'"'+(u==='PI'?' selected':'')+'>'+u+'</option>';}).join('');
+
+function populateSimEntes(){
+  var u=simState.uf, rd=simState.rd;
+  simMunField.hidden=(rd==='E');
+  var list=rows.filter(function(r){return g(r,'uf')===u && g(r,'rd')===rd;});
+  if(rd==='E'){
+    if(list.length) loadEntityIntoSimulator(g(list[0],'ib'));
+  } else {
+    simEnte.innerHTML=list.map(function(r){return '<option value="'+g(r,'ib')+'">'+g(r,'nm')+(g(r,'hab')===0?' (Não hab.)':'')+'</option>';}).join('');
+    var targetIb = (rowByIb[simState.ib] && g(rowByIb[simState.ib],'uf')===u && g(rowByIb[simState.ib],'rd')==='M') ? simState.ib : (list[0]?g(list[0],'ib'):'');
+    if(targetIb){ simEnte.value=targetIb; loadEntityIntoSimulator(targetIb); }
+  }
+}
+
+function loadEntityIntoSimulator(ib){
+  var r=rowByIb[ib]; if(!r)return;
+  curSimIb=ib;
+  simState.ib=ib;
+  simState.rd=g(r,'rd');
+  simState.uf=g(r,'uf');
+  simUF.value=simState.uf;
+
+  document.querySelectorAll('#simModeSwitch .sim-mode-btn').forEach(function(b){
+    b.classList.toggle('active', b.getAttribute('data-rd')===simState.rd);
+  });
+  simMunField.hidden=(simState.rd==='E');
+  if(simState.rd==='M'){
+    var list=rows.filter(function(x){return g(x,'uf')===simState.uf && g(x,'rd')==='M';});
+    simEnte.innerHTML=list.map(function(x){return '<option value="'+g(x,'ib')+'">'+g(x,'nm')+(g(x,'hab')===0?' (Não hab.)':'')+'</option>';}).join('');
+    simEnte.value=ib;
+  }
+
+  simState.conds=[g(r,'c1'),g(r,'c2'),g(r,'c3'),g(r,'c4'),g(r,'c5')];
+  var isEst=(simState.rd==='E');
+  var abf=g(r,'abf')||1.2, abm=g(r,'abm')||5.0;
+  simState.iae = isEst ? +((abf*0.5 + abm*0.5)).toFixed(1) : +(abf).toFixed(1);
+  var iaRaw = g(r,'ia')||0.98;
+  // Since IND_Atend = IEE * (1 - IAE/100), derive effective IEE
+  var ieeCalc = iaRaw / Math.max(0.5, (1 - simState.iae/100));
+  if(! g(r,'eva')) ieeCalc = Math.min(0.985, ieeCalc); // If didn't evolve in attendance, IEE < 1
+  simState.iee = +ieeCalc.toFixed(4);
+
+  var apf=g(r,'apf')||96.0, apm=g(r,'apm')||90.0;
+  simState.iape = isEst ? +((apf*0.5 + apm*0.5)).toFixed(1) : +(apf).toFixed(1);
+  simState.ip = +(g(r,'ip')||1.0).toFixed(4);
+  simState.ine = 1.05;
+  simState.ideRaca = g(r,'c3')===1 ? 0.970 : 0.890;
+  simState.ideSoc = g(r,'c3')===1 ? 0.840 : 0.760;
+  simState.scenIdx = 0;
+
+  document.getElementById('simIeeRange').value = simState.iee;
+  document.getElementById('simIaeRange').value = simState.iae;
+  document.getElementById('simIapeRange').value = simState.iape;
+  document.getElementById('simIneRange').value = simState.ine;
+  document.getElementById('simIdeRacaRange').value = simState.ideRaca;
+  document.getElementById('simIdeSocRange').value = simState.ideSoc;
+  document.getElementById('simIpRange').value = simState.ip;
+
+  renderHistoricalAndActions(ib);
+  updateSimulatorUI();
+}
+
+function updateSimulatorUI(){
+  var r=rowByIb[simState.ib]; if(!r)return;
+  var isEst=(simState.rd==='E');
+
+  // 1. Update Methodology Differentiation Banner
+  document.getElementById('simDiffBanner').innerHTML = isEst
+    ? '<div><b style="color:var(--accent)">🏛️ MODO REDE ESTADUAL ATIVO ('+g(r,'nm')+' - '+g(r,'uf')+'):</b> <b>IEE</b> medido pelas matrículas do <b>Ensino Médio</b> (2017–2023) · <b>IAE/IAPE</b> ponderam <b>EF (AI+AF) + Ensino Médio (~50% do peso)</b> · <b>Saeb e Cond. III</b> avaliam <b>5º EF, 9º EF e 3ª série EM</b> (Cortes adequado: LP &gt;200/275/300 · MT &gt;225/300/350).</div><span class="tag">Metodologia SEDUC-PI / NT 23 e NT 5 INEP</span>'
+    : '<div><b style="color:var(--vaar)">🏫 MODO REDE MUNICIPAL ATIVO ('+g(r,'nm')+' - '+g(r,'uf')+'):</b> <b>IEE</b> medido pelas matrículas da <b>Educação Infantil (Creche + Pré-escola)</b> (2017–2023) · <b>IAE/IAPE</b> ponderam apenas <b>EF Anos Iniciais (~67%) e Finais (~33%)</b> · <b>Saeb e Cond. III</b> avaliam <b>5º EF e 9º EF</b> com margem de erro por porte populacional.</div><span class="tag">Metodologia Municipal / NT 23 e NT 5 INEP</span>';
+
+  document.getElementById('simStageBadge').textContent = isEst ? 'Etapa IEE: Ensino Médio' : 'Etapa IEE: Educação Infantil';
+  document.getElementById('simMatTitle').textContent = isEst ? 'Matrículas Ensino Médio (2017–2023)' : 'Matrículas Educação Infantil (2017–2023)';
+  document.getElementById('simIaeScopeLbl').textContent = isEst ? 'AI + AF + Ensino Médio' : 'EF Anos Iniciais + Finais';
+  document.getElementById('simIapeScopeLbl').textContent = isEst ? 'AI + AF + Ensino Médio' : 'EF Anos Iniciais + Finais';
+  document.getElementById('simSaebScopeBadge').textContent = isEst ? 'Saeb: 5º EF, 9º EF e 3ª EM' : 'Saeb: 5º EF e 9º EF';
+
+  // 2. Render Conditionality Checkboxes
+  var condLabels=['I (Gestão)','II (Saeb 80%)','III (Equidade)','IV (ICMS)','V (BNCC)'];
+  document.getElementById('simCondToggles').innerHTML=condLabels.map(function(lbl, idx){
+    var ok=simState.conds[idx]===1;
+    return '<button class="cnd '+(ok?'y':'n')+'" data-cidx="'+idx+'" style="cursor:pointer">'+lbl+' '+(ok?'✓':'✗')+'</button>';
+  }).join('');
+  document.querySelectorAll('#simCondToggles button').forEach(function(b){
+    b.addEventListener('click',function(){
+      var idx=+b.getAttribute('data-cidx');
+      simState.conds[idx]=simState.conds[idx]===1?0:1;
+      updateSimulatorUI();
+    });
+  });
+
+  // 3. Render Historical Enrollment Bars (2017-2023)
+  var yrs=['17','18','19','20','21','22','23'];
+  var ms=yrs.map(function(y){return g(r,'m'+y)||0;});
+  // Simulated 2023 enrollment adjusted by slider ratio if user moved slider
+  var maxM=Math.max.apply(null,ms.concat([1]));
+  var growth = ms[0]>0 ? ((ms[6]-ms[0])/ms[0]) : 0;
+  document.getElementById('simMatGrowthLabel').innerHTML='2017→2023: <b>'+(growth>=0?'+':'')+pctf(growth)+'</b>';
+  document.getElementById('simMatBars').innerHTML=yrs.map(function(y, idx){
+    var v=ms[idx], h=Math.max(6, Math.round(v/maxM*54));
+    return '<div class="mbar-col" data-tip="20'+y+': '+v.toLocaleString('pt-BR')+' matrículas ('+(isEst?'Ensino Médio':'Educação Infantil')+')"><b style="font-size:9px">'+(v>=1000?(v/1000).toFixed(1)+'k':v)+'</b><div class="mbar" style="height:'+h+'px;background:'+(idx===6?'var(--vaar)':'var(--accent)')+'"></div><span>20'+y+'</span></div>';
+  }).join('');
+
+  // 4. Compute the 5 IEE Scenarios from Simulador-VAAR-PI
+  var v18_17 = ms[0]>0 ? ms[1]/ms[0] : 1;
+  var v19_18 = ms[1]>0 ? ms[2]/ms[1] : 1;
+  var v20_19 = ms[2]>0 ? ms[3]/ms[2] : 1;
+  var v21_20 = ms[3]>0 ? ms[4]/ms[3] : 1;
+  var v22_21 = ms[4]>0 ? ms[5]/ms[4] : 1;
+  var v23_22 = ms[5]>0 ? ms[6]/ms[5] : 1;
+  var v22_20 = ms[3]>0 ? ms[5]/ms[3] : 1;
+
+  var scenarios=[
+    {name:'Simulado no Slider / Vigente 2026', val:simState.iee},
+    {name:'IEE Censo 2017–2020 (Base NT 23)', val:+(v18_17*v19_18*v20_19).toFixed(4)},
+    {name:'Cenário (a): IEE com 2021 (18→21)', val:+(v19_18*v20_19*v21_20).toFixed(4)},
+    {name:'Cenário (b): IEE sem 2021 (18→22)', val:+(v19_18*v20_19*v22_20).toFixed(4)},
+    {name:'Cenário (d): IEE 2 anos s/ 2021 (19→23)', val:+(v20_19*v22_20*v23_22).toFixed(4)}
+  ];
+
+  document.getElementById('simScenTable').innerHTML=
+    '<thead><tr><th>Cenário IEE (clique p/ aplicar)</th><th class="r">Valor IEE</th><th class="c">Recebe Atend.?</th></tr></thead><tbody>'+
+    scenarios.map(function(sc, idx){
+      var ok = sc.val >= 1.0;
+      return '<tr class="'+(simState.scenIdx===idx?'active-scen':'')+'" data-sidx="'+idx+'" data-sval="'+sc.val+'" style="cursor:pointer">'+
+        '<td>'+sc.name+'</td>'+
+        '<td class="r num">'+dec(sc.val,4)+'</td>'+
+        '<td class="c">'+(ok?'<span class="pill ok">Sim (&ge;1)</span>':'<span class="pill no">Não (&lt;1)</span>')+'</td>'+
+      '</tr>';
+    }).join('')+'</tbody>';
+
+  document.querySelectorAll('#simScenTable tbody tr').forEach(function(tr){
+    tr.addEventListener('click',function(){
+      simState.scenIdx = +tr.getAttribute('data-sidx');
+      simState.iee = +tr.getAttribute('data-sval');
+      document.getElementById('simIeeRange').value = simState.iee;
+      updateSimulatorUI();
+    });
+  });
+
+  // 5. Update Slider Value Labels & Formula Memory
+  document.getElementById('simIeeVal').textContent = dec(simState.iee, 3) + (simState.iee>=1?' (Apto ≥1)':' (Abaixo de 1,000)');
+  document.getElementById('simIaeVal').textContent = dec(simState.iae, 1) + '%';
+  document.getElementById('simIapeVal').textContent = dec(simState.iape, 1) + '%';
+  document.getElementById('simIneVal').textContent = dec(simState.ine, 2);
+  document.getElementById('simIdeRacaVal').textContent = dec(simState.ideRaca, 3);
+  document.getElementById('simIdeSocVal').textContent = dec(simState.ideSoc, 3);
+  document.getElementById('simIpVal').textContent = dec(simState.ip, 3);
+
+  var indAtend = simState.iee * (1 - simState.iae/100);
+  var pesoAtend = 2 - Math.exp(-4 * indAtend);
+  var indAprend = simState.ip;
+  var pesoAprend = 2 - Math.exp(-4 * indAprend);
+
+  document.getElementById('simFormulaMemory').innerHTML=
+    '<div style="font-size:10.5px;font-weight:700;color:var(--muted);text-transform:uppercase">Memória de Cálculo (Nota Técnica nº 23/2022 INEP)</div>'+
+    '<div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;font-size:11.2px">'+
+      '<div><span style="color:var(--muted)">IND_Atend = IEE × (1 − IAE):</span><br><b>'+dec(indAtend,4)+'</b> '+(simState.iee>=1?'<span class="pill ok">Ativo</span>':'<span class="pill no">IEE &lt; 1</span>')+'</div>'+
+      '<div><span style="color:var(--muted)">Peso Atend = 2 − e<sup>−4·IND</sup>:</span><br><b>'+dec(pesoAtend,4)+'</b> (máx 2,0000)</div>'+
+      '<div><span style="color:var(--muted)">IND_Aprend = IPA × IAPE:</span><br><b>'+dec(indAprend,4)+'</b> '+(indAprend>0?'<span class="pill ok">Ativo</span>':'<span class="pill no">Zero</span>')+'</div>'+
+      '<div><span style="color:var(--muted)">Peso Aprend = 2 − e<sup>−4·IND</sup>:</span><br><b>'+dec(pesoAprend,4)+'</b> (máx 2,0000)</div>'+
+    '</div>';
+
+  // 6. Compute Financial Result (Official 2026 vs Simulated)
+  var allCondsOk = simState.conds.every(function(c){return c===1;});
+  var pot = calcNetworkPotentialVaar(r);
+  var poolScale = simState.pool / 7599798279;
+
+  var simVra = (allCondsOk && simState.iee >= 1.0) ? (pot.baseAt * pesoAtend * poolScale) : 0;
+  var simVrp = (allCondsOk && indAprend > 0) ? (pot.baseAp * pesoAprend * poolScale) : 0;
+  var simTotal = simVra + simVrp;
+
+  var off25 = g(r,'vr25')||0;
+  var off26 = g(r,'vr')||0;
+  var off26At = g(r,'vra')||0;
+  var off26Ap = g(r,'vrp')||0;
+  var diff = simTotal - off26;
+
+  document.getElementById('simFinancialCards').innerHTML=
+    '<div class="sim-res-box" style="border-color:var(--vaar);background:color-mix(in srgb,var(--vaar) 7%,var(--surface))">'+
+      '<div style="display:flex;justify-content:space-between;align-items:center"><span style="font-size:11px;font-weight:700;text-transform:uppercase;color:var(--fg-2)">VAAR Total Simulado</span>'+(allCondsOk?'<span class="pill ok">Rede Habilitada (5/5)</span>':'<span class="pill no">Rede Inabilitada (Reprovou Cond.)</span>')+'</div>'+
+      '<div class="sim-big-num">R$ '+brl(simTotal)+' <span style="font-size:13px;font-weight:600;color:var(--fg-2)">(R$ '+abbr(simTotal)+')</span></div>'+
+      '<div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;padding-top:4px;border-top:1px solid var(--line);font-size:11.5px">'+
+        '<div><span style="color:var(--muted)">Parcela Atendimento (50%):</span><br><b>R$ '+abbr(simVra)+'</b> <span style="font-size:10px;color:var(--muted)">(R$ '+brl(simVra)+')</span></div>'+
+        '<div><span style="color:var(--muted)">Parcela Aprendizagem (50%):</span><br><b>R$ '+abbr(simVrp)+'</b> <span style="font-size:10px;color:var(--muted)">(R$ '+brl(simVrp)+')</span></div>'+
+      '</div>'+
+    '</div>'+
+    '<div class="sim-res-box">'+
+      '<div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase">Comparativo Oficial vs. Simulado</div>'+
+      '<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px;font-size:11.5px">'+
+        '<div><span style="color:var(--muted)">VAAR 2025:</span><br><b>R$ '+abbr(off25)+'</b></div>'+
+        '<div><span style="color:var(--muted)">Oficial 2026:</span><br><b>R$ '+abbr(off26)+'</b></div>'+
+        '<div><span style="color:var(--muted)">Diferença Simulada:</span><br><b style="color:'+(diff>=0?'var(--good)':'var(--crit)')+'">'+(diff>=0?'+':'')+'R$ '+abbr(diff)+'</b></div>'+
+      '</div>'+
+      '<div style="font-size:10.8px;color:var(--fg-2);margin-top:2px">Em 2026 oficial: Atendimento = <b>R$ '+abbr(off26At)+'</b> · Aprendizagem = <b>R$ '+abbr(off26Ap)+'</b></div>'+
+    '</div>';
+
+  document.getElementById('simDiagnosticFooter').innerHTML = !allCondsOk
+    ? '<b style="color:var(--crit)">Atenção:</b> Como pelo menos uma condicionalidade (I a V) está desmarcada, o repasse VAAR fica bloqueado (R$ 0). Clique nos botões de Condicionalidade na Coluna 1 para simular o destravamento.'
+    : (simState.iee < 1.0
+      ? '<b style="color:var(--warn)">Oportunidade no Atendimento:</b> O IEE atual ('+dec(simState.iee,3)+') é menor que 1,000, deixando a parcela de Atendimento zerada. Selecione um cenário com <b>IEE &ge; 1</b> ou mova o slider de IEE para destravar <b>+R$ '+abbr(pot.baseAt*pesoAtend*poolScale)+'</b>!'
+      : '<b style="color:var(--good)">Potencial Máximo Ativo:</b> Rede habilitada nas 5 condicionalidades e pontuando simultaneamente nas duas dimensões (Atendimento + Aprendizagem).');
+}
+
+// Bind Simulator Controls
+document.querySelectorAll('#simModeSwitch .sim-mode-btn').forEach(function(b){
+  b.addEventListener('click',function(){
+    simState.rd=b.getAttribute('data-rd');
+    populateSimEntes();
+  });
+});
+simUF.addEventListener('change',function(){
+  simState.uf=this.value;
+  populateSimEntes();
+});
+simEnte.addEventListener('change',function(){
+  loadEntityIntoSimulator(this.value);
+});
+document.getElementById('simResetBtn').addEventListener('click',function(){
+  loadEntityIntoSimulator(simState.ib);
+});
+document.getElementById('simIeeRange').addEventListener('input',function(){
+  simState.iee=+this.value; simState.scenIdx=0; updateSimulatorUI();
+});
+document.getElementById('simIaeRange').addEventListener('input',function(){
+  simState.iae=+this.value; updateSimulatorUI();
+});
+function recalcIpFromComponents(){
+  var baseIp = g(rowByIb[simState.ib],'ip')||0.85;
+  var eqFactor = ((simState.ideRaca/0.965) + (simState.ideSoc/0.820))/2;
+  var ineFactor = simState.ine / 1.05;
+  var iapeFactor = simState.iape / 95.0;
+  simState.ip = +(Math.max(0.1, Math.min(3.0, baseIp * eqFactor * ineFactor * iapeFactor))).toFixed(4);
+  document.getElementById('simIpRange').value = simState.ip;
+}
+['simIapeRange','simIneRange','simIdeRacaRange','simIdeSocRange'].forEach(function(id){
+  document.getElementById(id).addEventListener('input',function(){
+    if(id==='simIapeRange') simState.iape=+this.value;
+    if(id==='simIneRange') simState.ine=+this.value;
+    if(id==='simIdeRacaRange') simState.ideRaca=+this.value;
+    if(id==='simIdeSocRange') simState.ideSoc=+this.value;
+    recalcIpFromComponents();
+    updateSimulatorUI();
+  });
+});
+document.getElementById('simIpRange').addEventListener('input',function(){
+  simState.ip=+this.value; updateSimulatorUI();
+});
+document.querySelectorAll('#simPoolBtns .mbtn').forEach(function(b){
+  b.addEventListener('click',function(){
+    document.querySelectorAll('#simPoolBtns .mbtn').forEach(function(x){x.classList.remove('active');});
+    b.classList.add('active');
+    simState.pool=+b.getAttribute('data-pool');
+    updateSimulatorUI();
+  });
+});
+
+// Initialize Simulator with PI - Governo do Estado (22)
+loadEntityIntoSimulator('22');
+
+// ===== 5. MAPS IN 3 PHASES + ACTIONABLE METRIC BUTTONS =====
+var MAP_METRICS=[
+  {k:'vaar',l:'VAAR (R$)'},
+  {k:'total',l:'União Total (R$)'},
+  {k:'pnaohab',l:'% Não Hab. VAAR'},
+  {k:'ai',l:'Ideb Anos Iniciais'},
+  {k:'ideb_af',l:'Ideb Anos Finais'},
+  {k:'ideb_em',l:'Ideb Ens. Médio'},
+  {k:'abf',l:'Abandono Fund. %'},
+  {k:'inse',l:'INSE Socioecon.'},
+  {k:'capr',l:'Internet Aprend. %'},
+  {k:'cdown',l:'Download (Mbps)'},
+  {k:'bncc',l:'BNCC Computação'}
+];
+var curMapMetric='vaar', curReg='Nordeste', curUF='22'; // Start focused on PI (22) in Nordeste
+var PAL_SEQ=['#ffffcc','#c7e9b4','#7fcdbb','#41b6c4','#2c7fb8','#253494'];
+var PAL_BAD=['#ffffb2','#fed976','#feb24c','#fd8d3c','#f03b20','#bd0026'];
+var NODATA='var(--surface-3)';
+
+function quantileBreaks(vals,k){
+ var s=vals.filter(function(v){return v!=null && !isNaN(v);}).slice().sort(function(a,b){return a-b;});
+ if(s.length<2) return [];
+ var br=[];
+ for(var i=1;i<k;i++){var idx=(s.length-1)*(i/k);var lo=Math.floor(idx),hi=Math.ceil(idx);br.push(s[lo]+(s[hi]-s[lo])*(idx-lo));}
+ var out=[];for(var j=0;j<br.length;j++){if(out.length===0||br[j]>out[out.length-1]+1e-9)out.push(br[j]);}
+ return out;
+}
+function classify(v,br){var i=0;while(i<br.length&&v>br[i])i++;return i;}
+function classColor(v,br,bad){if(v==null||isNaN(v))return NODATA;var pal=bad?PAL_BAD:PAL_SEQ;var n=br.length+1;var i=classify(v,br);var idx=Math.round(i*(pal.length-1)/Math.max(1,n-1));return pal[idx];}
+
+function fmtMetric(v,m){
+  if(v==null||isNaN(v))return 'sem dado';
+  if(m==='pnaohab')return pctf(v);
+  if(m==='ai'||m==='ideb_af'||m==='ideb_em')return dec(v,1);
+  if(m==='abf')return dec(v,1)+'%';
+  if(m==='inse')return dec(v,2);
+  if(m==='capr'||m==='cnet')return dec(v,1)+'%';
+  if(m==='cdown')return dec(v,1)+' Mbps';
+  return 'R$ '+abbr(v);
+}
+
+function binLegend(br,m,bad,vmin,vmax){
+ var pal=bad?PAL_BAD:PAL_SEQ;var n=br.length+1;var html='';
+ for(var i=0;i<n;i++){
+   var idx=Math.round(i*(pal.length-1)/Math.max(1,n-1));
+   var lab;
+   if(n===1)lab=fmtMetric(vmin,m);
+   else if(i===0)lab='< '+fmtMetric(br[0],m);
+   else if(i===n-1)lab='≥ '+fmtMetric(br[br.length-1],m);
+   else lab=fmtMetric(br[i-1],m)+'–'+fmtMetric(br[i],m);
+   html+='<span style="display:inline-flex;align-items:center;gap:4px"><i style="background:'+pal[idx]+'"></i>'+lab+'</span>';
+ }
+ return html;
+}
+
+function metricVal(row,m){
+ if(m==='pnaohab')return g(row,'hab')===0?1:0;
+ if(m==='vaar')return g(row,'vr');
+ if(m==='total')return g(row,'tot');
+ if(m==='ai')return g(row,'ai');
+ if(m==='ideb_af')return g(row,'af');
+ if(m==='ideb_em')return g(row,'em');
+ if(m==='abf')return g(row,'abf');
+ if(m==='inse')return g(row,'inse');
+ if(m==='capr')return g(row,'capr');
+ if(m==='cdown')return g(row,'cdown');
+ return 0;
+}
+
+function ufRowMetric(ufCod,m){
+ var sig=UFCOD2SIG[ufCod]||ufCod;
+ var a=byuf[sig];if(!a)return null;
+ if(m==='pnaohab')return a.naohab/a.n;
+ if(m==='ai')return a.ideb_ai;
+ if(m==='ideb_af')return a.ideb_af;
+ if(m==='ideb_em')return a.ideb_em;
+ if(m==='abf')return a.ab_med;
+ if(m==='inse')return a.inse;
+ if(m==='bncc')return a.bncc;
+ if(m==='capr')return a.capr;
+ if(m==='cdown')return a.cdown;
+ return a[m];
+}
+
+function project(features,w,h,pad){
+ var minx=1e9,miny=1e9,maxx=-1e9,maxy=-1e9;
+ features.forEach(function(f){f.polys.forEach(function(p){p.forEach(function(ring){ring.forEach(function(pt){if(pt[0]<minx)minx=pt[0];if(pt[0]>maxx)maxx=pt[0];if(pt[1]<miny)miny=pt[1];if(pt[1]>maxy)maxy=pt[1];});});});});
+ var sx=(w-2*pad)/(maxx-minx||1), sy=(h-2*pad)/(maxy-miny||1), s=Math.min(sx,sy);
+ var ox=pad+((w-2*pad)-s*(maxx-minx))/2, oy=pad+((h-2*pad)-s*(maxy-miny))/2;
+ return function(pt){return [ox+(pt[0]-minx)*s, h-oy-(pt[1]-miny)*s];};
+}
+function centroid(polys,proj){
+ var sx=0,sy=0,n=0;
+ polys.forEach(function(p){p[0].forEach(function(pt){var q=proj(pt);sx+=q[0];sy+=q[1];n++;});});
+ return n?[sx/n,sy/n]:[0,0];
+}
+function pathFor(polys,proj){
+ var d='';polys.forEach(function(p){p.forEach(function(ring){ring.forEach(function(pt,i){var q=proj(pt);d+=(i?'L':'M')+q[0].toFixed(1)+','+q[1].toFixed(1);});d+='Z';});});return d;
+}
+function ufFeatures(){var out=[];for(var cod in GUF){out.push({id:cod,sigla:GUF[cod].s,reg:REG[GUF[cod].s],polys:GUF[cod].g});}return out;}
+function munFeaturesForUF(uf){var out=[];for(var ib in GMUN){if(ib.slice(0,2)===uf){out.push({id:ib,polys:GMUN[ib]});}}return out;}
+
+function renderMapMetricBtns(){
+  var box=document.getElementById('mapMetricBtns');
+  box.innerHTML=MAP_METRICS.map(function(mm){
+    return '<button class="mbtn'+(curMapMetric===mm.k?' active':'')+'" data-m="'+mm.k+'">'+mm.l+'</button>';
+  }).join('');
+  box.querySelectorAll('.mbtn').forEach(function(b){
+    b.addEventListener('click',function(){
+      curMapMetric=b.getAttribute('data-m');
+      renderMapMetricBtns();
+      drawAllMaps();
+    });
+  });
+}
+
+var REGS_LIST=['Norte','Nordeste','Centro-Oeste','Sudeste','Sul'];
+function renderRegBtns(){
+  var box=document.getElementById('regBtns');
+  box.innerHTML=REGS_LIST.map(function(rg){
+    var short=rg==='Centro-Oeste'?'C.-Oeste':rg;
+    return '<button class="mbtn'+(curReg===rg?' active':'')+'" data-reg="'+rg+'">'+short+'</button>';
+  }).join('');
+  box.querySelectorAll('.mbtn').forEach(function(b){
+    b.addEventListener('click',function(){
+      curReg=b.getAttribute('data-reg');
+      var curSig=UFCOD2SIG[curUF];
+      if(REG[curSig]!==curReg){
+        var firstSig=Object.keys(REG).find(function(s){return REG[s]===curReg;});
+        if(firstSig) curUF=UFSIG2COD[firstSig];
+      }
+      drawAllMaps();
+    });
+  });
+}
+
+function drawBrasil(){
+ var m=curMapMetric, feats=ufFeatures();
+ var proj=project(feats,420,320,8);
+ var bad=(m==='pnaohab'||m==='abf');
+ var vals=feats.map(function(f){return ufRowMetric(f.id,m);}).filter(function(v){return v!=null;});
+ var br=quantileBreaks(vals,6);
+ var mn=Math.min.apply(null,vals),mx=Math.max.apply(null,vals);
+ var svg='<svg viewBox="0 0 420 320" role="img" aria-label="Mapa do Brasil por UF">';
+ feats.forEach(function(f){
+   var isSelUF=(f.id===curUF), isSelReg=(f.reg===curReg);
+   var cls='mp'+(isSelUF?' sel':(!isSelReg?' dim':''));
+   if(m==='bncc'){
+     var st=(DB.bncc[f.id]&&DB.bncc[f.id].st)||0;
+     var col=st?'var(--violet)':'var(--surface-3)';
+     var lab=(DB.bncc[f.id]&&DB.bncc[f.id].lab)||'';
+     svg+='<path class="'+cls+'" data-uf="'+f.id+'" data-tip="'+f.sigla+' ('+f.reg+'): '+lab+'" fill="'+col+'" d="'+pathFor(f.polys,proj)+'"></path>';
+   } else {
+     var v=ufRowMetric(f.id,m);
+     svg+='<path class="'+cls+'" data-uf="'+f.id+'" data-tip="'+f.sigla+' ('+f.reg+'): '+fmtMetric(v,m)+'" fill="'+classColor(v,br,bad)+'" d="'+pathFor(f.polys,proj)+'"></path>';
+   }
+ });
+ svg+='</svg>';
+ document.getElementById('mapBrasil').innerHTML=svg;
+ var mLabel=(MAP_METRICS.find(function(x){return x.k===m;})||{}).l||'';
+ document.getElementById('mapScale').innerHTML=(m==='bncc')
+   ? '<span><i style="background:var(--violet)"></i> Em atualização (13 UFs)</span> <span><i style="background:var(--surface-3)"></i> Transversal</span>'
+   : binLegend(br,m,bad,mn,mx)+'<span style="color:var(--muted)">· '+mLabel+'</span>';
+ document.querySelectorAll('#mapBrasil path').forEach(function(p){
+   p.addEventListener('click',function(){
+     var uf=p.getAttribute('data-uf');
+     curUF=uf; curReg=REG[UFCOD2SIG[uf]]||curReg;
+     drawAllMaps();
+   });
+ });
+}
+
+function drawRegiao(){
+ var m=curMapMetric, allFeats=ufFeatures();
+ var rFeats=allFeats.filter(function(f){return f.reg===curReg;});
+ document.getElementById('regTitle').textContent=curReg;
+ renderRegBtns();
+ var proj=project(rFeats,420,320,14);
+ var bad=(m==='pnaohab'||m==='abf');
+ var allVals=allFeats.map(function(f){return ufRowMetric(f.id,m);}).filter(function(v){return v!=null;});
+ var br=quantileBreaks(allVals,6);
+ var svg='<svg viewBox="0 0 420 320" role="img" aria-label="Mapa da Região '+curReg+'">';
+ rFeats.forEach(function(f){
+   var isSel=(f.id===curUF);
+   var v=ufRowMetric(f.id,m);
+   var col=(m==='bncc')?(((DB.bncc[f.id]&&DB.bncc[f.id].st)||0)?'var(--violet)':'var(--surface-3)'):classColor(v,br,bad);
+   var tip=f.sigla+': '+(m==='bncc'?((DB.bncc[f.id]&&DB.bncc[f.id].lab)||''):fmtMetric(v,m));
+   svg+='<path class="mp'+(isSel?' sel':'')+'" data-uf="'+f.id+'" data-tip="'+tip+'" fill="'+col+'" d="'+pathFor(f.polys,proj)+'"></path>';
+ });
+ rFeats.forEach(function(f){
+   var c=centroid(f.polys,proj);
+   svg+='<text x="'+c[0].toFixed(1)+'" y="'+c[1].toFixed(1)+'" text-anchor="middle" dominant-baseline="central" style="font-size:10px;font-weight:700;fill:#111;stroke:#fff;stroke-width:2.5px;paint-order:stroke;pointer-events:none">'+f.sigla+'</text>';
+ });
+ svg+='</svg>';
+ document.getElementById('mapRegiao').innerHTML=svg;
+ document.querySelectorAll('#mapRegiao path').forEach(function(p){
+   p.addEventListener('click',function(){
+     curUF=p.getAttribute('data-uf');
+     drawAllMaps();
+   });
+ });
+}
+
+function drawUFMap(){
+ var uf=curUF, m=curMapMetric;
+ var sig=(GUF[uf]&&GUF[uf].s)||uf;
+ var regUFs=ufFeatures().filter(function(f){return f.reg===curReg;}).sort(function(a,b){return a.sigla.localeCompare(b.sigla);});
+ var qBox=document.getElementById('ufQuickBtns');
+ qBox.innerHTML=regUFs.map(function(f){
+   return '<button class="mbtn'+(f.id===curUF?' active':'')+'" data-uf="'+f.id+'">'+f.sigla+'</button>';
+ }).join('');
+ qBox.querySelectorAll('.mbtn').forEach(function(b){
+   b.addEventListener('click',function(){
+     curUF=b.getAttribute('data-uf');
+     drawAllMaps();
+   });
+ });
+
+ document.getElementById('mapTitle').textContent='Municípios de '+sig;
+ var feats=munFeaturesForUF(uf);
+ if(!feats.length){
+   document.getElementById('mapUF').innerHTML='<div class="note" style="padding:20px;text-align:center">Sem malha municipal para '+sig+'.</div>';
+   return;
+ }
+ var proj=project(feats,420,320,8);
+ if(m==='bncc'){
+   var st=(DB.bncc[uf]&&DB.bncc[uf].st)||0;
+   var sv='<svg viewBox="0 0 420 320">';
+   feats.forEach(function(f){
+     var r=rowByIb[f.id], nm=r?g(r,'nm'):f.id;
+     sv+='<path class="mp" data-ib="'+f.id+'" data-tip="'+nm+'" fill="'+(st?'var(--violet)':'var(--surface-3)')+'" d="'+pathFor(f.polys,proj)+'"></path>';
+   });
+   sv+='</svg>';
+   document.getElementById('mapUF').innerHTML=sv;
+   document.getElementById('mapUFhint').innerHTML='<span>'+(DB.bncc[uf]&&DB.bncc[uf].lab||'')+'</span>';
+ } else {
+   var bad=(m==='pnaohab'||m==='abf');
+   var vals=feats.map(function(f){var r=rowByIb[f.id];return r?metricVal(r,m):null;}).filter(function(v){return v!=null&&!isNaN(v);});
+   var br=quantileBreaks(vals,6),mn=vals.length?Math.min.apply(null,vals):0,mx=vals.length?Math.max.apply(null,vals):0;
+   var svg='<svg viewBox="0 0 420 320" role="img" aria-label="Mapa municipal de '+sig+'">';
+   feats.forEach(function(f){
+     var r=rowByIb[f.id];var v=r?metricVal(r,m):null;
+     var col, disp;
+     if(m==='pnaohab'){col=(v==null)?NODATA:((v===1)?'var(--crit)':'var(--good)');disp=(v===1)?'Não habilitada':'Habilitada';}
+     else{col=classColor(v,br,bad);disp=fmtMetric(v,m);}
+     var nm=r?g(r,'nm'):f.id;
+     svg+='<path class="mp" data-ib="'+f.id+'" data-tip="'+nm+': '+disp+'" fill="'+col+'" d="'+pathFor(f.polys,proj)+'"></path>';
+   });
+   svg+='</svg>';
+   document.getElementById('mapUF').innerHTML=svg;
+   document.getElementById('mapUFhint').innerHTML=(m==='pnaohab')?'<span><i style="background:var(--good)"></i>Habilitada</span> <span><i style="background:var(--crit)"></i>Não habilitada</span>':(vals.length?binLegend(br,m,bad,mn,mx):'<span>Sem dados municipais</span>');
+ }
+ document.querySelectorAll('#mapUF path').forEach(function(p){
+   p.addEventListener('click',function(){
+     var ib=p.getAttribute('data-ib');
+     if(rowByIb[ib]) openFicha(ib, true);
+   });
+ });
+}
+
+function drawAllMaps(){drawBrasil();drawRegiao();drawUFMap();}
+renderMapMetricBtns();
+drawAllMaps();
+
+// ===== COMPACT FICHA (INLINE & MODAL) WITH SIMULATOR SHORTCUT =====
+var overlay=document.getElementById('overlay'),sheet=document.getElementById('sheet'),inlineFicha=document.getElementById('inlineFicha');
+
+function buildCompactFichaHTML(ib, isInline){
+ var r=rowByIb[ib];if(!r)return '';
+ var hab=g(r,'hab')===1,ben=g(r,'ben')===1,trc=g(r,'tr');
+ var trLabel=['Manteve VAAR (25→26)','Perdeu VAAR (recebia em 2025)','Entrou no VAAR em 2026','Sem VAAR nos dois anos'][trc];
+ var conds=[['I','c1','Gestão'],['II','c2','Saeb 80%'],['III','c3','Equidade'],['IV','c4','ICMS'],['V','c5','BNCC']].map(function(p){
+   var ok=g(r,p[1])===1;
+   return '<span class="cnd '+(ok?'y':'n')+'" data-tip="Cond. '+p[0]+' ('+p[2]+'): '+(ok?'Cumprida':'Não cumprida')+'">'+p[0]+' '+(ok?'✓':'✗')+'</span>';
+ }).join('');
+ var pend=g(r,'pend')>=0?DB.pend[g(r,'pend')]:'';
+ var bst=(byuf[g(r,'uf')]&&byuf[g(r,'uf')].bncc)||0;
+ function num(k,n){var v=g(r,k);return v==null?'—':v.toLocaleString('pt-BR',{minimumFractionDigits:n,maximumFractionDigits:n});}
+ function kv(k,v){return '<div><div class="fk">'+k+'</div><div class="fv">'+v+'</div></div>';}
+
+ return '<div class="ficha-top">'+
+   '<div class="ficha-title">'+
+     '<h3>'+g(r,'nm')+' ('+g(r,'uf')+')</h3>'+
+     '<span class="tag">'+(g(r,'rd')==='E'?'Rede Estadual':'Rede Municipal')+' · IBGE '+g(r,'ib')+'</span>'+
+     (hab?'<span class="pill ok">● Habilitada VAAR</span>':'<span class="pill no">● Não habilitada</span>')+
+     (ben?'<span class="pill ok">● Beneficiária VAAR</span>':'<span class="pill no">● Sem VAAR</span>')+
+     '<span class="tag">'+trLabel+'</span>'+
+   '</div>'+
+   '<div style="display:flex;gap:6px;align-items:center">'+
+     '<button class="btn" data-sim-ib="'+ib+'">⚡ Simular & Ver Plano de Ação</button>'+
+     (isInline?'<button class="btn" id="expandFichaBtn">⤢ Modal</button>':'')+
+     '<button class="close" data-close="'+(isInline?'inline':'modal')+'" title="Fechar">×</button>'+
+   '</div>'+
+ '</div>'+
+ '<div class="ficha-grid">'+
+   '<div class="fbox">'+
+     '<h5><span>Financiamento 2026 (R$)</span><span>União + Fundo</span></h5>'+
+     '<div class="fkv">'+
+       kv('União Total','R$ '+abbr(g(r,'tot')))+
+       kv('VAAF','R$ '+abbr(g(r,'vf')))+
+       kv('VAAT','R$ '+abbr(g(r,'vt')))+
+       kv('VAAR 2026','R$ '+abbr(g(r,'vr')))+
+       kv('VAAR 2025','R$ '+abbr(g(r,'vr25')))+
+       kv('Rec. Contrib.','R$ '+abbr(g(r,'rc')))+
+     '</div>'+
+     '<div class="note" style="margin-top:4px;font-size:10px">VAAR Atend: R$ '+abbr(g(r,'vra'))+' · Aprend: R$ '+abbr(g(r,'vrp'))+'</div>'+
+   '</div>'+
+   '<div class="fbox">'+
+     '<h5><span>VAAR & Condicionalidades</span><span>Pond. & Ind.</span></h5>'+
+     '<div class="fkv">'+
+       kv('Ind. Atend.',num('ia',3))+
+       kv('Ind. Aprend.',num('ip',3))+
+       kv('Pond. NSE',num('nse',4))+
+       kv('Pond. Drec',num('drec',4))+
+       kv('IEI (Ed. Inf.)',g(r,'iei')?pctf(g(r,'iei')):'—')+
+       kv('Matr. 17→23',(g(r,'m17')||0)+'→'+(g(r,'m23')||0))+
+     '</div>'+
+     '<div style="display:flex;gap:4px;flex-wrap:wrap;margin-top:6px">'+conds+'</div>'+
+     (pend?'<div class="pend"><b>Pendência:</b> '+pend+'</div>':'')+
+   '</div>'+
+   '<div class="fbox">'+
+     '<h5><span>Ideb 2025 & Saeb</span><span>Nota / Mat·LP</span></h5>'+
+     '<div class="fkv">'+
+       kv('Ideb AI',num('ai',1))+
+       kv('Ideb AF',num('af',1))+
+       kv('Ideb EM',num('em',1))+
+       kv('Saeb AI M/L',num('aim',0)+'/'+num('ail',0))+
+       kv('Saeb AF M/L',num('afm',0)+'/'+num('afl',0))+
+       kv('Saeb EM M/L',num('emm',0)+'/'+num('eml',0))+
+     '</div>'+
+   '</div>'+
+   '<div class="fbox">'+
+     '<h5><span>Rendimento 2025 & Conectividade</span><span>SIMET/INSE</span></h5>'+
+     '<div class="fkv">'+
+       kv('Aprov. Fund.',num('apf',1)+'%')+
+       kv('Repr. Fund.',num('rpf',1)+'%')+
+       kv('Aband. Fund.',num('abf',1)+'%')+
+       kv('Aprov./Ab. EM',num('apm',1)+'/'+num('abm',1)+'%')+
+       kv('INSE 2023',num('inse',2))+
+       kv('Esc. Medidas',g(r,'cn')!=null?g(r,'cn'):'—')+
+       kv('Com Internet',num('cnet',1)+'%')+
+       kv('Net Aprend.',num('capr',1)+'%')+
+       kv('Download',g(r,'cdown')!=null?num('cdown',1)+' Mb':'—')+
+     '</div>'+
+   '</div>'+
+ '</div>';
+}
+
+function bindFichaButtons(container, isInline){
+  var cBtn=container.querySelector('[data-close]');
+  if(cBtn) cBtn.addEventListener('click',function(){
+    if(isInline) inlineFicha.hidden=true; else overlay.hidden=true;
+  });
+  var sBtn=container.querySelector('[data-sim-ib]');
+  if(sBtn) sBtn.addEventListener('click',function(){
+    var ib=sBtn.getAttribute('data-sim-ib');
+    overlay.hidden=true;
+    loadEntityIntoSimulator(ib);
+    goToSectionOrSlide(3);
+  });
+  var exp=container.querySelector('#expandFichaBtn');
+  if(exp) exp.addEventListener('click',function(){
+    var ib=sBtn?sBtn.getAttribute('data-sim-ib'):curSimIb;
+    openFicha(ib, false);
+  });
+}
+
+function openFicha(ib, preferInline){
+  loadEntityIntoSimulator(ib); // Keep simulator & action plan synced with inspected entity
+  if(preferInline){
+    inlineFicha.innerHTML=buildCompactFichaHTML(ib, true);
+    inlineFicha.hidden=false;
+    bindFichaButtons(inlineFicha, true);
+  } else {
+    sheet.innerHTML=buildCompactFichaHTML(ib, false);
+    overlay.hidden=false;
+    bindFichaButtons(sheet, false);
+  }
+}
+overlay.addEventListener('click',function(e){if(e.target===overlay)overlay.hidden=true;});
+document.addEventListener('keydown',function(e){if(e.key==='Escape')overlay.hidden=true;});
+
+// ===== 6. UF RANKING TABLE WITH HEATMAP + INLINE SUMMARY CHARTS =====
+var UF_COLS=[
+  {k:'rk',l:'#',ty:'rk'},
+  {k:'uf',l:'UF',ty:'uf'},
+  {k:'reg',l:'Região',ty:'reg'},
+  {k:'n',l:'Redes',ty:'int'},
+  {k:'spark',l:'Mix (VAAF·VAAT·VAAR)',ty:'spark'},
+  {k:'total',l:'União Total (R$)',ty:'brl',hm:'seq'},
+  {k:'vaaf',l:'VAAF (R$)',ty:'brl',hm:'seq'},
+  {k:'vaat',l:'VAAT (R$)',ty:'brl',hm:'seq'},
+  {k:'vaar',l:'VAAR 2026 (R$)',ty:'brl',hm:'seq'},
+  {k:'vaar25',l:'VAAR 2025 (R$)',ty:'brl',hm:'seq'},
+  {k:'hab',l:'Habilitadas',ty:'int',hm:'good'},
+  {k:'pnaohab',l:'% Não Hab.',ty:'pct',hm:'bad'},
+  {k:'perdeu',l:'Perderam',ty:'int',hm:'bad'},
+  {k:'ideb_ai',l:'Ideb AI',ty:'dec2',hm:'good'},
+  {k:'ideb_af',l:'Ideb AF',ty:'dec2',hm:'good'},
+  {k:'ideb_em',l:'Ideb EM',ty:'dec2',hm:'good'},
+  {k:'ab_med',l:'Aband.%',ty:'dec2p',hm:'bad'},
+  {k:'inse',l:'INSE',ty:'dec2',hm:'seq'},
+  {k:'capr',l:'Net Apr.%',ty:'dec1p',hm:'good'},
+  {k:'bncc',l:'BNCC',ty:'bncc'}
+];
+var rkSortCol='total', rkSortDir=-1, rkRegFilter='';
+
+function renderRkControls(){
+  var regBox=document.getElementById('rkRegBtns');
+  regBox.innerHTML=['','Norte','Nordeste','Centro-Oeste','Sudeste','Sul'].map(function(rg){
+    var lbl=rg===''?'Todas Regiões':(rg==='Centro-Oeste'?'C.-Oeste':rg);
+    return '<button class="mbtn'+(rkRegFilter===rg?' active':'')+'" data-reg="'+rg+'">'+lbl+'</button>';
+  }).join('');
+  regBox.querySelectorAll('.mbtn').forEach(function(b){
+    b.addEventListener('click',function(){
+      rkRegFilter=b.getAttribute('data-reg');
+      renderRkControls();
+      renderUFTable();
+    });
+  });
+
+  var quickCols=[
+    {k:'total',l:'União Total'},
+    {k:'vaar',l:'VAAR 2026'},
+    {k:'vaat',l:'VAAT'},
+    {k:'vaaf',l:'VAAF'},
+    {k:'pnaohab',l:'% Não Hab.'},
+    {k:'ideb_ai',l:'Ideb AI'},
+    {k:'inse',l:'INSE'},
+    {k:'capr',l:'Internet %'}
+  ];
+  var mBox=document.getElementById('rkMetricBtns');
+  mBox.innerHTML=quickCols.map(function(c){
+    return '<button class="mbtn'+(rkSortCol===c.k?' active':'')+'" data-k="'+c.k+'">'+c.l+'</button>';
+  }).join('');
+  mBox.querySelectorAll('.mbtn').forEach(function(b){
+    b.addEventListener('click',function(){
+      rkSortCol=b.getAttribute('data-k');
+      rkSortDir=-1;
+      renderRkControls();
+      renderUFTable();
+    });
+  });
+}
+
+function hmStyle(val, min, max, mode){
+  if(val==null||isNaN(val)||max<=min) return '';
+  var t=Math.max(0,Math.min(1,(val-min)/(max-min)));
+  var pct=Math.round(10+t*42);
+  var col=mode==='bad'?'var(--crit)':(mode==='good'?'var(--good)':'var(--accent)');
+  return 'background:color-mix(in srgb,'+col+' '+pct+'%,transparent);';
+}
+
+function fmtUFCell(v, ty){
+  if(v==null||isNaN(v)) return '—';
+  if(ty==='brl') return 'R$ '+abbr(v);
+  if(ty==='int') return v.toLocaleString('pt-BR');
+  if(ty==='pct') return pctf(v);
+  if(ty==='dec2') return dec(v,2);
+  if(ty==='dec2p') return dec(v,2)+'%';
+  if(ty==='dec1p') return dec(v,1)+'%';
+  return v;
+}
+
+function makeMixSpark(vf, vt, vr, tot){
+  if(!tot || tot<=0) return '<span class="note">Sem compl.</span>';
+  var pf=(vf/tot*100).toFixed(1), pt=(vt/tot*100).toFixed(1), pr=(vr/tot*100).toFixed(1);
+  return '<div class="row-spark" data-tip="Mix: VAAF '+pf+'% · VAAT '+pt+'% · VAAR '+pr+'%">'+
+    '<div class="mini-stack">'+
+      '<div style="width:'+pf+'%;background:var(--vaaf)"></div>'+
+      '<div style="width:'+pt+'%;background:var(--vaat)"></div>'+
+      '<div style="width:'+pr+'%;background:var(--vaar)"></div>'+
+    '</div>'+
+  '</div>';
+}
+
+function renderUFTable(){
+  var ufs=Object.keys(byuf).filter(function(u){return !rkRegFilter || REG[u]===rkRegFilter;}).map(function(u){
+    var a=byuf[u];
+    return {
+      uf:u, reg:REG[u], n:a.n, total:a.total, vaaf:a.vaaf, vaat:a.vaat, vaar:a.vaar, vaar25:a.vaar25,
+      hab:a.hab, pnaohab:a.naohab/a.n, perdeu:a.perdeu,
+      ideb_ai:a.ideb_ai, ideb_af:a.ideb_af, ideb_em:a.ideb_em,
+      ab_med:a.ab_med, inse:a.inse, capr:a.capr, bncc:a.bncc
+    };
+  });
+
+  ufs.sort(function(x,y){
+    var vx=x[rkSortCol], vy=y[rkSortCol];
+    if(vx==null)vx=-1e15; if(vy==null)vy=-1e15;
+    if(typeof vx==='string') return rkSortDir*vx.localeCompare(vy,'pt-BR');
+    return rkSortDir*(vx-vy);
+  });
+
+  var ranges={};
+  UF_COLS.forEach(function(c){
+    if(!c.hm) return;
+    var vs=ufs.map(function(d){return d[c.k];}).filter(function(v){return v!=null&&!isNaN(v);});
+    ranges[c.k]={min:Math.min.apply(null,vs), max:Math.max.apply(null,vs)};
+  });
+
+  document.getElementById('ufThead').innerHTML='<tr>'+UF_COLS.map(function(c){
+    var isNum=(c.ty!=='uf'&&c.ty!=='reg'&&c.ty!=='bncc'&&c.ty!=='rk'&&c.ty!=='spark');
+    var cls=(isNum?'r':(c.ty==='rk'||c.ty==='bncc'||c.ty==='spark'?'c':''))+(rkSortCol===c.k?' active-col':'');
+    var arrow=rkSortCol===c.k?(rkSortDir<0?' ↓':' ↑'):'';
+    return '<th class="'+cls+'" data-k="'+c.k+'">'+c.l+arrow+'</th>';
+  }).join('')+'</tr>';
+
+  document.querySelectorAll('#ufThead th').forEach(function(th){
+    th.addEventListener('click',function(){
+      var k=th.getAttribute('data-k');
+      if(k==='rk'||k==='spark')return;
+      if(rkSortCol===k) rkSortDir=-rkSortDir;
+      else { rkSortCol=k; rkSortDir=(k==='uf'||k==='reg')?1:-1; }
+      renderRkControls();
+      renderUFTable();
+    });
+  });
+
+  var curSig=UFCOD2SIG[curUF];
+  document.getElementById('ufTbody').innerHTML=ufs.map(function(d, idx){
+    var isSel=(d.uf===curSig);
+    return '<tr class="'+(isSel?'sel-row':'')+'" data-uf="'+d.uf+'">'+UF_COLS.map(function(c){
+      if(c.ty==='rk') return '<td class="c" style="color:var(--muted);font-weight:600">'+(idx+1)+'</td>';
+      if(c.ty==='uf') return '<td><b>'+d.uf+'</b></td>';
+      if(c.ty==='reg') return '<td><span class="reg-dot" style="background:'+REGCOL[d.reg]+'"></span>'+d.reg+'</td>';
+      if(c.ty==='spark') return '<td class="c">'+makeMixSpark(d.vaaf,d.vaat,d.vaar,d.total)+'</td>';
+      if(c.ty==='bncc') return '<td class="c">'+(d.bncc?'<span class="pill ok">Atualiz.</span>':'<span class="tag">Transv.</span>')+'</td>';
+      var v=d[c.k], txt=fmtUFCell(v,c.ty);
+      if(c.hm){
+        var rg=ranges[c.k];
+        var st=hmStyle(v,rg.min,rg.max,c.hm);
+        var fullTip=(c.ty==='brl'&&v!=null)?' title="R$ '+brl(v)+'"':'';
+        return '<td class="r"'+fullTip+'><span class="hm" style="'+st+'">'+txt+'</span></td>';
+      }
+      return '<td class="r">'+txt+'</td>';
+    }).join('')+'</tr>';
+  }).join('');
+
+  document.querySelectorAll('#ufTbody tr').forEach(function(tr){
+    tr.addEventListener('click',function(){
+      var sig=tr.getAttribute('data-uf');
+      curUF=UFSIG2COD[sig]||curUF;
+      curReg=REG[sig]||curReg;
+      drawAllMaps();
+      renderUFTable();
+      fUF.value=sig;
+      renderTable();
+      // Also load state network into simulator
+      if(rowByIb[curUF]) loadEntityIntoSimulator(curUF);
+    });
+  });
+}
+renderRkControls();
+renderUFTable();
+
+// ===== 7. ENTITIES TABLE WITH INLINE ROW CHARTS & SIMULATOR ACTION =====
+var fUF=document.getElementById('fUF'), fBusca=document.getElementById('fBusca');
+fUF.innerHTML='<option value="">Todas UFs (27)</option>'+Object.keys(byuf).sort().map(function(u){return '<option value="'+u+'">'+u+'</option>';}).join('');
+
+var filterReg='', filterRede='', filterSit='', filterCols='all';
+var sortK='tot', sortDir=-1, LIMIT=400;
+
+function bindBtnGroup(id, setter){
+  var box=document.getElementById(id);
+  box.querySelectorAll('.mbtn').forEach(function(b){
+    b.addEventListener('click',function(){
+      box.querySelectorAll('.mbtn').forEach(function(x){x.classList.remove('active');});
+      b.classList.add('active');
+      setter(b.getAttribute('data-val'));
+      renderTable();
+    });
+  });
+}
+bindBtnGroup('fRegBtns', function(v){filterReg=v;});
+bindBtnGroup('fRedeBtns', function(v){filterRede=v;});
+bindBtnGroup('fSitBtns', function(v){filterSit=v;});
+bindBtnGroup('fColsBtns', function(v){filterCols=v;});
+
+function norm(s){return s.normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase();}
+
+var COLSETS={
+  all:[['nm','Ente',0],['uf','UF',0],['rd','Rede',0],['spark','Gráfico Resumo (Mix & 25→26)',3],['vf','VAAF',1],['vt','VAAT',1],['vr','VAAR 2026',1],['tot','União Total',1],['hab','Habilitação',0],['ai','Ideb AI',2],['abf','Aband.%',2],['inse','INSE',2],['act','Ação',4]],
+  fin:[['nm','Ente',0],['uf','UF',0],['rd','Rede',0],['spark','Gráfico Mix & VAAR 25→26',3],['vf','VAAF',1],['vt','VAAT',1],['vr','VAAR 2026',1],['vr25','VAAR 2025',1],['tot','União Total',1],['rc','Rec. Contrib.',1],['hab','Status VAAR',0],['act','Ação',4]],
+  edu:[['nm','Ente',0],['uf','UF',0],['rd','Rede',0],['spark','Gráfico Ideb & Matr. 17→23',3],['ai','Ideb AI',2],['af','Ideb AF',2],['em','Ideb EM',2],['apf','Aprov.Fund%',2],['abf','Aband.Fund%',2],['inse','INSE',2],['capr','Net Aprend.%',2],['hab','VAAR',0],['act','Ação',4]]
+};
+
+function makeRowSpark(r){
+  if(filterCols==='edu'){
+    var ai=g(r,'ai')||0, af=g(r,'af')||0, em=g(r,'em')||0;
+    var m17=g(r,'m17')||0, m23=g(r,'m23')||0, mMax=Math.max(m17,m23,1);
+    return '<div class="row-spark" data-tip="Ideb AI: '+dec(ai,1)+' · AF: '+dec(af,1)+' · EM: '+dec(em,1)+' | Matrículas 2017→2023: '+m17+' → '+m23+'">'+
+      '<div class="mini-dual" style="width:36px">'+
+        '<i style="height:'+Math.round(ai/10*14)+'px;background:var(--accent)"></i>'+
+        '<i style="height:'+Math.round(af/10*14)+'px;background:var(--vaar)"></i>'+
+        '<i style="height:'+Math.round(em/10*14)+'px;background:var(--violet)"></i>'+
+      '</div>'+
+      '<div class="mini-dual" style="width:24px">'+
+        '<i style="height:'+Math.max(2,Math.round(m17/mMax*14))+'px;background:var(--muted)"></i>'+
+        '<i style="height:'+Math.max(2,Math.round(m23/mMax*14))+'px;background:'+(m23>=m17?'var(--good)':'var(--crit)')+'"></i>'+
+      '</div>'+
+    '</div>';
+  }
+  var vf=g(r,'vf')||0, vt=g(r,'vt')||0, vr=g(r,'vr')||0, tot=g(r,'tot')||0;
+  var vr25=g(r,'vr25')||0, vMax=Math.max(vr25,vr,1);
+  var mixHtml = tot>0
+    ? '<div class="mini-stack"><div style="width:'+(vf/tot*100).toFixed(1)+'%;background:var(--vaaf)"></div><div style="width:'+(vt/tot*100).toFixed(1)+'%;background:var(--vaat)"></div><div style="width:'+(vr/tot*100).toFixed(1)+'%;background:var(--vaar)"></div></div>'
+    : '<span class="note" style="width:76px;display:inline-block">Só fundo próp.</span>';
+  var bar25_26 = (vr25>0||vr>0)
+    ? '<div class="mini-dual"><i style="height:'+Math.max(2,Math.round(vr25/vMax*14))+'px;background:var(--muted)"></i><i style="height:'+Math.max(2,Math.round(vr/vMax*14))+'px;background:'+(vr>=vr25?'var(--good)':'var(--crit)')+'"></i></div>'
+    : '<span style="width:32px;display:inline-block;text-align:center;color:var(--muted)">—</span>';
+  return '<div class="row-spark" data-tip="Mix: VAAF R$ '+abbr(vf)+' · VAAT R$ '+abbr(vt)+' · VAAR 26 R$ '+abbr(vr)+' (2025: R$ '+abbr(vr25)+')">'+mixHtml+bar25_26+'</div>';
+}
+
+function filtered(){
+ var uf=fUF.value, rd=filterRede, sit=filterSit, q=norm(fBusca.value.trim()), reg=filterReg;
+ var out=[];
+ for(var i=0;i<rows.length;i++){
+  var r=rows[i];
+  if(reg&&REG[g(r,'uf')]!==reg)continue;
+  if(uf&&g(r,'uf')!==uf)continue;
+  if(rd&&g(r,'rd')!==rd)continue;
+  if(sit==='hab'&&g(r,'hab')!==1)continue;
+  if(sit==='nao'&&g(r,'hab')!==0)continue;
+  if(sit==='ben'&&g(r,'ben')!==1)continue;
+  if(sit==='perdeu'&&g(r,'tr')!==1)continue;
+  if(activeCondFilter && (g(r,'hab')!==0 || g(r,activeCondFilter)!==0)) continue;
+  if(q&&norm(g(r,'nm')).indexOf(q)<0)continue;
+  out.push(r);
+ }
+ out.sort(function(a,b){var x=g(a,sortK),y=g(b,sortK);if(x==null)x=-1;if(y==null)y=-1;if(typeof x==='string')return sortDir*x.localeCompare(y,'pt-BR');return sortDir*((x||0)-(y||0));});
+ return out;
+}
+
+function habPill(r){
+  if(g(r,'hab')===1) return '<span class="pill ok">● Hab.</span>';
+  var f=[]; ['c1','c2','c3','c4','c5'].forEach(function(k,idx){if(g(r,k)===0)f.push(['I','II','III','IV','V'][idx]);});
+  return '<span class="pill no" title="Reprovou em Cond. '+f.join(', ')+'">● Não ('+f.join(',')+')</span>';
+}
+function cellVal(r,k,ty){
+  if(ty===3) return makeRowSpark(r);
+  if(ty===4) return '<button class="mbtn row-sim-btn" data-ib="'+g(r,'ib')+'" title="Simular esta rede no Simulador VAAR">⚡ Simular</button>';
+  if(k==='hab')return habPill(r);
+  if(k==='rd')return '<span class="tag">'+(g(r,'rd')==='E'?'Est.':'Mun.')+'</span>';
+  var v=g(r,k);
+  if(ty===1)return brl(v);
+  if(ty===2)return v==null?'—':v.toLocaleString('pt-BR',{maximumFractionDigits:2});
+  return v;
+}
+
+function renderTable(){
+ var set=COLSETS[filterCols];
+ var badge=document.getElementById('activeFilterBadge');
+ badge.innerHTML=activeCondFilter?'<span class="pill no">Filtrando reprovados na '+COND_META[activeCondFilter].code+' ('+COND_META[activeCondFilter].short+')</span>':'';
+ document.getElementById('thead').innerHTML='<tr>'+set.map(function(c){
+   var isNum=(c[2]===1||c[2]===2);
+   var cls=(isNum?'r':(c[2]===3||c[2]===4?'c':''))+(sortK===c[0]?' active-col':'');
+   var arrow=(sortK===c[0])?(sortDir<0?' ↓':' ↑'):'';
+   return '<th class="'+cls+'" data-k="'+c[0]+'">'+c[1]+arrow+'</th>';
+ }).join('')+'</tr>';
+ document.querySelectorAll('#thead th').forEach(function(th){
+   th.addEventListener('click',function(){
+     var k=th.getAttribute('data-k');
+     if(k==='spark'||k==='act')return;
+     if(sortK===k)sortDir=-sortDir;else{sortK=k;sortDir=(k==='nm'||k==='uf')?1:-1;}
+     renderTable();
+   });
+ });
+ var data=filtered(),show=data.slice(0,LIMIT);
+ document.getElementById('tbody').innerHTML=show.map(function(r){
+   return '<tr data-ib="'+g(r,'ib')+'">'+set.map(function(c){
+     var cls=(c[2]===1||c[2]===2)?'r':(c[2]===3||c[2]===4?'c':'');
+     return '<td class="'+cls+'">'+cellVal(r,c[0],c[2])+'</td>';
+   }).join('')+'</tr>';
+ }).join('');
+ document.getElementById('count').textContent=data.length.toLocaleString('pt-BR')+' redes';
+ document.getElementById('tableNote').innerHTML=data.length>LIMIT?'Mostrando as '+LIMIT+' primeiras linhas. Use os filtros ou busca para refinar.':'';
+
+ document.getElementById('tbody').querySelectorAll('tr').forEach(function(tr){
+   tr.addEventListener('click',function(e){
+     var simBtn=e.target.closest('.row-sim-btn');
+     if(simBtn){
+       e.stopPropagation();
+       var ib=simBtn.getAttribute('data-ib');
+       loadEntityIntoSimulator(ib);
+       goToSectionOrSlide(3);
+       return;
+     }
+     openFicha(tr.getAttribute('data-ib'), false);
+   });
+ });
+}
+fUF.addEventListener('change',renderTable);
+fBusca.addEventListener('input',renderTable);
+renderTable();
+
+// Theme Toggle
+var tb=document.getElementById('themeBtn');
+function gt(){try{return localStorage.getItem('fundeb2-theme');}catch(e){return null;}}
+function st(t){try{localStorage.setItem('fundeb2-theme',t);}catch(e){}}
+var sv=gt();if(sv)document.documentElement.setAttribute('data-theme',sv);
+tb.addEventListener('click',function(){
+  var cur=document.documentElement.getAttribute('data-theme');
+  var sd=matchMedia('(prefers-color-scheme:dark)').matches;
+  var nx=(cur?cur==='dark':sd)?'light':'dark';
+  document.documentElement.setAttribute('data-theme',nx);
+  st(nx);
+  drawAllMaps();
+  renderUFTable();
+});
+})();
+</script>
+</html>
