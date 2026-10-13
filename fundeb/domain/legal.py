@@ -56,8 +56,10 @@ CONDICIONALIDADES: tuple[Condicionalidade, ...] = (
         "c5", "V", "Referenciais curriculares alinhados à BNCC",
         "Referenciais curriculares alinhados à Base Nacional Comum Curricular, aprovados nos termos do "
         "respectivo sistema de ensino.",
-        "Aprovar o referencial curricular alinhado à BNCC no conselho de educação competente e "
-        "comprovar a aprovação no sistema do MEC.",
+        "Aprovar o documento curricular alinhado à BNCC Geral (10 Competências, Direitos/Campos na Ed. Infantil, "
+        "Áreas e Habilidades no EF e FGB/Itinerários no EM) acompanhado dos anexos obrigatórios (Educação Especial Inclusiva/DUA, "
+        "Relações Étnico-Raciais ERER Leis 10.639 e 11.645, Modalidades do Campo/Indígena/Quilombola e Educação Digital) no "
+        "Conselho de Educação competente (CME/CEE), publicar a homologação em Diário Oficial e comprovar no Simec.",
     ),
 )
 

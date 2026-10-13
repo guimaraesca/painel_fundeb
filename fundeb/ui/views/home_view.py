@@ -65,7 +65,22 @@ def render_home_view(analytics: AnalyticsService) -> None:
             2. **Participação nas avaliações do Saeb (Inciso II):** A rede de ensino deve alcançar, no mínimo, 80% de participação dos estudantes nas avaliações do Sistema de Avaliação da Educação Básica (Saeb).
             3. **Redução das desigualdades educacionais (Inciso III):** A rede deve apresentar redução nas desigualdades educacionais socioeconômicas e raciais medidas nos exames nacionais.
             4. **Regime de Colaboração / ICMS Educacional (Inciso IV):** Aplica-se aos Estados. Exige a aprovação de lei estadual que regulamente o repasse da cota-parte do ICMS aos municípios (mínimo de 10%) baseada em indicadores de melhoria nos resultados de aprendizagem e de aumento da equidade (conforme a Emenda Constitucional nº 108/2020).
-            5. **Referenciais Curriculares (Inciso V):** Comprovação de que os referenciais curriculares da rede estão devidamente alinhados à Base Nacional Comum Curricular (BNCC), devidamente homologados pelos respectivos Conselhos de Educação.
+            5. **Referenciais Curriculares (Inciso V) — Requisitos de Alinhamento Integral à BNCC, Anexos Obrigatórios e Homologação:**
+               Comprovação de que a rede de ensino possui documento curricular formalmente alinhado à Base Nacional Comum Curricular (BNCC), devidamente aprovado pelo Conselho de Educação competente e homologado com publicação em Diário Oficial. Para ser considerado plenamente alinhado pelo MEC/SEB, o referencial deve conter:
+               - **Estrutura Geral Obrigatória da BNCC:**
+                 * *10 Competências Gerais da Educação Básica:* Transversais a todas as etapas, assegurando a mobilização integrada de conhecimentos, habilidades cognitivas e socioemocionais, atitudes e valores éticos;
+                 * *Educação Infantil:* Garantia expressa dos **6 Direitos de Aprendizagem e Desenvolvimento** (*Conviver, Brincar, Participar, Explorar, Expressar e Conhecer-se*), estruturação pedagógica pelos **5 Campos de Experiências** e detalhamento dos objetivos de aprendizagem para os três grupos etários (bebês, crianças bem pequenas e crianças pequenas);
+                 * *Ensino Fundamental (Anos Iniciais e Finais):* Organização pelas 5 áreas do conhecimento, componentes curriculares, unidades temáticas, objetos de conhecimento e progressão vertical de habilidades codificadas (ex: `EF01LP01` a `EF09MA06`);
+                 * *Ensino Médio (Redes Estaduais):* Articulação entre a Formação Geral Básica (FGB) e os Itinerários Formativos (aprofundamento acadêmico e Formação Técnica e Profissional - FTP), conforme as Leis nº 13.415/2017 e nº 14.945/2024.
+               - **Anexos e Cadernos Temáticos Obrigatórios:**
+                 * *Anexo de Educação Especial na Perspectiva Inclusiva:* Diretrizes de Atendimento Educacional Especializado (AEE), princípios do Desenho Universal para a Aprendizagem (DUA), flexibilizações curriculares e eliminação de barreiras para estudantes com deficiência, Transtorno do Espectro Autista (TEA) e altas habilidades/superdotação;
+                 * *Anexo / Matriz de Educação para as Relações Étnico-Raciais (ERER):* Cumprimento obrigatório das **Leis Federais nº 10.639/2003 e nº 11.645/2008**, com inserção transversal da História e Cultura Afro-Brasileira e dos Povos Indígenas e objetivos formativos antirracistas;
+                 * *Anexo de Modalidades Específicas do Território:* Cadernos curriculares contextualizados para Educação do Campo (saberes da terra/pedagogia da alternância), Educação Escolar Indígena (bilinguismo/processos próprios), Educação Escolar Quilombola e EJA, quando existentes no território;
+                 * *Anexo de Educação Digital e Pensamento Computacional:* Alinhamento às Normas sobre Computação na Educação Básica (Resolução CNE/CEB nº 1/2022), abrangendo cultura digital, mundo digital e pensamento computacional.
+               - **Governança, Homologação e Comprovação no Simec:**
+                 * *Ato Normativo do Conselho:* Parecer favorável e Resolução do **Conselho Municipal de Educação (CME)**, para sistemas municipais próprios; ou do **Conselho Estadual de Educação (CEE)**, para redes estaduais ou municípios vinculados (via regime ProBNCC / adesão formal ao Currículo Referência Estadual);
+                 * *Publicação Oficial:* Publicação compulsória da Resolução de Homologação no Diário Oficial do Município (DOM) ou Estado (DOE);
+                 * *Inserção no Simec (MEC/SEB):* Upload tempestivo do Documento Curricular integral com anexos, cópia do ato de homologação, comprovação no Diário Oficial e plano de revisão dos Projetos Político-Pedagógicos (PPP) das escolas.
 
             ### 1.2. Órgãos de Verificação, Prazos e Fluxo
 

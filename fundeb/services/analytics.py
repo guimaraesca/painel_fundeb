@@ -95,19 +95,19 @@ class AnalyticsService:
         gargalos = []
 
         mapping = {
-            "c1": ("Cond. I", "Inciso I — Gestão Democrática", "c1"),
-            "c2": ("Cond. II", "Inciso II — Participação SAEB >= 80%", "c2"),
-            "c3": ("Cond. III", "Inciso III — Redução Desigualdades / ICMS", "c3"),
-            "c4": ("Cond. IV", "Inciso IV — Referenciais Curriculares BNCC", "c4"),
-            "c5": ("Cond. V", "Inciso V — SIOPE / Informações Fiscais", "c5"),
+            "c1": ("Cond. I", "Inciso I — Provimento de Gestor Escolar", "c1"),
+            "c2": ("Cond. II", "Inciso II — Participação Saeb >= 80%", "c2"),
+            "c3": ("Cond. III", "Inciso III — Redução de Desigualdades", "c3"),
+            "c4": ("Cond. IV", "Inciso IV — Regime de Colaboração / ICMS Educação", "c4"),
+            "c5": ("Cond. V", "Inciso V — Referenciais Curriculares BNCC", "c5"),
         }
 
         como_agir_map = {
-            "c1": "Adequar legislação local sobre provimento de cargo de diretor escolar por critérios de mérito e desempenho, ou eleição qualificada.",
-            "c2": "Intensificar mobilização escolar, busca ativa nos dias de aplicação e assegurar quorum mínimo de 80% de alunos presentes no SAEB.",
-            "c3": "Para redes municipais: articulação com governo estadual para aprovação e vigência de lei de ICMS Educação redistributivo.",
-            "c4": "Homologar documentos curriculares alinhados à BNCC e comprovar implementação junto aos sistemas do MEC/INEP.",
-            "c5": "Transmitir balanços e dados contábeis no SIOPE com antecedência para evitar inconsistências e encerramento fora do prazo legal.",
+            "c1": "Adequar legislação local com critérios técnicos de mérito e desempenho ou escolha qualificada pela comunidade escolar, comprovando a seleção no Simec.",
+            "c2": "Intensificar mobilização escolar, busca ativa nos dias de aplicação e assegurar quórum mínimo de 80% de estudantes presentes nos exames do Saeb.",
+            "c3": "Direcionar ações pedagógicas e recomposição de aprendizagem para grupos mais vulneráveis socioeconomicamente e estudantes pretos, pardos e indígenas (PPI).",
+            "c4": "Aos Estados: aprovar lei de repasse do ICMS Educação (mínimo de 10% por desempenho e equidade). Aos Municípios: acompanhar vigência e colaborar no regime federativo.",
+            "c5": "Garantir documento curricular com BNCC Geral (10 Competências, Direitos/Campos na Ed. Infantil, Áreas/Habilidades no EF e EM) e anexos obrigatórios (Educação Especial Inclusiva/DUA, Relações Étnico-Raciais ERER Leis 10.639 e 11.645, Modalidades e Educação Digital), homologado no Conselho de Educação (CME/CEE), publicado em Diário Oficial e inserido no Simec.",
         }
 
         for col, (num, titulo, key) in mapping.items():
