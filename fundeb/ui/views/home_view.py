@@ -55,35 +55,170 @@ def render_home_view(analytics: AnalyticsService) -> None:
 
             ---
 
-            #### 1. Objeto e Contextualização
-            Esta Nota Técnica consolida a base empírica, as rotinas de cálculo e a auditoria jurídica dos repasses federais do **Fundo de Manutenção e Desenvolvimento da Educação Básica e de Valorização dos Profissionais da Educação (FUNDEB)**, com ênfase na **Complementação VAAR (Valor Aluno Ano Resultado)** para o exercício de 2026.
-            
-            O VAAR constitui modalidade de complementação da União com destinação vinculada a redes que comprovem avanços na melhoria da gestão escolar, na equidade de atendimento e na elevação dos indicadores de aprendizagem.
+            ## 1. Mapeamento Legal e Condicionalidades de Gestão (Habilitação)
 
-            #### 2. Fundamentação Legal e Normativa
-            - **Constituição Federal de 1988 (Art. 212-A e Art. 60 do ADCT):** Com a redação conferida pela **Emenda Constitucional nº 108/2020**, estabeleceu-se a rampa progressiva de complementação federal, elevando a cota da União de 12% em 2021 para 23% da receita total dos fundos em 2026 (sendo 2,50 p.p. destinados exclusivamente ao VAAR).
-            - **Lei Federal nº 14.113, de 25 de dezembro de 2020:** Regulamenta o FUNDEB. O **Art. 14, § 1º, incisos I a V**, define as 5 condicionalidades prévias de habilitação:
-              1. *Inciso I:* Provimento do cargo ou função de gestor escolar de acordo com critérios técnicos de mérito e desempenho ou eleição qualificada;
-              2. *Inciso II:* Participação de pelo menos 80% dos estudantes nos exames do Sistema de Avaliação da Educação Básica (Saeb);
-              3. *Inciso III:* Redução das desigualdades educacionais socioeconômicas e raciais, condicionada à vigência de lei estadual de rateio do ICMS Educação nos termos do art. 158 da CF;
-              4. *Inciso IV:* Regime de colaboração formalizado e referenciais curriculares alinhados à Base Nacional Comum Curricular (BNCC);
-              5. *Inciso V:* Disponibilização tempestiva de informações fiscais, contábeis e orçamentárias no SIOPE.
-            - **Metodologia Inep:** **Notas Técnicas CGEE/DIRED/INEP nº 23/2022 e nº 5/2024**, que definem as funções de ponderação de matrículas e o cálculo do Indicador de Expansão Escolar (IEE), Indicador de Atendimento (IND_Atend) e Indicador de Aprendizagem com Equidade (IND_Aprend).
+            A participação na distribuição dos recursos da Complementação-VAAR exige o cumprimento prévio de condicionalidades de melhoria de gestão, estabelecidas no art. 14 da Lei nº 14.113/2020. O não cumprimento de qualquer uma destas condicionalidades inabilita o ente federado a receber o repasse, independentemente de seus resultados nos indicadores pedagógicos.
 
-            #### 3. Metodologia de Distribuição Financeira
-            1. **Habilitação Plena Cumulativa:** Apenas redes que cumprem simultaneamente todas as 5 condicionalidades participam da distribuição de recursos.
-            2. **Divisão Legal 50% / 50%:** Os recursos do VAAR são divididos rigorosamente em duas parcelas iguais:
-               - **50% para a Parcela de Atendimento:** Avalia o crescimento da taxa de matrículas e redução das taxas de abandono escolar;
-               - **50% para a Parcela de Aprendizagem com Redução de Desigualdades:** Avalia o progresso pedagógico no Saeb e a diminuição do hiato socioeconômico e racial.
-            3. **Fator Ponderador Exponencial:** A conversão do indicador de cada rede em peso financeiro por matrícula segue a função exponencial:
-               $$w = 2 - e^{-4 \cdot \text{IND}}$$
-               Onde $w \in [1.0, 2.0]$.
-            4. **Diferenciação Estrita por Esfera Federativa:**
-               - **Redes Estaduais:** Avaliadas no **Ensino Médio** quanto à expansão e rendimento;
-               - **Redes Municipais:** Avaliadas na **Educação Infantil (Creche e Pré-Escola)** quanto à expansão e no Ensino Fundamental quanto à aprendizagem.
+            ### 1.1. As 5 Condicionalidades de Gestão
 
-            #### 4. Integridade dos Dados e Auditoria Criptográfica
-            - **Zero Dados Sintéticos:** Todas as variáveis de financiamento foram auditadas linha a linha a partir das publicações oficiais do Ministério da Educação (MEC) e FNDE. Em 100% dos 5.596 entes avaliados, a soma $\text{VAAF} + \text{VAAT} + \text{VAAR}$ fecha com exatidão em relação à Complementação Total da União.
+            1. **Provimento de cargo de gestor escolar (Inciso I):** O ente deve demonstrar que o provimento do cargo de diretor de escola obedece a critérios técnicos de mérito e desempenho ou ocorre a partir de lista tríplice elaborada mediante processo seletivo, com a participação da comunidade escolar.
+            2. **Participação nas avaliações do Saeb (Inciso II):** A rede de ensino deve alcançar, no mínimo, 80% de participação dos estudantes nas avaliações do Sistema de Avaliação da Educação Básica (Saeb).
+            3. **Redução das desigualdades educacionais (Inciso III):** A rede deve apresentar redução nas desigualdades educacionais socioeconômicas e raciais medidas nos exames nacionais.
+            4. **Regime de Colaboração / ICMS Educacional (Inciso IV):** Aplica-se aos Estados. Exige a aprovação de lei estadual que regulamente o repasse da cota-parte do ICMS aos municípios (mínimo de 10%) baseada em indicadores de melhoria nos resultados de aprendizagem e de aumento da equidade (conforme a Emenda Constitucional nº 108/2020).
+            5. **Referenciais Curriculares (Inciso V):** Comprovação de que os referenciais curriculares da rede estão devidamente alinhados à Base Nacional Comum Curricular (BNCC), devidamente homologados pelos respectivos Conselhos de Educação.
+
+            ### 1.2. Órgãos de Verificação, Prazos e Fluxo
+
+            * **Fluxo de Habilitação:** Os entes declaram e comprovam o cumprimento no Sistema Integrado de Monitoramento Execução e Controle (**Simec**) do MEC.
+            * **Órgãos Validadores:**
+              * O **Inep** afere as condicionalidades 2 e 3 (via microdados do Saeb e Censo Escolar).
+              * O **Ministério da Educação (Secretaria de Educação Básica - SEB)**, Conselhos de Educação e Secretarias Estaduais aferem as condicionalidades 1, 4 e 5.
+            * **Prazos:** As resoluções do MEC estabelecem cronogramas anuais rígidos (geralmente até setembro do ano anterior ao repasse) para a inserção das leis, decretos e normativas no Simec.
+
+            ### 1.3. Excepcionalidade e Calamidade Pública
+
+            Situações de força maior ou estado de calamidade pública reconhecidos pelo Governo Federal (ex: desastres ambientais, inundações ou epidemias) disparam **gatilhos de neutralidade**. Nestes cenários, a avaliação de desempenho (como o cálculo de evolução de indicadores) é suspensa para não prejudicar o ente afetado. A rede é considerada tacitamente habilitada na respectiva condicionalidade, ou utiliza-se o último dado válido anterior ao evento crítico, garantindo a manutenção do repasse e a estabilidade financeira durante a recuperação da rede de ensino.
+
+            ---
+
+            ## 2. Metodologia do Indicador VAAR-Atendimento (50% do montante)
+
+            Este módulo recompensa as redes que demonstram evolução na manutenção dos alunos no sistema de ensino, combatendo o abandono escolar.
+
+            ### 2.1. Conceito e Variáveis Base
+
+            O cálculo fundamenta-se nos dados de rendimento e movimento do Censo Escolar:
+            * $M$: População de matrículas prioritárias (apenas matrículas regulares da rede, excluindo EJA e outras categorias não contabilizadas na base principal do VAAR, conforme regulamentação específica).
+            * **Abandono Escolar:** Estudantes que deixaram de frequentar a escola no decorrer do ano letivo, sem solicitação de transferência.
+            * $SIR$ **(Sem Informação de Rendimento ou Movimento):** Matrículas cujo status final não foi informado pela escola no encerramento do Censo. O normativo penaliza a omissão aplicando um **fator de desconto de 0,5** sobre essas ocorrências.
+            * **Nacionalidade Estrangeira:** Alunos estrangeiros recém-ingressos no país possuem regras de transição temporal e, em determinados cenários normativos, são excluídos da base de cômputo negativo caso não possuam proficiência na língua nacional, evitando desincentivar a matrícula de imigrantes/refugiados.
+
+            ### 2.2. Fórmula do Indicador e Evolução
+
+            O indicador de atendimento mensura a taxa de sucesso da permanência escolar para a rede $r$ no ano letivo $t$:
+
+            $$VAAR\_Atendimento_{r,t} = 1 - \frac{Abandono_{r,t} + 0{,}5 \times SIR_{r,t}}{M_{r,t}}$$
+
+            Para que a rede municipal ou estadual seja elegível aos recursos financeiros deste módulo, deve demonstrar evolução em relação à edição anterior ($t-1$):
+
+            $$\Delta VAAR\_Atendimento_r = VAAR\_Atendimento_{r,t} - VAAR\_Atendimento_{r,t-1} \ge 0$$
+
+            ### 2.3. Margem de Flutuação (Tolerância Estatística)
+
+            Devido à alta volatilidade estatística em redes com baixo número de alunos, o Inep aplica uma **Tabela de Margem de Flutuação**. Uma rede que apresente um $\Delta VAAR\_Atendimento_r$ negativo, mas que esteja contido dentro do limite de tolerância estabelecido para o seu porte populacional (ex: redes com até 500 matrículas possuem maior tolerância percentual do que redes com mais de 10.000 matrículas), será considerada habilitada por empate estatístico.
+
+            ### 2.4. Coeficiente de Distribuição ($C_{atend}^r$) e Repasse em Reais
+
+            Para os entes habilitados, o peso das matrículas é ajustado linearmente no intervalo contínuo $[1, 2]$. O ente com o menor resultado positivo entre os habilitados recebe peso 1, e o de melhor resultado recebe peso 2, garantindo progressividade financeira:
+
+            $$peso_{atend}^r = 1 + \left( \frac{VAAR\_Atendimento_{r,t} - \min(VAAR\_Atendimento_{t})}{\max(VAAR\_Atendimento_{t}) - \min(VAAR\_Atendimento_{t})} \right)$$
+
+            O coeficiente financeiro da rede $r$ e o repasse em reais (R$) são dados por:
+
+            $$C_{atend}^r = \frac{M_r \times peso_{atend}^r}{\sum_{i=1}^{n} (M_i \times peso_{atend}^i)}$$
+
+            $$Repasse_{Atend}^r = C_{atend}^r \times (0{,}50 \times \text{Montante Global VAAR})$$
+
+            ---
+
+            ## 3. Metodologia do Indicador VAAR-Aprendizagem (50% do montante)
+
+            O módulo de aprendizagem avalia de forma combinada o desempenho cognitivo, o fluxo escolar e a equidade do sistema educacional.
+
+            ### 3.1. Fórmula Geral do Indicador
+
+            A métrica síntese da rede $r$ no ano $t$ é produto de três dimensões estruturais:
+
+            $$VAAR\_Aprendizagem_{r,t} = Inad_{r,(t,t-1)} \times IPSaeb_{r,t} \times IndEqui_{r,t}$$
+
+            ### 3.2. Decomposição das Variáveis
+
+            * **Índice de Nível e Avanço de Desempenho ($Inad$):**  
+              Recompensa o patamar atual de qualidade e a melhoria contínua, ponderado pelo sucesso no fluxo escolar (Taxa de Aprovação - $TAp$):
+              * $IND$: Índice de Nível de Desempenho (peso 0,3);
+              * $IAD$: Índice de Avanço de Desempenho (peso 0,7);
+              * Ambos consideram a proporção de alunos que atingem o nível de aprendizado adequado no Saeb em Língua Portuguesa e Matemática. A fórmula padronizada passa por um reescalonamento matemático rígido para enquadrar os resultados de uma escala original teórica (ex: $[-7, 10]$) para o intervalo normatizado final $[0, 1]$, utilizando a transformação linear:
+                $$Inad\_Norm = \frac{Inad_{Bruto} - (-7)}{10 - (-7)}$$
+
+            * **Indicador de Participação no Saeb ($IPSaeb$):**  
+              Mede a taxa de presença no dia do exame, condicionada ao mínimo de 80% (0,80) e limitada ao teto estatístico de 1,0 (100%):
+              * Se $IPSaeb_{r,t} < 0{,}80 \rightarrow$ a rede é inabilitada.
+              * O valor multiplica a equação central estimulando redes com altas taxas de presença contínua.
+
+            * **Índice de Equidade ($IndEqui$):**  
+              Mede a diminuição das lacunas de aprendizado para grupos historicamente vulnerabilizados:
+              * **$INE\text{-}S$ (Equidade Socioeconômica):** Proporção de alunos do estrato socioeconômico mais vulnerável (definido por recortes em quantis: quartis, tercis ou mediana, dependendo do porte populacional da rede para garantir validade amostral) que alcançam a proficiência adequada.
+              * **$INE\text{-}R$ (Equidade Racial):** Proporção de estudantes autodeclarados Pretos, Pardos ou Indígenas (PPI) que alcançam a proficiência adequada.
+              * **Imputação:** Em redes de pequeno porte onde a amostragem destes grupos é insuficiente para gerar significância estatística, aplica-se a média regional/estadual ou modelos de vizinhança para não excluir o município financeiramente.
+
+            ### 3.3. Cálculo da Evolução e Margem de Erro
+
+            Para habilitar-se ao montante, a rede precisa apresentar evolução positiva entre as edições do Saeb:
+
+            $$\Delta VAAR\_Aprendizagem_r = VAAR\_Aprendizagem_{r,t} - VAAR\_Aprendizagem_{r,t-1} \ge 0$$
+
+            Da mesma forma que no Atendimento, aplica-se margem de erro baseada no número de alunos presentes nos exames, evitando que ruídos amostrais penalizem redes de pequeno porte.
+
+            ### 3.4. Coeficiente de Distribuição ($C_{aprend}^r$) e Repasse em Reais
+
+            O peso final ($peso_{aprend}^r$) sofre transformação linear contínua para garantir que o repasse per capita do município com o melhor desempenho da federação seja exatamente o dobro daquele com o menor desempenho habilitado:
+
+            $$peso_{aprend}^r = 1 + \left( \frac{VAAR\_Aprendizagem_{r,t} - \min}{\max - \min} \right)$$
+
+            $$C_{aprend}^r = \frac{M_r \times peso_{aprend}^r}{\sum_{i=1}^n (M_i \times peso_{aprend}^i)}$$
+
+            $$Repasse_{Aprend}^r = C_{aprend}^r \times (0{,}50 \times \text{Montante Global VAAR})$$
+
+            ---
+
+            ## 4. Especificações Técnicas para Desenvolvimento de Sistemas (Painel e Simulador)
+
+            A arquitetura do painel de monitoramento e do simulador financeiro exige o cruzamento determinístico de múltiplas bases públicas, operando em um fluxo condicional estrito.
+
+            ### 4.1. Mapeamento de Bases de Dados Oficiais
+
+            1. **Censo Escolar (Inep):** Fornece as variáveis de matrículas totais ($M$), Taxa de Aprovação ($TAp$), Abandono e os registros de $SIR$. Extração via microdados e Sinopse Estatística anual.
+            2. **Microdados do Saeb (Inep):** Fornece proficiência em Matemática e Língua Portuguesa, contagem de presentes/matriculados ($IPSaeb$) e microdados do questionário do aluno para extração de nível socioeconômico (NSE) e raça/cor.
+            3. **Simec (MEC):** Integração para extração do status booleano das 5 condicionalidades de gestão do Art. 14 da Lei nº 14.113/2020.
+            4. **Siope e Portarias do FNDE:** Extração do montante global (R$) projetado para a Complementação-VAAR do Fundeb no exercício financeiro simulado.
+
+            ### 4.2. Dicionário de Variáveis de Entrada Requeridas (Simulador)
+
+            | Variável | Tipo | Origem | Descrição |
+            | :--- | :--- | :--- | :--- |
+            | `Cod_Ibge` | Int | IBGE | Código identificador unívoco do município/estado |
+            | `Status_Condicionalidades` | Boolean | Simec | `True` se cumpriu os 5 requisitos; `False` caso contrário |
+            | `Matriculas_Vaal_R` | Int | FNDE | Número base de matrículas consideradas para o ente ($M_r$) |
+            | `Tx_Abandono_T` e `T_1` | Float | Censo | Taxa de abandono escolar na rede (ano atual e anterior) |
+            | `Total_SIR` | Int | Censo | Contagem absoluta de alunos sem informação de rendimento |
+            | `Proficiencia_LP_MT` | Float | Saeb | Percentual de alunos com aprendizado adequado por etapa |
+            | `IPSaeb` | Float | Saeb | Taxa de participação nos exames ($\ge 0{,}80$) |
+            | `INE_S` e `INE_R` | Float | Saeb | Indicadores calculados de equidade socioeconômica e racial |
+            | `Orcamento_Global_VAAR` | Monetário | FNDE | Valor em R$ correspondente a 2,5% da receita total do Fundeb |
+
+            ### 4.3. Passo a Passo do Algoritmo de Cálculo do Simulador
+
+            1. **Filtro de Elegibilidade Primária:**  
+               Verificar a matriz `Status_Condicionalidades`. Redes onde a variável for `False` recebem $\text{Repasse} = \text{R\$\ } 0{,}00$ imediatamente e são removidas da base de rateio financeiro.
+            2. **Processamento do VAAR-Atendimento:**  
+               - Calcular $VAAR\_Atendimento_{r,t}$ combinando abandono e penalização de $SIR$ (peso 0,5).  
+               - Subtrair o ano-base ($t-1$). Se $\Delta < 0$, checar se a diferença está dentro da Tabela de Margem de Flutuação. Redes fora da margem recebem peso zero neste módulo.
+            3. **Processamento do VAAR-Aprendizagem:**  
+               - Calcular o $Inad$ e normalizar o valor aplicando as ponderações $0{,}3 \times IND$ e $0{,}7 \times IAD$.  
+               - Verificar $IPSaeb \ge 0{,}80$.  
+               - Calcular equidades socioeconômicas e raciais imputando as médias estaduais onde a amostra for estatisticamente insuficiente, fechando o $IndEqui$.  
+               - Multiplicar $Inad \times IPSaeb \times IndEqui$.  
+               - Calcular o $\Delta$ em relação ao ano-base, aplicando a margem de erro por porte populacional. Redes não habilitadas são desconsideradas do rateio deste módulo.
+            4. **Reescalonamento de Pesos:**  
+               - Para as redes habilitadas em *Atendimento*, calcular os valores mínimos e máximos nacionais. Aplicar a transformação linear projetando o `peso_atend` de todos os habilitados para o intervalo contínuo $[1, 2]$.  
+               - Repetir o mesmo procedimento exato (Min/Max independentes) para os habilitados em *Aprendizagem*, gerando o `peso_aprend` no intervalo $[1, 2]$.
+            5. **Cálculo de Quotas e Repasses Finais:**  
+               - Calcular a soma nacional das matrículas ponderadas no eixo Atendimento: $\sum (Matriculas \times peso\_atend)$.  
+               - Calcular o coeficiente da rede dividindo sua matrícula ponderada pela soma nacional ($C_{atend}$).  
+               - Multiplicar o $C_{atend}$ por `(Orcamento_Global_VAAR * 0.5)`.  
+               - Repetir o processo para calcular $C_{aprend}$ e multiplicar por `(Orcamento_Global_VAAR * 0.5)`.
+            6. **Agregação:**  
+               - O valor final simulado a ser exibido no painel para a rede será a soma monetária de seus ganhos nos dois eixos: $\text{Repasse Total} = Repasse_{Atend} + Repasse_{Aprend}$.
             """
         )
 

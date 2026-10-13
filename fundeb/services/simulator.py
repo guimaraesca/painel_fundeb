@@ -134,32 +134,38 @@ class SimulatorService:
         delta_rs = vaar_total_sim - vaar_total_orig
         delta_pct = (delta_rs / vaar_total_orig * 100.0) if vaar_total_orig > 0 else 0.0
 
-        # Memória de Cálculo passo a passo
+        # Memória de Cálculo estruturada no Algoritmo de 6 Etapas
+        hab_status = "Elegível (5 condicionalidades cumpridas)" if (ente.get("habilitado") or forcar_habilitacao) else "Inabilitado (Repasse Zerado)"
         memoria = [
             {
-                "passo": "1. Esfera e Etapa Avaliada",
-                "formula": "Metodologia diferenciada por esfera (Lei 14.113/2020 e NT Inep 23/2022)",
-                "descricao": f"Rede {esfera}: etapa de expansão avaliada = {etapa}.",
+                "passo": "1. Filtro de Elegibilidade Primária (Simec / MEC)",
+                "formula": r"\text{Status\_Condicionalidades} \in \{\text{True}, \text{False}\}",
+                "descricao": f"Status da rede: {hab_status}. Avaliação na esfera {esfera} (Etapa de expansão de atendimento: {etapa}).",
             },
             {
-                "passo": "2. Peso do Indicador de Atendimento (w_atend)",
-                "formula": r"w = 2 - e^{-4 \cdot \text{IND\_Atend}}",
-                "descricao": f"IND Atendimento: {ind_atend_orig:.4f} → {ind_atend_sim:.4f} | Peso: {peso_atend_orig:.4f} → {peso_atend_sim:.4f}",
+                "passo": "2. Processamento do VAAR-Atendimento (Censo Escolar)",
+                "formula": r"VAAR\_Atendimento_{r,t} = 1 - \frac{Abandono_{r,t} + 0{,}5 \times SIR_{r,t}}{M_{r,t}}",
+                "descricao": f"IND Atendimento: {ind_atend_orig:.4f} → {ind_atend_sim:.4f} | Aplica penalização de SIR (fator 0,5) e margem de flutuação.",
             },
             {
-                "passo": "3. Peso do Indicador de Aprendizagem (w_aprend)",
-                "formula": r"w = 2 - e^{-4 \cdot \text{IND\_Aprend}}",
-                "descricao": f"IND Aprendizagem: {ind_aprend_orig:.4f} → {ind_aprend_sim:.4f} | Peso: {peso_aprend_orig:.4f} → {peso_aprend_sim:.4f}",
+                "passo": "3. Processamento do VAAR-Aprendizagem (Saeb / Inep)",
+                "formula": r"VAAR\_Aprendizagem_{r,t} = Inad_{r,(t,t-1)} \times IPSaeb_{r,t} \times IndEqui_{r,t}",
+                "descricao": f"IND Aprendizagem: {ind_aprend_orig:.4f} → {ind_aprend_sim:.4f} | Presença Saeb ≥ 80%, equidade socioeconômica (INE-S) e racial (INE-R).",
             },
             {
-                "passo": "4. Divisão Legal dos Recursos (50% / 50%)",
-                "formula": r"\text{VAAR} = \text{VAAR}_{\text{atend}} + \text{VAAR}_{\text{aprend}}",
+                "passo": "4. Reescalonamento de Pesos das Matrículas",
+                "formula": r"peso^r = 1 + \left( \frac{IND - Min}{Max - Min} \right) \iff w = 2 - e^{-4 \cdot IND}",
+                "descricao": f"Peso Atendimento: {peso_atend_orig:.4f} → {peso_atend_sim:.4f} | Peso Aprendizagem: {peso_aprend_orig:.4f} → {peso_aprend_sim:.4f} (Intervalo contínuo [1, 2]).",
+            },
+            {
+                "passo": "5. Coeficientes e Quotas Legais (50% / 50%)",
+                "formula": r"C^r = \frac{M_r \times peso^r}{\sum (M_i \times peso^i)} \quad \text{e} \quad Repasse = C^r \times (50\% \text{ VAAR})",
                 "descricao": f"Cota Atendimento: R$ {vaar_atend_sim:,.2f} | Cota Aprendizagem: R$ {vaar_aprend_sim:,.2f}",
             },
             {
-                "passo": "5. Impacto Financeiro Total",
-                "formula": r"\Delta = \text{VAAR}_{\text{simulado}} - \text{VAAR}_{\text{atual}}",
-                "descricao": f"Variação projetada: {'+' if delta_rs >= 0 else ''}R$ {delta_rs:,.2f} ({delta_pct:+.2f}%)",
+                "passo": "6. Agregação Final e Variação Líquida",
+                "formula": r"\text{VAAR}_{\text{simulado}} = Repasse_{Atend} + Repasse_{Aprend} \quad \implies \quad \Delta = \text{VAAR}_{\text{sim}} - \text{VAAR}_{\text{orig}}",
+                "descricao": f"Repasse total simulado: R$ {vaar_total_sim:,.2f} | Variação projetada: {'+' if delta_rs >= 0 else ''}R$ {delta_rs:,.2f} ({delta_pct:+.2f}%)",
             },
         ]
 

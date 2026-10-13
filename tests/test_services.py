@@ -1,85 +1,82 @@
 """Testes de integração dos serviços e integridade de dados."""
-import pytest
+import unittest
 from fundeb.data.repository import JsonDataRepository
 from fundeb.services.analytics import AnalyticsService
 from fundeb.services.simulator import SimulatorService
-from fundeb.data.validation import validar_tudo
+from fundeb.data.validation import verificar, cobertura, proveniencia, OK
 
 
-@pytest.fixture(scope="session")
-def repo():
-    return JsonDataRepository()
+class TestServicesIntegration(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        cls.repo = JsonDataRepository()
+        cls.df = cls.repo.entes()
+
+    def test_repositorio_entes(self):
+        self.assertEqual(len(self.df), 5596)
+        self.assertIn("ibge", self.df.columns)
+        self.assertIn("habilitado", self.df.columns)
+        self.assertIn("beneficiario", self.df.columns)
+
+    def test_analytics_resumo_nacional(self):
+        analytics = AnalyticsService(self.df)
+        res = analytics.resumo_nacional()
+
+        self.assertEqual(res.total_entes, 5596)
+        self.assertEqual(res.total_estados, 27)
+        self.assertEqual(res.total_municipios, 5569)
+        self.assertEqual(res.habilitados, 3076)
+        self.assertEqual(res.nao_habilitados, 2520)
+        self.assertGreater(res.total_vaar_reais, 0)
+
+    def test_analytics_gargalos_condicionalidade(self):
+        analytics = AnalyticsService(self.df)
+        gargalos = analytics.gargalos_condicionalidade()
+
+        # Verifica os gargalos exatos citados nos requisitos do usuário
+        d_gargalos = {g.codigo: g.reprovacoes_nao_habilitadas for g in gargalos}
+        self.assertEqual(d_gargalos["Cond. III"], 1930)
+        self.assertEqual(d_gargalos["Cond. I"], 575)
+        self.assertEqual(d_gargalos["Cond. II"], 417)
+        self.assertEqual(d_gargalos["Cond. IV"], 93)
+
+    def test_simulador_estadual_vs_municipal(self):
+        sim = SimulatorService(self.df)
+
+        # Rede Municipal (Teresina ou SP Capital)
+        sp_mun = sim.simular_ente("3550308", delta_atendimento_pct=10.0)
+        self.assertIsNotNone(sp_mun)
+        self.assertEqual(sp_mun.esfera, "Municipal")
+        self.assertIn("Educação Infantil", sp_mun.etapa_atendimento)
+        self.assertEqual(len(sp_mun.memoria_calculo), 6)
+
+        # Rede Estadual (SP Estado ou PI Estado)
+        pi_est = sim.simular_ente("22", delta_atendimento_pct=10.0)
+        self.assertIsNotNone(pi_est)
+        self.assertEqual(pi_est.esfera, "Estadual")
+        self.assertIn("Ensino Médio", pi_est.etapa_atendimento)
+        self.assertEqual(len(pi_est.memoria_calculo), 6)
+
+    def test_auditoria_qualidade_dados(self):
+        verifs = verificar(self.df)
+        self.assertGreater(len(verifs), 0)
+        # Verifica que o fechamento contábil e unicidade IBGE estão OK
+        unicidade = next(v for v in verifs if "Código IBGE único" in v.nome)
+        self.assertEqual(unicidade.status, OK)
+
+        fechamento = next(v for v in verifs if "VAAF + VAAT + VAAR" in v.nome)
+        self.assertEqual(fechamento.status, OK)
+
+        split = next(v for v in verifs if "50% / 50%" in v.nome)
+        self.assertEqual(split.status, OK)
+
+        df_prov = proveniencia(self.repo)
+        self.assertGreater(len(df_prov), 0)
+        self.assertIn("SHA-256", df_prov.columns)
+
+        df_cob = cobertura(self.df)
+        self.assertGreater(len(df_cob), 0)
 
 
-@pytest.fixture(scope="session")
-def df(repo):
-    return repo.entes()
-
-
-def test_repositorio_entes(df):
-    assert len(df) == 5596
-    assert "ibge" in df.columns
-    assert "habilitado" in df.columns
-    assert "beneficiario" in df.columns
-
-
-def test_analytics_resumo_nacional(df):
-    analytics = AnalyticsService(df)
-    res = analytics.resumo_nacional()
-
-    assert res.total_entes == 5596
-    assert res.total_estados == 27
-    assert res.total_municipios == 5569
-    assert res.habilitados == 3076
-    assert res.nao_habilitados == 2520
-    assert res.total_vaar_reais > 0
-
-
-def test_analytics_gargalos_condicionalidade(df):
-    analytics = AnalyticsService(df)
-    gargalos = analytics.gargalos_condicionalidade()
-
-    # Verifica os gargalos exatos citados nos requisitos do usuário
-    d_gargalos = {g.codigo: g.reprovacoes_nao_habilitadas for g in gargalos}
-    assert d_gargalos["Cond. III"] == 1930
-    assert d_gargalos["Cond. I"] == 575
-    assert d_gargalos["Cond. II"] == 417
-    assert d_gargalos["Cond. IV"] == 93
-
-
-def test_simulador_estadual_vs_municipal(df):
-    sim = SimulatorService(df)
-
-    # Rede Municipal (Teresina ou SP Capital)
-    sp_mun = sim.simular_ente("3550308", delta_atendimento_pct=10.0)
-    assert sp_mun is not None
-    assert sp_mun.esfera == "Municipal"
-    assert "Educação Infantil" in sp_mun.etapa_atendimento
-
-    # Rede Estadual (SP Estado ou PI Estado)
-    pi_est = sim.simular_ente("22", delta_atendimento_pct=10.0)
-    assert pi_est is not None
-    assert pi_est.esfera == "Estadual"
-    assert "Ensino Médio" in pi_est.etapa_atendimento
-
-
-def test_auditoria_qualidade_dados(repo, df):
-    from fundeb.data.validation import verificar, cobertura, proveniencia, OK
-    verifs = verificar(df)
-    assert len(verifs) > 0
-    # Verifica que o fechamento contábil e unicidade IBGE estão OK
-    unicidade = next(v for v in verifs if "Código IBGE único" in v.nome)
-    assert unicidade.status == OK
-
-    fechamento = next(v for v in verifs if "VAAF + VAAT + VAAR" in v.nome)
-    assert fechamento.status == OK
-
-    split = next(v for v in verifs if "50% / 50%" in v.nome)
-    assert split.status == OK
-
-    df_prov = proveniencia(repo)
-    assert len(df_prov) > 0
-    assert "SHA-256" in df_prov.columns
-
-    df_cob = cobertura(df)
-    assert len(df_cob) > 0
+if __name__ == "__main__":
+    unittest.main()
