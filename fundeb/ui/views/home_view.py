@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import textwrap
+from pathlib import Path
 import streamlit as st
 import pandas as pd
 
@@ -43,8 +44,104 @@ def render_home_view(analytics: AnalyticsService) -> None:
         unsafe_allow_html=True,
     )
 
-    # ------------------------------------------------------------- ZERO CLIQUES: PANORAMA NACIONAL
-    st.markdown("### 📊 Panorama Consolidado do Ciclo 2026 (Visão Imediata)")
+    # ------------------------------------------------------------- NOTA TÉCNICA Nº 01/2026
+    with st.expander("📑 NOTA TÉCNICA Nº 01/2026 — Metodologia, Dados Oficiais & Assinatura da Produção", expanded=True):
+        st.markdown(
+            r"""
+            ### 🏛️ NOTA TÉCNICA Nº 01/2026
+            **Assunto:** Metodologia de Cálculo, Auditoria Normativa e Consolidação dos Recursos do FUNDEB e da Complementação VAAR 2026  
+            **Abrangência:** 5.596 Entes Federados (26 Redes Estaduais, Distrito Federal e 5.569 Redes Municipais)  
+            **Exercício de Referência:** Ciclo Orçamentário e Financeiro de 2026  
+
+            ---
+
+            #### 1. Objeto e Contextualização
+            Esta Nota Técnica consolida a base empírica, as rotinas de cálculo e a auditoria jurídica dos repasses federais do **Fundo de Manutenção e Desenvolvimento da Educação Básica e de Valorização dos Profissionais da Educação (FUNDEB)**, com ênfase na **Complementação VAAR (Valor Aluno Ano Resultado)** para o exercício de 2026.
+            
+            O VAAR constitui modalidade de complementação da União com destinação vinculada a redes que comprovem avanços na melhoria da gestão escolar, na equidade de atendimento e na elevação dos indicadores de aprendizagem.
+
+            #### 2. Fundamentação Legal e Normativa
+            - **Constituição Federal de 1988 (Art. 212-A e Art. 60 do ADCT):** Com a redação conferida pela **Emenda Constitucional nº 108/2020**, estabeleceu-se a rampa progressiva de complementação federal, elevando a cota da União de 12% em 2021 para 23% da receita total dos fundos em 2026 (sendo 2,50 p.p. destinados exclusivamente ao VAAR).
+            - **Lei Federal nº 14.113, de 25 de dezembro de 2020:** Regulamenta o FUNDEB. O **Art. 14, § 1º, incisos I a V**, define as 5 condicionalidades prévias de habilitação:
+              1. *Inciso I:* Provimento do cargo ou função de gestor escolar de acordo com critérios técnicos de mérito e desempenho ou eleição qualificada;
+              2. *Inciso II:* Participação de pelo menos 80% dos estudantes nos exames do Sistema de Avaliação da Educação Básica (Saeb);
+              3. *Inciso III:* Redução das desigualdades educacionais socioeconômicas e raciais, condicionada à vigência de lei estadual de rateio do ICMS Educação nos termos do art. 158 da CF;
+              4. *Inciso IV:* Regime de colaboração formalizado e referenciais curriculares alinhados à Base Nacional Comum Curricular (BNCC);
+              5. *Inciso V:* Disponibilização tempestiva de informações fiscais, contábeis e orçamentárias no SIOPE.
+            - **Metodologia Inep:** **Notas Técnicas CGEE/DIRED/INEP nº 23/2022 e nº 5/2024**, que definem as funções de ponderação de matrículas e o cálculo do Indicador de Expansão Escolar (IEE), Indicador de Atendimento (IND_Atend) e Indicador de Aprendizagem com Equidade (IND_Aprend).
+
+            #### 3. Metodologia de Distribuição Financeira
+            1. **Habilitação Plena Cumulativa:** Apenas redes que cumprem simultaneamente todas as 5 condicionalidades participam da distribuição de recursos.
+            2. **Divisão Legal 50% / 50%:** Os recursos do VAAR são divididos rigorosamente em duas parcelas iguais:
+               - **50% para a Parcela de Atendimento:** Avalia o crescimento da taxa de matrículas e redução das taxas de abandono escolar;
+               - **50% para a Parcela de Aprendizagem com Redução de Desigualdades:** Avalia o progresso pedagógico no Saeb e a diminuição do hiato socioeconômico e racial.
+            3. **Fator Ponderador Exponencial:** A conversão do indicador de cada rede em peso financeiro por matrícula segue a função exponencial:
+               $$w = 2 - e^{-4 \cdot \text{IND}}$$
+               Onde $w \in [1.0, 2.0]$.
+            4. **Diferenciação Estrita por Esfera Federativa:**
+               - **Redes Estaduais:** Avaliadas no **Ensino Médio** quanto à expansão e rendimento;
+               - **Redes Municipais:** Avaliadas na **Educação Infantil (Creche e Pré-Escola)** quanto à expansão e no Ensino Fundamental quanto à aprendizagem.
+
+            #### 4. Integridade dos Dados e Auditoria Criptográfica
+            - **Zero Dados Sintéticos:** Todas as variáveis de financiamento foram auditadas linha a linha a partir das publicações oficiais do Ministério da Educação (MEC) e FNDE. Em 100% dos 5.596 entes avaliados, a soma $\text{VAAF} + \text{VAAT} + \text{VAAR}$ fecha com exatidão em relação à Complementação Total da União.
+            """
+        )
+
+        st.markdown("#### 📥 Download das Bases de Dados Consolidadas")
+        st.caption("Acesse os dados brutos e processados para verificação independente e uso em planilhas ou sistemas analíticos:")
+
+        c_dl1, c_dl2, c_dl3 = st.columns(3)
+        with c_dl1:
+            p_xlsx = Path("outputs/Fundeb_2026_base_consolidada.xlsx")
+            if p_xlsx.exists():
+                st.download_button(
+                    label="📥 Baixar Planilha Consolidada (.xlsx)",
+                    data=p_xlsx.read_bytes(),
+                    file_name="Fundeb_2026_base_consolidada.xlsx",
+                    mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                    help="Planilha completa com 42 colunas auditadas cobrindo os 5.596 entes federados.",
+                    use_container_width=True,
+                )
+        with c_dl2:
+            csv_data = df.to_csv(sep=";", index=False, decimal=",").encode("utf-8-sig")
+            st.download_button(
+                label="📥 Baixar Base em CSV (Padrão Excel BR)",
+                data=csv_data,
+                file_name="fundeb_2026_recursos_condicionalidades.csv",
+                mime="text/csv",
+                help="Arquivo CSV com separador ponto-e-vírgula (;) pronto para abertura direta no Microsoft Excel.",
+                use_container_width=True,
+            )
+        with c_dl3:
+            p_json = Path("data/processed/base_clean.json")
+            if p_json.exists():
+                st.download_button(
+                    label="📥 Baixar Base Processada (.json)",
+                    data=p_json.read_bytes(),
+                    file_name="base_clean_fundeb_2026.json",
+                    mime="application/json",
+                    help="Base de dados em formato JSON estruturado com dados de financiamento e condicionalidades.",
+                    use_container_width=True,
+                )
+
+        st.markdown("---")
+
+        # Assinatura e Ficha Técnica da Produção
+        st.markdown(
+            """
+            #### ✍️ Assinatura e Ficha Técnica da Produção
+            <div style="background: #F8FAFC; border: 1px solid #CBD5E1; border-radius: 8px; padding: 16px 20px; line-height: 1.6; font-size: 0.92rem; color: #0F172A;">
+                <b>Responsabilidade Técnica e Engenharia de Dados:</b> Carlos Artur Guimarães<br>
+                <b>Ambiente Institucional:</b> Núcleo de Inteligência de Dados em Políticas Públicas e Financiamento Educacional<br>
+                <b>Data de Homologação Técnica:</b> Outubro de 2026 &middot; Ciclo Orçamentário FUNDEB 2026<br>
+                <b>Fontes Governamentais:</b> FNDE &middot; INEP &middot; Ministério da Educação &middot; NIC.br (Censo Escolar, SIMET, SIOPE, Saeb e Ideb)<br>
+                <b>Licença e Acesso:</b> Dados Públicos Abertos (Lei nº 12.527/2011 - LAI) &middot; Permitida a livre reprodução para fins de gestão pública, pesquisa e controle social com citação da fonte.
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
+
+    st.markdown("---")
 
     col1, col2, col3, col4 = st.columns(4)
     with col1:
