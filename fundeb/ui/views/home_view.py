@@ -59,24 +59,49 @@ def render_home_view(analytics: AnalyticsService) -> None:
 
             A participação na distribuição dos recursos da Complementação-VAAR exige o cumprimento prévio de condicionalidades de melhoria de gestão, estabelecidas no art. 14 da Lei nº 14.113/2020. O não cumprimento de qualquer uma destas condicionalidades inabilita o ente federado a receber o repasse, independentemente de seus resultados nos indicadores pedagógicos.
 
-            ### 1.1. As 5 Condicionalidades de Gestão
+            ### 1.1. As 5 Condicionalidades de Gestão (Detalhamento Técnico e Ritos de Habilitação)
 
-            1. **Provimento de cargo de gestor escolar (Inciso I):** O ente deve demonstrar que o provimento do cargo de diretor de escola obedece a critérios técnicos de mérito e desempenho ou ocorre a partir de lista tríplice elaborada mediante processo seletivo, com a participação da comunidade escolar.
-            2. **Participação nas avaliações do Saeb (Inciso II):** A rede de ensino deve alcançar, no mínimo, 80% de participação dos estudantes nas avaliações do Sistema de Avaliação da Educação Básica (Saeb).
-            3. **Redução das desigualdades educacionais (Inciso III):** A rede deve apresentar redução nas desigualdades educacionais socioeconômicas e raciais medidas nos exames nacionais.
-            4. **Regime de Colaboração / ICMS Educacional (Inciso IV):** Aplica-se aos Estados. Exige a aprovação de lei estadual que regulamente o repasse da cota-parte do ICMS aos municípios (mínimo de 10%) baseada em indicadores de melhoria nos resultados de aprendizagem e de aumento da equidade (conforme a Emenda Constitucional nº 108/2020).
-            5. **Referenciais Curriculares (Inciso V) — Requisitos de Alinhamento Integral à BNCC, Anexos Obrigatórios e Homologação:**
-               Comprovação de que a rede de ensino possui documento curricular formalmente alinhado à Base Nacional Comum Curricular (BNCC), devidamente aprovado pelo Conselho de Educação competente e homologado com publicação em Diário Oficial. Para ser considerado plenamente alinhado pelo MEC/SEB, o referencial deve conter:
+            1. **Provimento de Cargo de Gestor Escolar (Inciso I) — Critérios Técnicos de Mérito e Consulta Comunitária:**
+               - **Fundamentação Legal:** Art. 14, § 1º, inciso I da Lei nº 14.113/2020 e Meta 19 do Plano Nacional de Educação (PNE - Lei nº 13.005/2014).
+               - **Modelos de Provimento Aceitos:**
+                 * *Opção A (Mérito e Desempenho Exclusivo):* Processo seletivo público impessoal baseado em exame de conhecimentos em gestão pedagógica, administrativa e financeira, prova de títulos e apresentação de Plano de Gestão Escolar;
+                 * *Opção B (Eleição com Pré-Qualificação Técnica):* Consulta direta ou eleição qualificada com a comunidade escolar (professores, funcionários, estudantes e pais), realizada **obrigatoriamente** a partir de lista tríplice de candidatos previamente aprovados em avaliação técnica de mérito e desempenho.
+               - **Vedações Absolutas:** Indicação política discricionária ou livre nomeação sem processo seletivo prévio inabilita imediatamente a rede de ensino.
+               - **Comprovação no Simec:** Upload da Lei ou Decreto municipal/estadual regulamentador, edital do processo seletivo vigente, atas de apuração e termos de posse dos diretores.
+
+            2. **Participação nas Avaliações do Saeb (Inciso II) — Quórum Mínimo de 80% e Busca Ativa:**
+               - **Fundamentação Legal:** Art. 14, § 1º, inciso II da Lei nº 14.113/2020 e Portarias Normativas anuais do Inep.
+               - **Regra de Corte Estrita:** A rede de ensino deve atingir taxa de participação mínima de **80% (fator $\ge 0{,}80$)** dos estudantes matriculados em **cada ano escolar avaliado** (2º ano, 5º ano e 9º ano do Ensino Fundamental; 3ª série do Ensino Médio), escola a escola e no agregado da rede. Não há arredondamento para cima (índice de 79,9% resulta em inabilitação).
+               - **Fórmula de Aferição do Inep:**
+                 $$\text{Taxa de Participação} = \frac{\text{Total de Estudantes Presentes nos Exames}}{\text{Matrículas Registradas no Censo Escolar Preliminar}}$$
+               - **Ações Operacionais de Gestão:** Monitoramento prévio de listas de alunos, comitê de busca ativa escolar no dia da aplicação, garantia de transporte escolar e solicitação tempestiva de reaplicação nas hipóteses autorizadas de força maior.
+
+            3. **Redução das Desigualdades Educacionais (Inciso III) — Equidade Socioeconômica e Racial:**
+               - **Fundamentação Legal:** Art. 14, § 1º, inciso III da Lei nº 14.113/2020 e Resoluções MEC/Inep (ciclo metodológico da Nota Técnica nº 23/2022).
+               - **Dimensões Estruturantes Avaliadas pelo Inep:**
+                 * *Equidade Socioeconômica ($INE\text{-}S$):* Elevação na proporção de estudantes do estrato socioeconômico mais vulnerável (definido por recortes em quantis/mediana do INSE) que alcançam aprendizado adequado em Língua Portuguesa e Matemática;
+                 * *Equidade Racial ($INE\text{-}R$):* Redução do hiato de proficiência entre estudantes autodeclarados Pretos, Pardos ou Indígenas (PPI) e os demais estratos populacionais;
+                 * *Regime Amostral para Redes Pequenas:* Aplicação de modelos estatísticos de vizinhança ou média estadual para entes com amostras reduzidas, protegendo redes pequenas de exclusão randômica;
+                 * *Tolerância por Porte:* Verificação de $\Delta \ge 0$ observada a Tabela de Margem de Erro por porte populacional.
+
+            4. **Regime de Colaboração / ICMS Educacional (Inciso IV) — Cota-Parte Redistributiva e Equidade:**
+               - **Fundamentação Legal:** Art. 14, § 1º, inciso IV da Lei nº 14.113/2020, Art. 158, parágrafo único, II da Constituição Federal e Art. 3º da Emenda Constitucional nº 108/2020.
+               - **Obrigação Aplicável aos Estados:** Aprovação e vigência de lei estadual que regulamente o repasse da cota-parte municipal do ICMS (mínimo de 10%, podendo chegar a 35%) com base estrita em indicadores de melhoria na aprendizagem e de aumento da equidade educacional.
+               - **Impacto sobre as Redes Municipais:** A elegibilidade dos municípios depende da existência da lei estadual regulamentada. Cabe aos municípios a colaboração técnica, articulação e fornecimento tempestivo de dados educacionais aos sistemas estaduais de avaliação.
+               - **Validação no Simec:** Comprovação da lei estadual promulgada e das tabelas de rateio financeiro aferidas pelos órgãos de controle.
+
+            5. **Referenciais Curriculares (Inciso V) — Alinhamento à BNCC, Anexos Obrigatórios e Homologação:**
+               - **Fundamentação Legal:** Art. 14, § 1º, inciso V da Lei nº 14.113/2020, Resolução CNE/CP nº 2/2017 (BNCC Geral), LDB (Lei nº 9.394/1996) e marcos correlatos (como a Lei nº 14.945/2024 para o Ensino Médio).
                - **Estrutura Geral Obrigatória da BNCC:**
                  * *10 Competências Gerais da Educação Básica:* Transversais a todas as etapas, assegurando a mobilização integrada de conhecimentos, habilidades cognitivas e socioemocionais, atitudes e valores éticos;
-                 * *Educação Infantil:* Garantia expressa dos **6 Direitos de Aprendizagem e Desenvolvimento** (*Conviver, Brincar, Participar, Explorar, Expressar e Conhecer-se*), estruturação pedagógica pelos **5 Campos de Experiências** e detalhamento dos objetivos de aprendizagem para os três grupos etários (bebês, crianças bem pequenas e crianças pequenas);
-                 * *Ensino Fundamental (Anos Iniciais e Finais):* Organização pelas 5 áreas do conhecimento, componentes curriculares, unidades temáticas, objetos de conhecimento e progressão vertical de habilidades codificadas (ex: `EF01LP01` a `EF09MA06`);
-                 * *Ensino Médio (Redes Estaduais):* Articulação entre a Formação Geral Básica (FGB) e os Itinerários Formativos (aprofundamento acadêmico e Formação Técnica e Profissional - FTP), conforme as Leis nº 13.415/2017 e nº 14.945/2024.
+                 * *Educação Infantil:* Garantia expressa dos **6 Direitos de Aprendizagem e Desenvolvimento** (*Conviver, Brincar, Participar, Explorar, Expressar e Conhecer-se*), estruturação pelos **5 Campos de Experiências** e objetivos de aprendizagem para os três grupos etários (bebês, crianças bem pequenas e crianças pequenas);
+                 * *Ensino Fundamental (1º ao 9º ano):* 5 áreas do conhecimento, componentes curriculares, unidades temáticas, objetos de conhecimento e progressão vertical de habilidades codificadas (ex: `EF01LP01` a `EF09MA06`);
+                 * *Ensino Médio (Redes Estaduais):* Formação Geral Básica (FGB) articulada às 4 áreas do conhecimento e aos Itinerários Formativos (aprofundamento acadêmico e Formação Técnica e Profissional - FTP), respeitando as diretrizes da Lei nº 13.415/2017 e da Lei nº 14.945/2024.
                - **Anexos e Cadernos Temáticos Obrigatórios:**
-                 * *Anexo de Educação Especial na Perspectiva Inclusiva:* Diretrizes de Atendimento Educacional Especializado (AEE), princípios do Desenho Universal para a Aprendizagem (DUA), flexibilizações curriculares e eliminação de barreiras para estudantes com deficiência, Transtorno do Espectro Autista (TEA) e altas habilidades/superdotação;
+                 * *Anexo de Educação Especial na Perspectiva Inclusiva:* Diretrizes de Atendimento Educacional Especializado (AEE), princípios do Desenho Universal para a Aprendizagem (DUA), flexibilizações curriculares e eliminação de barreiras para estudantes com deficiência, TEA e altas habilidades/superdotação;
                  * *Anexo / Matriz de Educação para as Relações Étnico-Raciais (ERER):* Cumprimento obrigatório das **Leis Federais nº 10.639/2003 e nº 11.645/2008**, com inserção transversal da História e Cultura Afro-Brasileira e dos Povos Indígenas e objetivos formativos antirracistas;
                  * *Anexo de Modalidades Específicas do Território:* Cadernos curriculares contextualizados para Educação do Campo (saberes da terra/pedagogia da alternância), Educação Escolar Indígena (bilinguismo/processos próprios), Educação Escolar Quilombola e EJA, quando existentes no território;
-                 * *Anexo de Educação Digital e Pensamento Computacional:* Alinhamento às Normas sobre Computação na Educação Básica (Resolução CNE/CEB nº 1/2022), abrangendo cultura digital, mundo digital e pensamento computacional.
+                 * *Anexo de Educação Digital e Pensamento Computacional:* Alinhamento à Resolução CNE/CEB nº 1/2022 (eixos: cultura digital, mundo digital e pensamento computacional).
                - **Governança, Homologação e Comprovação no Simec:**
                  * *Ato Normativo do Conselho:* Parecer favorável e Resolução do **Conselho Municipal de Educação (CME)**, para sistemas municipais próprios; ou do **Conselho Estadual de Educação (CEE)**, para redes estaduais ou municípios vinculados (via regime ProBNCC / adesão formal ao Currículo Referência Estadual);
                  * *Publicação Oficial:* Publicação compulsória da Resolução de Homologação no Diário Oficial do Município (DOM) ou Estado (DOE);

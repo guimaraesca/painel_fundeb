@@ -87,74 +87,12 @@ def render_condicionalidades_view(analytics: AnalyticsService) -> None:
     st.caption("As condicionalidades estão dispostas na ordem legal dos incisos I a V do § 1º do art. 14 da Lei nº 14.113/2020:")
 
     for g in gargalos_ordem:
-        with st.expander(f"🔹 {g.codigo} — {g.nome_curto} ({format_int(g.reprovacoes_nao_habilitadas)} redes reprovadas)", expanded=(g.codigo in ("Cond. I", "Cond. V"))):
+        with st.expander(f"🔹 {g.codigo} — {g.nome_curto} ({format_int(g.reprovacoes_nao_habilitadas)} redes reprovadas)", expanded=False):
             c_info1, c_info2 = st.columns([3, 2])
             with c_info1:
                 st.markdown("**Texto Oficial da Lei nº 14.113/2020 (Art. 14, § 1º):**")
                 st.markdown(f"> *\"{g.descricao_tecnica}\"*")
             with c_info2:
-                st.markdown("**Como Agir para Não Perder Habilitação:**")
+                st.markdown("**Como Agir para Não Perder Habilitação (Síntese Executiva):**")
                 st.info(g.como_agir)
-
-            if g.codigo == "Cond. V":
-                st.markdown("---")
-                st.markdown("#### 📘 Especificações Técnicas de Alinhamento Curricular à BNCC (MEC/SEB)")
-                st.caption("O alinhamento normativo e pedagógico exige a comprovação formal dos seguintes blocos estruturantes:")
-
-                tab_bncc, tab_anexos, tab_homolog = st.tabs([
-                    "1. BNCC Geral (Núcleo Comum)",
-                    "2. Anexos e Cadernos Obrigatórios",
-                    "3. Homologação & Simec",
-                ])
-
-                with tab_bncc:
-                    st.markdown(
-                        """
-                        **Componentes Obrigatórios da BNCC Geral:**
-                        - **10 Competências Gerais da Educação Básica:** Devem permear todo o currículo, articulando conhecimentos, habilidades cognitivas, atitudes e valores socioemocionais e cidadãos.
-                        - **Educação Infantil:**
-                          * **6 Direitos de Aprendizagem e Desenvolvimento:** *Conviver, Brincar, Participar, Explorar, Expressar e Conhecer-se*.
-                          * **5 Campos de Experiências:** (1) O eu, o outro e o nós; (2) Corpo, gestos e movimentos; (3) Traços, sons, cores e formas; (4) Escuta, fala, pensamento e imaginação; (5) Espaços, tempos, quantidades, relações e transformações.
-                          * **Objetivos de Aprendizagem:** Definidos para 3 grupos etários: bebês (0 a 1a6m), crianças bem pequenas (1a7m a 3a11m) e crianças pequenas (4a a 5a11m).
-                        - **Ensino Fundamental (1º ao 9º ano):**
-                          * 5 Áreas do Conhecimento (Linguagens, Matemática, Ciências da Natureza, Ciências Humanas, Ensino Religioso) com seus componentes curriculares.
-                          * Matriz vertical com Unidades Temáticas, Objetos de Conhecimento e **Habilidades codificadas progressivas** (ex: `EF01LP01` a `EF09MA06`).
-                        - **Ensino Médio (Redes Estaduais):**
-                          * Formação Geral Básica (FGB) estruturada nas 4 grandes áreas do conhecimento articulada aos Itinerários Formativos (aprofundamento acadêmico e Formação Técnica e Profissional - FTP), conforme a Lei nº 13.415/2017 e a Lei nº 14.945/2024.
-                        """
-                    )
-
-                with tab_anexos:
-                    st.markdown(
-                        """
-                        **Cadernos Anexos e Temas Transversais Obrigatórios:**
-                        - **♿ Anexo de Educação Especial na Perspectiva Inclusiva:**
-                          * Diretrizes para o Atendimento Educacional Especializado (AEE) e Salas de Recursos Multifuncionais (SRM);
-                          * Aplicação dos princípios do **Desenho Universal para a Aprendizagem (DUA)** no planejamento pedagógico;
-                          * Protocolos de acessibilidade pedagógica, adaptação e flexibilização curricular para estudantes com deficiência, Transtorno do Espectro Autista (TEA) e altas habilidades/superdotação.
-                        - **✊ Anexo / Matriz de Educação para as Relações Étnico-Raciais (ERER):**
-                          * Cumprimento mandatório das **Leis Federais nº 10.639/2003 e nº 11.645/2008**;
-                          * Integração curricular explícita de História e Cultura Afro-Brasileira e dos Povos Indígenas nos componentes de História, Arte, Língua Portuguesa e Geografia;
-                          * Matriz formativa antirracista e valorização da identidade e diversidade cultural brasileira.
-                        - **🌾 Anexo de Modalidades Específicas do Território:**
-                          * Cadernos curriculares contextualizados para **Educação do Campo** (pedagogia da alternância e saberes da terra), **Educação Escolar Indígena** (bilinguismo e cosmologias próprias), **Educação Escolar Quilombola** e Educação de Jovens e Adultos (EJA), conforme a realidade local da rede.
-                        - **💻 Anexo de Educação Digital e Computação:**
-                          * Alinhamento às Diretrizes sobre Computação na Educação Básica (**Resolução CNE/CEB nº 1/2022**), estruturado nos eixos: Cultura Digital, Mundo Digital e Pensamento Computacional.
-                        """
-                    )
-
-                with tab_homolog:
-                    st.markdown(
-                        """
-                        **Rito Normativo de Homologação e Comprovação no Simec:**
-                        1. **Apreciação e Parecer pelo Conselho de Educação:**
-                           - **Para Sistemas Próprios Municipais:** Emissão de Parecer favorável e **Resolução Normativa do Conselho Municipal de Educação (CME)** aprovando o Documento Curricular da rede;
-                           - **Para Redes Estaduais ou Municípios Vinculados:** Homologação pelo **Conselho Estadual de Educação (CEE)** do Currículo Referência Estadual (pelo regime ProBNCC), com ato de adesão formal emitido pelo Executivo Municipal.
-                        2. **Publicação em Diário Oficial:**
-                           - Publicação compulsória da Resolução do Conselho em Diário Oficial do Município (DOM) ou Estado (DOE), com número, data de circulação e ementa explícita.
-                        3. **Submissão e Validação no Simec (MEC/SEB):**
-                           - Upload do Documento Curricular Completo (com todos os anexos e matrizes);
-                           - Cópia autenticada da Resolução/Parecer do Conselho e página do Diário Oficial;
-                           - Declaração de conformidade e Plano de Ação de formação continuada de professores e revisão dos Projetos Político-Pedagógicos (PPP) das escolas da rede.
-                        """
-                    )
+                st.caption("📖 Consulte o detalhamento completo dos requisitos, anexos e prazos na **Nota Técnica Nº 01/2026** (Página Inicial).")

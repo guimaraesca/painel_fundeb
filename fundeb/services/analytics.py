@@ -103,11 +103,11 @@ class AnalyticsService:
         }
 
         como_agir_map = {
-            "c1": "Adequar legislação local com critérios técnicos de mérito e desempenho ou escolha qualificada pela comunidade escolar, comprovando a seleção no Simec.",
-            "c2": "Intensificar mobilização escolar, busca ativa nos dias de aplicação e assegurar quórum mínimo de 80% de estudantes presentes nos exames do Saeb.",
-            "c3": "Direcionar ações pedagógicas e recomposição de aprendizagem para grupos mais vulneráveis socioeconomicamente e estudantes pretos, pardos e indígenas (PPI).",
-            "c4": "Aos Estados: aprovar lei de repasse do ICMS Educação (mínimo de 10% por desempenho e equidade). Aos Municípios: acompanhar vigência e colaborar no regime federativo.",
-            "c5": "Garantir documento curricular com BNCC Geral (10 Competências, Direitos/Campos na Ed. Infantil, Áreas/Habilidades no EF e EM) e anexos obrigatórios (Educação Especial Inclusiva/DUA, Relações Étnico-Raciais ERER Leis 10.639 e 11.645, Modalidades e Educação Digital), homologado no Conselho de Educação (CME/CEE), publicado em Diário Oficial e inserido no Simec.",
+            "c1": "Mérito, desempenho ou eleição e envio ao Simec.",
+            "c2": "Mínimo de 80% de presença por etapa no Saeb.",
+            "c3": "Reduzir hiato socioeconômico e racial no Saeb.",
+            "c4": "Lei estadual com cota de ICMS Educação >= 10%.",
+            "c5": "Currículo alinhado à BNCC homologado no CME/CEE.",
         }
 
         for col, (num, titulo, key) in mapping.items():
