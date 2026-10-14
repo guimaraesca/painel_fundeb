@@ -3,57 +3,96 @@ import streamlit as st
 
 CUSTOM_CSS = """
 <style>
-/* Otimização Widescreen: Reduz espaços em branco laterais e verticais */
+/* 1. Otimização Widescreen e Resoluções Variadas */
 .block-container {
-    padding-top: 1.5rem !important;
+    padding-top: 1.2rem !important;
     padding-bottom: 2rem !important;
     padding-left: 2rem !important;
     padding-right: 2rem !important;
     max-width: 98% !important;
 }
 
-/* Tipografia moderna e títulos */
-h1, h2, h3 {
+@media (max-width: 1366px) {
+    .block-container {
+        padding-left: 1.2rem !important;
+        padding-right: 1.2rem !important;
+        max-width: 100% !important;
+    }
+}
+
+@media (max-width: 768px) {
+    .block-container {
+        padding-top: 0.8rem !important;
+        padding-left: 0.6rem !important;
+        padding-right: 0.6rem !important;
+    }
+}
+
+/* 2. Remoção Estrita de Sombreamento em Textos (Todas as Abas e Componentes) */
+*, *::before, *::after {
+    text-shadow: none !important;
+    -webkit-font-smoothing: antialiased !important;
+    -moz-osx-font-smoothing: grayscale !important;
+}
+
+h1, h2, h3, h4, h5, h6, p, span, div, label, input, button, select, textarea,
+[data-testid="stMetricValue"], [data-testid="stMetricLabel"], [data-testid="stMarkdownContainer"] * {
+    text-shadow: none !important;
+    filter: none !important;
+}
+
+/* 3. Tipografia moderna e títulos nítidos */
+h1, h2, h3, h4 {
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif !important;
     font-weight: 700 !important;
     letter-spacing: -0.02em !important;
+    color: #0F172A !important;
 }
 
-/* Cards de Métricas Premium */
+/* 4. Cards de Métricas Premium (Alta Nitidez e Contraste Sóbrio) */
 .metric-card {
     background: #FFFFFF;
     border: 1px solid #E2E8F0;
-    border-radius: 10px;
-    padding: 16px 20px;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
-    transition: transform 0.15s ease, box-shadow 0.15s ease;
-    margin-bottom: 12px;
+    border-radius: 8px;
+    padding: 14px 18px;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.04);
+    transition: transform 0.15s ease, border-color 0.15s ease;
+    margin-bottom: 10px;
 }
 .metric-card:hover {
-    box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
+    border-color: #CBD5E1;
     transform: translateY(-1px);
 }
 .metric-card .title {
-    font-size: 0.82rem;
+    font-size: 0.8rem;
     font-weight: 600;
     text-transform: uppercase;
     color: #64748B;
     letter-spacing: 0.05em;
     margin-bottom: 4px;
+    text-shadow: none !important;
 }
 .metric-card .value {
-    font-size: 1.75rem;
-    font-weight: 700;
+    font-size: 1.65rem;
+    font-weight: 800;
     color: #0F172A;
     line-height: 1.2;
+    text-shadow: none !important;
 }
 .metric-card .subtitle {
-    font-size: 0.8rem;
+    font-size: 0.78rem;
     color: #64748B;
     margin-top: 4px;
+    text-shadow: none !important;
 }
 
-/* Badges e Pílulas de Status */
+@media (max-width: 1200px) {
+    .metric-card .value {
+        font-size: 1.35rem !important;
+    }
+}
+
+/* 5. Badges e Pílulas de Status Nítidas */
 .badge {
     display: inline-block;
     padding: 3px 8px;
@@ -61,23 +100,27 @@ h1, h2, h3 {
     font-weight: 600;
     border-radius: 9999px;
     margin-right: 4px;
+    text-shadow: none !important;
 }
-.badge-green { background-color: #DCFCE7; color: #166534; }
-.badge-amber { background-color: #FEF3C7; color: #92400E; }
-.badge-red   { background-color: #FEE2E2; color: #991B1B; }
-.badge-blue  { background-color: #DBEAFE; color: #1E40AF; }
-.badge-gray  { background-color: #F1F5F9; color: #475569; }
+.badge-green { background-color: #DCFCE7; color: #166534; border: 1px solid #86EFAC; }
+.badge-amber { background-color: #FEF3C7; color: #92400E; border: 1px solid #FDE68A; }
+.badge-red   { background-color: #FEE2E2; color: #991B1B; border: 1px solid #FCA5A5; }
+.badge-blue  { background-color: #DBEAFE; color: #1E40AF; border: 1px solid #93C5FD; }
+.badge-gray  { background-color: #F1F5F9; color: #475569; border: 1px solid #CBD5E1; }
 
-/* Fórmulas e boxes explicativos */
+/* 6. Fórmulas e boxes explicativos */
 .formula-box {
     background: #F8FAFC;
     border-left: 4px solid #2563EB;
     border-radius: 0 8px 8px 0;
     padding: 12px 16px;
     margin: 12px 0;
+    border-top: 1px solid #E2E8F0;
+    border-right: 1px solid #E2E8F0;
+    border-bottom: 1px solid #E2E8F0;
 }
 
-/* Modo Apresentação / Slide */
+/* 7. Modo Apresentação / Impressão */
 @media print {
     .block-container {
         padding: 0 !important;

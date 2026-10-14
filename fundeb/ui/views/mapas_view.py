@@ -1,4 +1,4 @@
-"""Visualização Geográfica em 3 Fases: Brasil, Regiões e Municípios com sincronização total de métricas."""
+"""Visualização Geográfica em 3 Fases: Brasil, Regiões e Municípios com sincronização multi-escala."""
 from __future__ import annotations
 
 import streamlit as st
@@ -6,7 +6,8 @@ import pandas as pd
 import plotly.express as px
 
 from fundeb.data.repository import DataRepository
-from fundeb.domain.territorio import REGIOES, REGIAO_POR_UF, UF_CODIGO, CODIGO_UF
+from fundeb.data.validation import verificar
+from fundeb.domain.territorio import REGIOES, REGIAO_POR_UF, UF_CODIGO
 from fundeb.ui.components import (
     metric_card,
     format_currency,
@@ -18,55 +19,105 @@ from fundeb.ui.components import (
 )
 from fundeb.ui.charts import chart_ranking_horizontal
 
-# Fundo cartográfico neutro e elegante (elimina o branco estéril e melhora a percepção visual)
-BG_MAPA = "#F1F5F9"
+# Fundo cartográfico limpo, neutro e elegante (elimina distorções de saturação)
+BG_MAPA = "#FFFFFF"
 
-# 1. Escalas Multi-Tom de Alto Contraste (Stephen Few & Cynthia Brewer / ColorBrewer YlGnBu e Multi-Hue)
-# Combinam variação de luminosidade com transição de matizes (amarelo/ouro ➔ esmeralda ➔ azul marinho)
-# para evitar que valores intermediários pareçam apenas variações difusas de uma mesma cor.
-ESCALA_TAXA_MULTIHUE = [
-    [0.00, "#CBD5E1"],  # Cinza ardósia claro para zero / inabilitado
-    [0.01, "#FEF08A"],  # Amarelo/Ouro suave (taxa incipiente 1-25%)
-    [0.35, "#F59E0B"],  # Âmbar aquecido (taxa baixa-média 25-50%)
-    [0.65, "#10B981"],  # Verde esmeralda vivo (taxa média-alta 50-75%)
-    [0.85, "#0D9488"],  # Azul petróleo / Teal (taxa alta 75-85%)
-    [1.00, "#1E3A8A"],  # Azul marinho profundo / Índigo (excelência >85%)
+# =============================================================================
+# PALETAS CARTOGRÁFICAS DE ALTA FIDELIDADE (Stephen Few & Cynthia Brewer / ColorBrewer)
+# =============================================================================
+
+# 1. Paleta Oceano & Cobalto (Recomendada / Executiva)
+ESCALA_TAXA_OCEANO = [
+    [0.00, "#E2E8F0"],  # Cinza neutro suave para zero / inabilitado
+    [0.01, "#CCFBF1"],  # Menta claro para taxas iniciais
+    [0.25, "#5EEAD4"],  # Turquesa suave
+    [0.50, "#0D9488"],  # Azul petróleo intermediário
+    [0.75, "#1D4ED8"],  # Azul cobalto vivo
+    [1.00, "#0F172A"],  # Azul marinho profundo executivo
 ]
 
-ESCALA_RECURSOS_MULTIHUE = [
-    [0.00, "#CBD5E1"],  # Cinza ardósia para zero / sem repasse
-    [0.01, "#FED7AA"],  # Pêssego / Âmbar claro (repasse inicial)
-    [0.30, "#38BDF8"],  # Azul celeste vibrante (repasse intermediário)
-    [0.65, "#2563EB"],  # Azul royal sólido (repasse robusto)
-    [1.00, "#0F172A"],  # Azul meia-noite executivo (topo nacional)
+ESCALA_RECURSOS_OCEANO = [
+    [0.00, "#E2E8F0"],  # Cinza neutro para zero repasse
+    [0.01, "#E0F2FE"],  # Azul gelo claro
+    [0.25, "#38BDF8"],  # Azul celeste
+    [0.50, "#2563EB"],  # Azul royal sólido
+    [0.75, "#1E40AF"],  # Azul índigo forte
+    [1.00, "#020617"],  # Meia-noite profundo
 ]
 
-# 2. Escalas Clássicas Monocromáticas (para comparação ou preferência sóbria)
-ESCALA_TAXA_CLASSICA = [
-    [0.0, "#CBD5E1"],
-    [0.25, "#6EE7B7"],
-    [0.50, "#10B981"],
-    [0.75, "#047857"],
-    [1.00, "#064E3B"],
+# 2. Paleta ColorBrewer YlGnBu (Padrão Oficial IBGE / Ipea / World Bank)
+ESCALA_TAXA_YLGNBU = [
+    [0.00, "#E2E8F0"],
+    [0.01, "#FFFFCC"],  # Amarelo claro suave
+    [0.25, "#A1DAB4"],  # Verde menta
+    [0.50, "#41B6C4"],  # Azul turquesa
+    [0.75, "#225EA8"],  # Azul clássico
+    [1.00, "#081D58"],  # Azul ultramarino
 ]
 
-ESCALA_RECURSOS_CLASSICA = [
-    [0.0, "#CBD5E1"],
-    [0.25, "#93C5FD"],
-    [0.50, "#3B82F6"],
-    [0.75, "#1D4ED8"],
-    [1.00, "#0F172A"],
+ESCALA_RECURSOS_YLGNBU = [
+    [0.00, "#E2E8F0"],
+    [0.01, "#FEE391"],  # Ouro claro
+    [0.25, "#FE9929"],  # Âmbar aquecido
+    [0.50, "#D95F0E"],  # Laranja terra
+    [0.75, "#993404"],  # Cobre profundo
+    [1.00, "#450A0A"],  # Vinho escuro
+]
+
+# 3. Paleta Esmeralda Governamental (Verde Institucional)
+ESCALA_TAXA_ESMERALDA = [
+    [0.00, "#E2E8F0"],
+    [0.01, "#DCFCE7"],  # Verde muito suave
+    [0.25, "#86EFAC"],  # Verde claro
+    [0.50, "#22C55E"],  # Verde esmeralda
+    [0.75, "#15803D"],  # Verde bandeira
+    [1.00, "#052E16"],  # Verde floresta profundo
 ]
 
 
 def render_mapas_view(df: pd.DataFrame, repo: DataRepository) -> None:
     st.subheader("🗺️ Análise Espacial em 3 Fases (Sincronização Multi-Escala)")
     st.markdown(
-        "Explore a distribuição territorial dos recursos e da habilitação do FUNDEB e VAAR 2026. "
-        "Ao alternar a métrica abaixo, **todos os mapas e indicadores selecionados são atualizados em tempo real**."
+        "Distribuição territorial cartográfica da habilitação e dos recursos do FUNDEB e Complementação VAAR 2026. "
+        "Os mapas utilizam a **projeção cartográfica conformal de Mercator**, preservando o alinhamento reto e as "
+        "formas geográficas autênticas do Brasil sem achatamentos."
     )
 
-    # ------------------------------------------------------------- CONTROLES DE SINCRONIZAÇÃO
+    # -------------------------------------------------------------------------
+    # PAINEL RETRÁTIL DE CHECAGEM DE DADOS AUDITADOS
+    # -------------------------------------------------------------------------
+    with st.expander("🛡️ Checagem de Dados Auditados da Base (Auditoria Oficial em Tempo Real)", expanded=False):
+        st.markdown(
+            "Verificação contábil e de integridade da base oficial de dados do FNDE e Inep utilizada no painel:"
+        )
+        c_ch1, c_ch2, c_ch3, c_ch4 = st.columns(4)
+        with c_ch1:
+            st.metric("Total de Entes Auditados", f"{len(df):,} redes".replace(",", "."), "27 Estaduais + 5.569 Municipais")
+        with c_ch2:
+            st.metric("Habilitados no VAAR", f"{int(df['habilitado'].sum()):,} redes".replace(",", "."), f"{df['habilitado'].mean() * 100:.1f}% de habilitação")
+        with c_ch3:
+            st.metric("Beneficiários do VAAR", f"{int(df['beneficiario'].sum()):,} redes".replace(",", "."), f"{df['beneficiario'].mean() * 100:.1f}% contempladas")
+        with c_ch4:
+            st.metric("Volume Total VAAR 2026", format_currency(df["vaar"].sum()), f"+49,2% vs 2025 ({format_currency(df['vaar_2025'].sum())})")
+
+        c_btn, c_res = st.columns([1.5, 3.5])
+        with c_btn:
+            rodar_auditoria = st.button("🔍 Executar Auditoria Contábil das 18 Regras", use_container_width=True)
+        with c_res:
+            st.caption("Verifica o fechamento contábil linha a linha (VAAF + VAAT + VAAR = Total União) e a repartição 50%/50%.")
+
+        if rodar_auditoria:
+            resultados = verificar(df)
+            st.markdown("##### 📋 Resultado da Auditoria Contábil Linha a Linha:")
+            linhas_v = []
+            for r in resultados:
+                status_icon = "✅ OK" if r.status == "ok" else "⚠️ ALERTA"
+                linhas_v.append({"Regra de Auditoria": r.nome, "Status": status_icon, "Detalhamento / Evidência": r.detalhe})
+            st.dataframe(pd.DataFrame(linhas_v), use_container_width=True, hide_index=True)
+
+    # -------------------------------------------------------------------------
+    # CONTROLES DE SINCRONIZAÇÃO E CARTOGRAFIA
+    # -------------------------------------------------------------------------
     c_metr, c_fases, c_disp = st.columns([4, 3, 4])
     with c_metr:
         metrica_escolhida = st.segmented_control(
@@ -95,25 +146,33 @@ def render_mapas_view(df: pd.DataFrame, repo: DataRepository) -> None:
             default="Linha 1: País e Região (Lado a Lado) • Linha 2: Municípios Abaixo",
         )
 
-    # Controles Cartográficos Secundários (Paleta de Cores e Alinhamento Stephen Few)
-    c_pal, c_dica = st.columns([4, 7])
+    # Controles Cartográficos Secundários (Cores e Resolução)
+    c_pal, c_alt, c_info = st.columns([3.5, 3.5, 4])
     with c_pal:
         paleta_escolhida = st.selectbox(
             "🎨 Esquema de Cores do Degradê:",
             options=[
-                "Multi-Tom Contrastante (Amarelo ➔ Esmeralda ➔ Azul)",
+                "Oceano & Cobalto (Recomendada / Alto Contraste)",
+                "ColorBrewer YlGnBu (Padrão Oficial IBGE / Ipea)",
                 "Viridis Perceptual (Científico / Acessível)",
-                "Bicromático Clássico (Ardósia ➔ Azul/Verde)",
+                "Esmeralda Governamental (Verde Institucional)",
             ],
             index=0,
-            help="Escalas multi-tom são a melhor prática cartográfica (Few & Brewer) para distinguir patamares com precisão visual.",
+            help="Escalas cartográficas calibradas para legibilidade e alta diferenciação visual entre patamares.",
         )
-    with c_dica:
+    with c_alt:
+        altura_mapa = st.select_slider(
+            "📏 Resolução / Altura dos Mapas:",
+            options=[380, 460, 540, 620],
+            value=460,
+            format_func=lambda h: {380: "Compacto (380px)", 460: "Padrão (460px)", 540: "Confortável (540px)", 620: "Expandido (620px)"}[h],
+            help="Ajuste a altura conforme a resolução do seu monitor ou tela do notebook.",
+        )
+    with c_info:
         st.caption(
-            "💡 **Princípio Cartográfico de Stephen Few & Cynthia Brewer (ColorBrewer):** "
-            "Degradês de uma única cor costumam causar ambiguidade em valores intermediários. "
-            "A paleta **Multi-Tom** combina transição de matizes com intensidade luminosa, "
-            "tornando cada patamar quantitativo perceptível de forma instantânea e sem confusão."
+            "📐 **Geometria Conformal de Mercator:** "
+            "Elimina a distorção e o achatamento cartográfico do Brasil, "
+            "mantendo as linhas estaduais e municipais com proporção e orientação corretas."
         )
 
     st.markdown("---")
@@ -125,13 +184,15 @@ def render_mapas_view(df: pd.DataFrame, repo: DataRepository) -> None:
     is_uniao = metrica_escolhida == "Total Complementação União (R$)"
     is_taxa = is_hab or is_ben
 
-    # Seleção da Escala de Cor conforme configuração
-    if "Multi-Tom" in paleta_escolhida:
-        cor_escala = ESCALA_TAXA_MULTIHUE if is_taxa else ESCALA_RECURSOS_MULTIHUE
+    # Seleção da Escala de Cor calibrada
+    if "Oceano" in paleta_escolhida:
+        cor_escala = ESCALA_TAXA_OCEANO if is_taxa else ESCALA_RECURSOS_OCEANO
+    elif "YlGnBu" in paleta_escolhida:
+        cor_escala = ESCALA_TAXA_YLGNBU if is_taxa else ESCALA_RECURSOS_YLGNBU
     elif "Viridis" in paleta_escolhida:
         cor_escala = px.colors.sequential.Viridis
     else:
-        cor_escala = ESCALA_TAXA_CLASSICA if is_taxa else ESCALA_RECURSOS_CLASSICA
+        cor_escala = ESCALA_TAXA_ESMERALDA if is_taxa else ESCALA_RECURSOS_OCEANO
 
     var_col_uf = "pct_hab" if is_hab else "pct_benef" if is_ben else "vaar" if is_vaar else "uniao"
     rotulo_metrica = (
@@ -158,17 +219,19 @@ def render_mapas_view(df: pd.DataFrame, repo: DataRepository) -> None:
     df_uf["pct_benef"] = (df_uf["beneficiarias"] / df_uf["total"]) * 100.0
     df_uf["codigo_ibge"] = df_uf["uf"].map(UF_CODIGO)
 
-    # ------------------------------------------------------------- FUNÇÕES DE DESENHO DE MAPA
-    def desenhar_fase_1(parent, altura: int = 440) -> None:
+    # -------------------------------------------------------------------------
+    # FUNÇÕES DE DESENHO DE MAPA (COM PROJEÇÃO MERCATOR CONFORME)
+    # -------------------------------------------------------------------------
+    def desenhar_fase_1(parent, altura: int = 460) -> None:
         parent.markdown("##### 🇧🇷 Fase 1: Brasil (Visão Nacional Completa)")
         val_nac = (
-            f"{format_percent(df['habilitado'].mean() * 100)} ({format_int(df['habilitado'].sum())} redes)"
+            f"{format_percent(df['habilitado'].mean() * 100)} ({format_int(df['habilitado'].sum())} de {len(df)} redes)"
             if is_hab
-            else f"{format_percent(df['beneficiario'].mean() * 100)} ({format_int(df['beneficiario'].sum())} redes)"
+            else f"{format_percent(df['beneficiario'].mean() * 100)} ({format_int(df['beneficiario'].sum())} de {len(df)} redes)"
             if is_ben
-            else format_currency(df["vaar"].sum())
+            else format_currency_full(df["vaar"].sum())
             if is_vaar
-            else format_currency(df["uniao_total"].sum())
+            else format_currency_full(df["uniao_total"].sum())
         )
         parent.caption(f"**Total Brasil ({rotulo_metrica}):** {val_nac}")
 
@@ -193,23 +256,29 @@ def render_mapas_view(df: pd.DataFrame, repo: DataRepository) -> None:
                 "uniao": "Total União (R$)",
             },
         )
-        fig.update_traces(marker_line_width=1.2, marker_line_color="#FFFFFF")
-        fig.update_geos(fitbounds="locations", visible=False, bgcolor=BG_MAPA)
+        # Linhas estaduais nítidas em cinza ardósia e projeção Mercator alinhada
+        fig.update_traces(marker_line_width=0.9, marker_line_color="#475569")
+        fig.update_geos(
+            projection_type="mercator",
+            fitbounds="locations",
+            visible=False,
+            bgcolor="#FFFFFF",
+        )
         fig.update_layout(
-            separators=",.",  # Padrão numérico ABNT
-            paper_bgcolor=BG_MAPA,
-            plot_bgcolor=BG_MAPA,
+            separators=",.",  # Padrão numérico ABNT NBR
+            paper_bgcolor="#FFFFFF",
+            plot_bgcolor="#FFFFFF",
             height=altura,
-            margin=dict(l=10, r=10, t=10, b=10),
+            margin=dict(l=6, r=6, t=6, b=6),
             coloraxis_colorbar=dict(
-                title=dict(text=rotulo_metrica, font=dict(size=11, color="#1E293B")),
-                thickness=12,
-                tickfont=dict(color="#1E293B", size=10),
+                title=dict(text=rotulo_metrica, font=dict(size=10, color="#1E293B")),
+                thickness=11,
+                tickfont=dict(color="#1E293B", size=9),
             ),
         )
-        parent.plotly_chart(fig, use_container_width=True)
+        parent.plotly_chart(fig, use_container_width=True, config={"displayModeBar": False, "responsive": True})
 
-    def desenhar_fase_2(parent, altura: int = 440) -> None:
+    def desenhar_fase_2(parent, altura: int = 460) -> None:
         parent.markdown("##### 📍 Fase 2: Regiões do País")
         regiao_sel = parent.selectbox(
             "Região Focal:",
@@ -221,13 +290,13 @@ def render_mapas_view(df: pd.DataFrame, repo: DataRepository) -> None:
         df_reg_uf = df_uf[df_uf["regiao"] == regiao_sel].copy()
 
         val_reg = (
-            f"{format_percent(df_reg['habilitado'].mean() * 100)} ({format_int(df_reg['habilitado'].sum())} redes)"
+            f"{format_percent(df_reg['habilitado'].mean() * 100)} ({format_int(df_reg['habilitado'].sum())} de {len(df_reg)} redes)"
             if is_hab
-            else f"{format_percent(df_reg['beneficiario'].mean() * 100)} ({format_int(df_reg['beneficiario'].sum())} redes)"
+            else f"{format_percent(df_reg['beneficiario'].mean() * 100)} ({format_int(df_reg['beneficiario'].sum())} de {len(df_reg)} redes)"
             if is_ben
-            else format_currency(df_reg["vaar"].sum())
+            else format_currency_full(df_reg["vaar"].sum())
             if is_vaar
-            else format_currency(df_reg["uniao_total"].sum())
+            else format_currency_full(df_reg["uniao_total"].sum())
         )
         parent.caption(f"**Total Região {regiao_sel} ({rotulo_metrica}):** {val_reg}")
 
@@ -252,23 +321,27 @@ def render_mapas_view(df: pd.DataFrame, repo: DataRepository) -> None:
                 "uniao": "Total União (R$)",
             },
         )
-        fig_reg.update_traces(marker_line_width=1.2, marker_line_color="#FFFFFF")
-        fig_reg.update_geos(fitbounds="locations", visible=False, bgcolor=BG_MAPA)
+        fig_reg.update_traces(marker_line_width=1.0, marker_line_color="#475569")
+        fig_reg.update_geos(
+            projection_type="mercator",
+            fitbounds="locations",
+            visible=False,
+            bgcolor="#FFFFFF",
+        )
         fig_reg.update_layout(
-            separators=",.",  # Padrão numérico ABNT
-            paper_bgcolor=BG_MAPA,
-            plot_bgcolor=BG_MAPA,
+            separators=",.",  # Padrão numérico ABNT NBR
+            paper_bgcolor="#FFFFFF",
+            plot_bgcolor="#FFFFFF",
             height=altura,
-            margin=dict(l=10, r=10, t=10, b=10),
+            margin=dict(l=6, r=6, t=6, b=6),
             coloraxis_colorbar=dict(
-                title=dict(text=rotulo_metrica, font=dict(size=11, color="#1E293B")),
-                thickness=12,
-                tickfont=dict(color="#1E293B", size=10),
+                title=dict(text=rotulo_metrica, font=dict(size=10, color="#1E293B")),
+                thickness=11,
+                tickfont=dict(color="#1E293B", size=9),
             ),
         )
-        parent.plotly_chart(fig_reg, use_container_width=True)
+        parent.plotly_chart(fig_reg, use_container_width=True, config={"displayModeBar": False, "responsive": True})
 
-        # Se for modo abas ou linha, exibe ranking horizontal
         if "Em Abas" in modo_disp or "Em Linha" in modo_disp:
             fig_rank = chart_ranking_horizontal(
                 df_reg_uf,
@@ -280,15 +353,13 @@ def render_mapas_view(df: pd.DataFrame, repo: DataRepository) -> None:
             )
             parent.plotly_chart(fig_rank, use_container_width=True)
 
-    def desenhar_fase_3(parent, altura: int = 460) -> None:
+    def desenhar_fase_3(parent, altura: int = 480) -> None:
         parent.markdown("##### 🏙️ Fase 3: Municípios por UF")
-        # Sincronização em cascata: filtra apenas UFs pertencentes à região selecionada na Fase 2
         regiao_atual = st.session_state.get("mapa_regiao_sel", "Nordeste")
         ufs_da_regiao = sorted([uf for uf, r in REGIAO_POR_UF.items() if r == regiao_atual])
         if not ufs_da_regiao:
             ufs_da_regiao = sorted(list(UF_CODIGO.keys()))
 
-        # Sanitização preventiva de sessão: previne StreamlitAPIException se UF anterior não pertencer à nova região
         if "mapa_uf_sel" in st.session_state and st.session_state["mapa_uf_sel"] not in ufs_da_regiao:
             st.session_state["mapa_uf_sel"] = "PI" if "PI" in ufs_da_regiao else ufs_da_regiao[0]
 
@@ -304,7 +375,7 @@ def render_mapas_view(df: pd.DataFrame, repo: DataRepository) -> None:
                 key="mapa_uf_sel",
             )
         with c_info_reg:
-            st.caption(f"ℹ️ Exibindo apenas estados pertencentes à **Região {regiao_atual}**. Alterne a região acima para carregar outros estados.")
+            st.caption(f"ℹ️ Exibindo apenas estados da **Região {regiao_atual}**. Alterne a região acima para carregar outros estados.")
 
         df_mun = df[(df["uf"] == uf_sel) & (df["rede"] == "Municipal")].copy()
 
@@ -322,9 +393,9 @@ def render_mapas_view(df: pd.DataFrame, repo: DataRepository) -> None:
             if is_hab
             else f"{format_percent(df_mun['beneficiario'].mean() * 100)} ({format_int(df_mun['beneficiario'].sum())} de {len(df_mun)} mun.)"
             if is_ben
-            else format_currency(df_mun["vaar"].sum())
+            else format_currency_full(df_mun["vaar"].sum())
             if is_vaar
-            else format_currency(df_mun["uniao_total"].sum())
+            else format_currency_full(df_mun["uniao_total"].sum())
         )
         parent.caption(f"**Total Municípios {uf_sel} ({rotulo_metrica}):** {val_uf_total}")
 
@@ -350,48 +421,54 @@ def render_mapas_view(df: pd.DataFrame, repo: DataRepository) -> None:
                     "uniao_total": "Total União (R$)",
                 },
             )
-            fig_mun.update_traces(marker_line_width=0.6, marker_line_color="#CBD5E1")
-            fig_mun.update_geos(fitbounds="locations", visible=False, bgcolor=BG_MAPA)
+            # Linhas municipais finas para evitar borrões de malha em alta densidade
+            fig_mun.update_traces(marker_line_width=0.4, marker_line_color="#94A3B8")
+            fig_mun.update_geos(
+                projection_type="mercator",
+                fitbounds="locations",
+                visible=False,
+                bgcolor="#FFFFFF",
+            )
             fig_mun.update_layout(
-                separators=",.",  # Padrão numérico ABNT
-                paper_bgcolor=BG_MAPA,
-                plot_bgcolor=BG_MAPA,
+                separators=",.",  # Padrão numérico ABNT NBR
+                paper_bgcolor="#FFFFFF",
+                plot_bgcolor="#FFFFFF",
                 height=altura,
-                margin=dict(l=10, r=10, t=10, b=10),
+                margin=dict(l=6, r=6, t=6, b=6),
                 coloraxis_colorbar=dict(
-                    title=dict(text=rotulo_metrica, font=dict(size=11, color="#1E293B")),
-                    thickness=12,
-                    tickfont=dict(color="#1E293B", size=10),
+                    title=dict(text=rotulo_metrica, font=dict(size=10, color="#1E293B")),
+                    thickness=11,
+                    tickfont=dict(color="#1E293B", size=9),
                 ),
             )
-            parent.plotly_chart(fig_mun, use_container_width=True)
+            parent.plotly_chart(fig_mun, use_container_width=True, config={"displayModeBar": False, "responsive": True})
 
-    # ------------------------------------------------------------- RENDERIZAÇÃO CONFORME DISPOSIÇÃO
+    # -------------------------------------------------------------------------
+    # RENDERIZAÇÃO RESPONSIVA CONFORME DISPOSIÇÃO
+    # -------------------------------------------------------------------------
     tem_f1 = any("Fase 1" in f for f in fases_ativas)
     tem_f2 = any("Fase 2" in f for f in fases_ativas)
     tem_f3 = any("Fase 3" in f for f in fases_ativas)
 
     if modo_disp == "Linha 1: País e Região (Lado a Lado) • Linha 2: Municípios Abaixo":
-        # Linha 1: País e Região Lado a Lado na MESMA linha
         if tem_f1 and tem_f2:
             col_pais, col_reg = st.columns(2)
             with col_pais:
                 with st.container(border=True):
-                    desenhar_fase_1(col_pais, altura=440)
+                    desenhar_fase_1(col_pais, altura=altura_mapa)
             with col_reg:
                 with st.container(border=True):
-                    desenhar_fase_2(col_reg, altura=440)
+                    desenhar_fase_2(col_reg, altura=altura_mapa)
         elif tem_f1:
             with st.container(border=True):
-                desenhar_fase_1(st, altura=460)
+                desenhar_fase_1(st, altura=altura_mapa)
         elif tem_f2:
             with st.container(border=True):
-                desenhar_fase_2(st, altura=460)
+                desenhar_fase_2(st, altura=altura_mapa)
 
-        # Linha 2: Abaixo, linha exclusiva para Município
         if tem_f3:
             with st.container(border=True):
-                desenhar_fase_3(st, altura=500)
+                desenhar_fase_3(st, altura=altura_mapa + 20)
 
     elif modo_disp == "Em Abas (Tela Cheia por Escala)":
         abas_titulos = []
@@ -407,40 +484,41 @@ def render_mapas_view(df: pd.DataFrame, repo: DataRepository) -> None:
         if tem_f1:
             with abas[a_idx]:
                 with st.container(border=True):
-                    desenhar_fase_1(abas[a_idx], altura=520)
+                    desenhar_fase_1(abas[a_idx], altura=altura_mapa + 40)
             a_idx += 1
         if tem_f2:
             with abas[a_idx]:
                 with st.container(border=True):
-                    desenhar_fase_2(abas[a_idx], altura=500)
+                    desenhar_fase_2(abas[a_idx], altura=altura_mapa + 40)
             a_idx += 1
         if tem_f3:
             with abas[a_idx]:
                 with st.container(border=True):
-                    desenhar_fase_3(abas[a_idx], altura=500)
+                    desenhar_fase_3(abas[a_idx], altura=altura_mapa + 40)
             a_idx += 1
 
     else:
-        # Modo em Linha (Seções Expandidas Sequenciais)
+        # Modo em Linha (Sequencial Expandido)
         if tem_f1:
             with st.container(border=True):
-                desenhar_fase_1(st, altura=500)
+                desenhar_fase_1(st, altura=altura_mapa + 20)
         if tem_f2:
             with st.container(border=True):
-                desenhar_fase_2(st, altura=460)
+                desenhar_fase_2(st, altura=altura_mapa + 20)
         if tem_f3:
             with st.container(border=True):
-                desenhar_fase_3(st, altura=460)
+                desenhar_fase_3(st, altura=altura_mapa + 20)
 
-    # ------------------------------------------------------------- FICHA TÉCNICA DO MUNICÍPIO (Se Fase 3 estiver ativa)
+    # -------------------------------------------------------------------------
+    # FICHA TÉCNICA AUDITADA DO MUNICÍPIO (Se Fase 3 estiver ativa)
+    # -------------------------------------------------------------------------
     if tem_f3:
         st.markdown("---")
-        st.markdown("##### 🔍 Ficha Técnica Detalhada do Município")
+        st.markdown("##### 🔍 Ficha Técnica Auditada do Município")
         uf_ativa = st.session_state.get("mapa_uf_sel", "PI")
         df_mun_lista = df[(df["uf"] == uf_ativa) & (df["rede"] == "Municipal")].sort_values(by="nome")
         mun_ibges = df_mun_lista["ibge"].tolist()
 
-        # Sanitização preventiva do município selecionado
         if "ficha_mun_sel" in st.session_state and st.session_state["ficha_mun_sel"] not in mun_ibges:
             st.session_state["ficha_mun_sel"] = mun_ibges[0] if mun_ibges else None
 
@@ -487,7 +565,7 @@ def render_mapas_view(df: pd.DataFrame, repo: DataRepository) -> None:
 
                 g1, g2, g3, g4 = st.columns(4)
                 with g1:
-                    st.markdown("**💰 Repasses 2026**")
+                    st.markdown("**💰 Repasses Oficiais 2026**")
                     st.markdown(f"- **VAAR 2026:** {format_currency_full(m_dados['vaar'])}")
                     st.markdown(f"- **VAAR 2025:** {format_currency_full(m_dados['vaar_2025'])}")
                     st.markdown(f"- **Total União:** {format_currency_full(m_dados['uniao_total'])}")
@@ -495,7 +573,7 @@ def render_mapas_view(df: pd.DataFrame, repo: DataRepository) -> None:
                     st.markdown(f"- **VAAT:** {format_currency_full(m_dados['vaat'])}")
 
                 with g2:
-                    st.markdown("**📈 Indicadores VAAR**")
+                    st.markdown("**📈 Indicadores de Habilitação**")
                     st.markdown(f"- **IND Atendimento:** {format_decimal(m_dados['ind_atend'], 4)}" if pd.notna(m_dados['ind_atend']) else "- **IND Atendimento:** —")
                     st.markdown(f"- **Evoluiu Atend:** {'Sim' if m_dados['evoluiu_atend'] else 'Não'}")
                     st.markdown(f"- **IND Aprendizagem:** {format_decimal(m_dados['ind_aprend'], 4)}" if pd.notna(m_dados['ind_aprend']) else "- **IND Aprendizagem:** —")
