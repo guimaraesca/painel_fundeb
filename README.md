@@ -79,14 +79,24 @@ fundeb-painel/
 │       ├── components.py      # Cards de KPI, badges e formatadores BRL
 │       └── views/             # Telas do painel
 │           ├── home_view.py               # Guia de Leitura e Modo Apresentação
+│           ├── boletim_view.py            # Boletim Executivo em 2 Páginas (Few)
 │           ├── condicionalidades_view.py  # Funil de reprovação (Cond. 3: 1.930, etc.)
 │           ├── mapas_view.py              # Mapas em 3 Fases (Brasil, Região, Município)
 │           ├── ranking_view.py            # Ranking de UFs com cores e micrográficos
 │           ├── historico_view.py          # Rampa EC 108/2020 e Guia Como Agir
 │           ├── simulador_view.py          # Simulador Estadual vs Municipal
 │           └── qualidade_view.py          # Auditoria de integridade e SHA-256
-└── tests/                     # Testes automatizados de fórmulas e serviços
+├── DOCUMENTACAO_TECNICA.md    # Linhagem dos dados (Data Lineage), auditoria e fórmulas
+└── tests/                     # 22 Testes automatizados de fórmulas, serviços e ABNT
 ```
+
+---
+
+## 📚 Documentação Técnica & Linhagem dos Dados (Data Lineage)
+
+Para uma compreensão aprofundada da proveniência campo a campo, integridade contábil e auditoria matemática das funções da Nota Técnica Inep nº 23/2022, consulte o documento completo:
+
+👉 **[DOCUMENTACAO_TECNICA.md](DOCUMENTACAO_TECNICA.md)**
 
 ---
 
