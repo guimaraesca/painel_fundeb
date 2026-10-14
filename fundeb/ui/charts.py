@@ -34,9 +34,14 @@ COLOR_AXIS = "#94A3B8"          # Eixos limpos
 
 
 def apply_few_theme(fig: go.Figure, show_x_grid: bool = True, show_y_grid: bool = False) -> go.Figure:
-    """Aplica o padrão Stephen Few de alta proporção tinta-dado (Data-Ink Ratio) e padrão numérico ABNT."""
+    """Aplica o padrão Stephen Few de alta proporção tinta-dado (Data-Ink Ratio), padrão ABNT e sem sobreposição."""
+    # Detecta se há título definido para ajustar margem superior proporcional
+    has_title = bool(fig.layout.title and fig.layout.title.text)
+    top_margin = 54 if has_title else 22
+    bottom_margin = 45 if (fig.layout.showlegend is not False and len(fig.data) > 1) else 25
+
     fig.update_layout(
-        separators=",.",  # ABNT: primeiro caractere é decimal (,), segundo é milhar (.)
+        separators=",.",  # ABNT: vírgula decimal (,), ponto de milhar (.)
         plot_bgcolor="#FFFFFF",
         paper_bgcolor="#FFFFFF",
         font=dict(
@@ -44,17 +49,28 @@ def apply_few_theme(fig: go.Figure, show_x_grid: bool = True, show_y_grid: bool 
             size=12,
             color="#1E293B",
         ),
-        margin=dict(l=10, r=20, t=30, b=10),
+        margin=dict(l=25, r=25, t=top_margin, b=bottom_margin),
         legend=dict(
             orientation="h",
-            yanchor="bottom",
-            y=1.02,
-            xanchor="right",
-            x=1,
+            yanchor="top",
+            y=-0.14,
+            xanchor="center",
+            x=0.5,
             title_text="",
-            font=dict(size=11),
+            font=dict(size=11, color="#334155"),
+            bgcolor="rgba(255, 255, 255, 0.9)",
         ),
     )
+    if has_title:
+        fig.update_layout(
+            title=dict(
+                y=0.96,
+                x=0.01,
+                xanchor="left",
+                yanchor="top",
+                font=dict(size=13, color="#0F172A"),
+            )
+        )
     fig.update_xaxes(
         showgrid=show_x_grid,
         gridcolor=COLOR_GRID,
@@ -64,6 +80,7 @@ def apply_few_theme(fig: go.Figure, show_x_grid: bool = True, show_y_grid: bool 
         zeroline=True,
         zerolinecolor=COLOR_AXIS,
         zerolinewidth=1.5,
+        automargin=True,
     )
     fig.update_yaxes(
         showgrid=show_y_grid,
@@ -74,6 +91,7 @@ def apply_few_theme(fig: go.Figure, show_x_grid: bool = True, show_y_grid: bool 
         zeroline=True,
         zerolinecolor=COLOR_AXIS,
         zerolinewidth=1.5,
+        automargin=True,
     )
     return fig
 

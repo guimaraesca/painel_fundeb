@@ -72,7 +72,7 @@ def main() -> None:
                 "🏆 Ranking por UF",
                 "📈 Linha Histórica & Como Agir",
                 "🧮 Simulador VAAR (Estadual vs Municipal)",
-                "🛡️ Qualidade dos Dados & Auditoria",
+                "🛡️ Observabilidade & Qualidade dos Dados",
             ],
             index=0,
         )
@@ -80,8 +80,9 @@ def main() -> None:
         st.markdown("---")
         st.markdown(
             """
-            **Auditabilidade dos Dados:**
+            **Auditabilidade & Observabilidade dos Dados:**
             - 5.596 Entes avaliados (26 Estados + DF + 5.569 Municípios)
+            - 5 Pilares: Freshness, Volume, Distribution, Schema e Lineage
             - Lei nº 14.113/2020 &bull; EC 108/2020
             - NT Inep 23/2022 &amp; NT 5/2024
             - Zero dados sintéticos ou populados artificialmente
@@ -103,7 +104,7 @@ def main() -> None:
         render_historico_view(df)
     elif "Simulador" in menu:
         render_simulador_view(simulator, df)
-    elif "Qualidade" in menu:
+    elif "Observabilidade" in menu or "Qualidade" in menu:
         render_qualidade_view(repo)
 
 
