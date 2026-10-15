@@ -598,12 +598,12 @@ class BoletimService:
         cor_alerta_borda = {"perigo": "#dc2626", "alerta": "#d97706", "sucesso": "#16a34a"}.get(al.tipo, "#2563eb")
         cor_alerta_fundo = {"perigo": "#fef2f2", "alerta": "#fffbeb", "sucesso": "#f0fdf4"}.get(al.tipo, "#eff6ff")
         alerta_preattentive_html = f"""
-        <div style="background:{cor_alerta_fundo}; border-left:4px solid {cor_alerta_borda}; border-radius:4px; padding:6px 10px; margin-bottom:8px; display:flex; justify-content:space-between; align-items:center;">
+        <div class="alerta-preattentive" style="background:{cor_alerta_fundo}; border-left:4px solid {cor_alerta_borda};">
             <div>
-                <strong style="color:{cor_alerta_borda}; font-size:10px;">{al.titulo}</strong><br>
-                <span style="font-size:9.5px; color:#1e293b;">{al.descricao} <em>Meta imediata: {al.acao_imediata}</em></span>
+                <strong style="color:{cor_alerta_borda}; font-size:12.5px; text-transform:uppercase; letter-spacing:0.02em;">{al.titulo}</strong><br>
+                <span style="font-size:11px; color:#1e293b; line-height:1.4;">{al.descricao} <em>Meta imediata: {al.acao_imediata}</em></span>
             </div>
-            <div style="text-align:right; font-weight:800; font-size:11px; color:{cor_alerta_borda};">
+            <div style="text-align:right; font-weight:800; font-size:14px; color:{cor_alerta_borda}; white-space:nowrap; margin-left:14px;">
                 {al.valor_destaque}
             </div>
         </div>
@@ -616,10 +616,10 @@ class BoletimService:
             status_cls = "row-ok" if c["atende"] else "row-fail"
             linhas_cond += f"""
             <tr class="{status_cls}">
-                <td style="font-weight:700; text-align:center;">{c['inciso']}</td>
-                <td><strong>{c['titulo']}</strong><br><small style="color:#64748b;">Validador: {c['orgao']}</small></td>
-                <td style="text-align:center;">{icone}</td>
-                <td style="font-size:8px; color:#334155;">{c['como_cumprir']}</td>
+                <td style="font-weight:800; text-align:center; font-size:11px;">{c['inciso']}</td>
+                <td style="font-size:10.5px;"><strong>{c['titulo']}</strong><br><span style="color:#64748b; font-size:9.5px;">Validador: {c['orgao']}</span></td>
+                <td style="text-align:center; font-size:10px;">{icone}</td>
+                <td style="font-size:10px; color:#334155; line-height:1.35;">{c['como_cumprir']}</td>
             </tr>
             """
 
@@ -632,11 +632,11 @@ class BoletimService:
             un_suf = f" {b.unidade}" if b.unidade in ("%", "pts") else ""
             linhas_bench += f"""
             <tr>
-                <td><strong>{b.metrica}</strong></td>
-                <td style="text-align:right; font-weight:700;">{v_e}{un_suf}</td>
-                <td style="text-align:right; color:#475569;">{v_u}{un_suf}</td>
-                <td style="text-align:right; color:#475569;">{v_b}{un_suf}</td>
-                <td style="text-align:center; font-size:8.5px;">{b.simbolo} {b.status_relativo}</td>
+                <td style="font-size:10.5px;"><strong>{b.metrica}</strong></td>
+                <td style="text-align:right; font-weight:700; font-size:11px;">{v_e}{un_suf}</td>
+                <td style="text-align:right; color:#475569; font-size:11px;">{v_u}{un_suf}</td>
+                <td style="text-align:right; color:#475569; font-size:11px;">{v_b}{un_suf}</td>
+                <td style="text-align:center; font-size:10px; font-weight:600;">{b.simbolo} {b.status_relativo}</td>
             </tr>
             """
 
@@ -650,9 +650,9 @@ class BoletimService:
             destaque_cls = "row-destaque" if c.get("destaque") else ""
             linhas_cenarios += f"""
             <tr class="{destaque_cls}">
-                <td><strong>{c['cenario']}</strong></td>
-                <td style="text-align:right; font-weight:700;">{v_fmt}</td>
-                <td style="text-align:right; color:{'#16a34a' if c['delta_rs'] > 0 else '#64748b'}; font-weight:600;">{delta_str}</td>
+                <td style="font-size:10.5px;"><strong>{c['cenario']}</strong></td>
+                <td style="text-align:right; font-weight:700; font-size:11px;">{v_fmt}</td>
+                <td style="text-align:right; color:{'#16a34a' if c['delta_rs'] > 0 else '#64748b'}; font-weight:700; font-size:10.5px;">{delta_str}</td>
             </tr>
             """
 
@@ -660,10 +660,10 @@ class BoletimService:
         blocos_causais = ""
         for d in dados.diagnosticos_causais:
             blocos_causais += f"""
-            <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:4px; padding:5px 8px; margin-bottom:5px;">
-                <div style="font-weight:700; color:#1e3a8a; font-size:9px;">❓ {d.pergunta}</div>
-                <div style="font-size:8.5px; color:#1e293b; margin:2px 0;">{d.resposta}</div>
-                <div style="font-size:8px; color:#64748b; border-top:1px dashed #cbd5e1; padding-top:2px;">
+            <div style="background:#f8fafc; border:1px solid #cbd5e1; border-left:3.5px solid #2563eb; border-radius:6px; padding:7px 11px; margin-bottom:7px;">
+                <div style="font-weight:700; color:#1e3a8a; font-size:11px;">❓ {d.pergunta}</div>
+                <div style="font-size:10px; color:#1e293b; margin:3px 0; line-height:1.35;">{d.resposta}</div>
+                <div style="font-size:9.5px; color:#475569; border-top:1px dashed #cbd5e1; padding-top:3px; margin-top:3px;">
                     <strong>Evidência:</strong> {d.evidencia} &bull; <span style="color:#b91c1c;"><strong>Impacto:</strong> {d.impacto_financeiro}</span>
                 </div>
             </div>
@@ -701,47 +701,49 @@ class BoletimService:
             corpo_html = f"""
             <!-- PÁGINA 1 VERTICAL -->
             <div class="boletim-page">
-                <div class="header-bar">
-                    <div class="header-title">
-                        <h1>Boletim Executivo &bull; FUNDEB & VAAR</h1>
-                        <p>Síntese Estratégica, Benchmarks e Auditoria Legal &bull; Princípios de Stephen Few</p>
+                <div class="page-content">
+                    <div class="header-bar">
+                        <div class="header-title">
+                            <h1>Boletim Executivo &bull; FUNDEB & VAAR</h1>
+                            <p>Síntese Estratégica, Benchmarks e Auditoria Legal &bull; Princípios de Stephen Few</p>
+                        </div>
+                        <div class="header-badges">{badge_hab} {badge_benef} {badge_trans}</div>
                     </div>
-                    <div class="header-badges">{badge_hab} {badge_benef} {badge_trans}</div>
+
+                    {alerta_preattentive_html}
+
+                    <div class="ente-banner">
+                        <div class="ente-field"><div class="label">Ente Federado</div><div class="val">{dados.nome}</div></div>
+                        <div class="ente-field"><div class="label">Esfera / UF / Região</div><div class="val">{dados.esfera} &bull; {dados.uf} ({dados.regiao})</div></div>
+                        <div class="ente-field"><div class="label">Código IBGE</div><div class="val">{dados.ibge}</div></div>
+                        <div class="ente-field"><div class="label">Situação Legal</div><div class="val" style="color:{'#16a34a' if dados.habilitado else '#dc2626'};">{'Habilitado' if dados.habilitado else f'{dados.n_reprovacoes} Cond. Reprovadas'}</div></div>
+                    </div>
+
+                    <div class="section-title">1. Financiamento Oficial da Rede (FNDE)</div>
+                    <div class="grid-fin">
+                        <div class="card-fin"><div class="tit">Receita Contribuição</div><div class="num">{rec_contrib_fmt}</div></div>
+                        <div class="card-fin"><div class="tit">Compl. VAAF</div><div class="num">{vaaf_fmt}</div></div>
+                        <div class="card-fin"><div class="tit">Compl. VAAT</div><div class="num">{vaat_fmt}</div></div>
+                        <div class="card-fin destaque"><div class="tit">Compl. VAAR (2026)</div><div class="num">{vaar_26_fmt}</div><small style="font-size:8.5px; color:#1e40af; display:block; margin-top:2px;">2025: {vaar_25_fmt}</small></div>
+                        <div class="card-fin"><div class="tit">Total União</div><div class="num">{uniao_tot_fmt}</div></div>
+                    </div>
+
+                    <div class="section-title">2. Auditoria das 5 Condicionalidades de Gestão (Art. 14 da Lei 14.113/2020)</div>
+                    <table>
+                        <thead>
+                            <tr><th style="width:6%; text-align:center;">Inc.</th><th style="width:32%;">Condicionalidade</th><th style="width:16%; text-align:center;">Status</th><th style="width:46%;">Requisito Legal e Como Cumprir</th></tr>
+                        </thead>
+                        <tbody>{linhas_cond}</tbody>
+                    </table>
+
+                    <div class="section-title">3. Comparativo Lado a Lado de Indicadores (Ente vs UF vs Brasil)</div>
+                    <table>
+                        <thead>
+                            <tr><th style="width:35%;">Indicador Pedagógico / Fluxo</th><th style="width:15%; text-align:right;">{dados.nome}</th><th style="width:15%; text-align:right;">Média {dados.uf}</th><th style="width:15%; text-align:right;">Média Brasil</th><th style="width:20%; text-align:center;">Posição Relativa</th></tr>
+                        </thead>
+                        <tbody>{linhas_bench}</tbody>
+                    </table>
                 </div>
-
-                {alerta_preattentive_html}
-
-                <div class="ente-banner">
-                    <div class="ente-field"><div class="label">Ente Federado</div><div class="val">{dados.nome}</div></div>
-                    <div class="ente-field"><div class="label">Esfera / UF / Região</div><div class="val">{dados.esfera} &bull; {dados.uf} ({dados.regiao})</div></div>
-                    <div class="ente-field"><div class="label">Código IBGE</div><div class="val">{dados.ibge}</div></div>
-                    <div class="ente-field"><div class="label">Situação Legal</div><div class="val" style="color:{'#16a34a' if dados.habilitado else '#dc2626'};">{'Habilitado' if dados.habilitado else f'{dados.n_reprovacoes} Cond. Reprovadas'}</div></div>
-                </div>
-
-                <div class="section-title">1. Financiamento Oficial da Rede (FNDE)</div>
-                <div class="grid-fin">
-                    <div class="card-fin"><div class="tit">Receita Contribuição</div><div class="num">{rec_contrib_fmt}</div></div>
-                    <div class="card-fin"><div class="tit">Compl. VAAF</div><div class="num">{vaaf_fmt}</div></div>
-                    <div class="card-fin"><div class="tit">Compl. VAAT</div><div class="num">{vaat_fmt}</div></div>
-                    <div class="card-fin destaque"><div class="tit">Compl. VAAR (2026)</div><div class="num">{vaar_26_fmt}</div><small style="font-size:7.5px; color:#1e40af;">2025: {vaar_25_fmt}</small></div>
-                    <div class="card-fin"><div class="tit">Total União</div><div class="num">{uniao_tot_fmt}</div></div>
-                </div>
-
-                <div class="section-title">2. Auditoria das 5 Condicionalidades de Gestão (Art. 14 da Lei 14.113/2020)</div>
-                <table>
-                    <thead>
-                        <tr><th style="width:5%; text-align:center;">Inc.</th><th style="width:30%;">Condicionalidade</th><th style="width:15%; text-align:center;">Status</th><th style="width:50%;">Requisito Legal e Como Cumprir</th></tr>
-                    </thead>
-                    <tbody>{linhas_cond}</tbody>
-                </table>
-
-                <div class="section-title">3. Comparativo Lado a Lado de Indicadores (Ente vs UF vs Brasil)</div>
-                <table>
-                    <thead>
-                        <tr><th style="width:35%;">Indicador Pedagógico / Fluxo</th><th style="width:15%; text-align:right;">{dados.nome}</th><th style="width:15%; text-align:right;">Média {dados.uf}</th><th style="width:15%; text-align:right;">Média Brasil</th><th style="width:20%; text-align:center;">Posição Relativa</th></tr>
-                    </thead>
-                    <tbody>{linhas_bench}</tbody>
-                </table>
 
                 <div class="page-footer">
                     <span>Boletim Oficial de Auditoria FUNDEB/VAAR &bull; Página 1 de 2</span>
@@ -751,36 +753,38 @@ class BoletimService:
 
             <!-- PÁGINA 2 VERTICAL -->
             <div class="boletim-page">
-                <div class="header-bar">
-                    <div class="header-title">
-                        <h1>Plano Propositivo de Ação &bull; Simulação VAAR</h1>
-                        <p>Simulação Contrafactual e Diagnóstico Causal de Causa-Raiz &bull; {dados.nome} ({dados.uf})</p>
+                <div class="page-content">
+                    <div class="header-bar">
+                        <div class="header-title">
+                            <h1>Plano Propositivo de Ação &bull; Simulação VAAR</h1>
+                            <p>Simulação Contrafactual e Diagnóstico Causal de Causa-Raiz &bull; {dados.nome} ({dados.uf})</p>
+                        </div>
+                        <div class="header-badges"><span class="badge badge-info">PÁGINA 2 DE 2</span></div>
                     </div>
-                    <div class="header-badges"><span class="badge badge-info">PÁGINA 2 DE 2</span></div>
-                </div>
 
-                <div class="section-title">1. Simulação Contrafactual de Potencial & Custo da Inação</div>
-                <div class="alerta-inacao">
-                    <div class="txt"><strong>CUSTO ANUAL DA INAÇÃO / POTENCIAL NÃO CAPTADO:</strong><br>Recursos anuais adicionais que a rede deixa de captar em caso de inabilitação ou não avanço das metas.</div>
-                    <div class="val">{custo_inacao_fmt}</div>
-                </div>
+                    <div class="section-title">1. Simulação Contrafactual de Potencial & Custo da Inação</div>
+                    <div class="alerta-inacao">
+                        <div class="txt"><strong>CUSTO ANUAL DA INAÇÃO / POTENCIAL NÃO CAPTADO:</strong><br>Recursos anuais adicionais que a rede deixa de captar em caso de inabilitação ou não avanço das metas.</div>
+                        <div class="val">{custo_inacao_fmt}</div>
+                    </div>
 
-                <table>
-                    <thead>
-                        <tr><th style="width:50%;">Cenário Contrafactual de Simulação</th><th style="width:25%; text-align:right;">Repasse Estimado (R$)</th><th style="width:25%; text-align:right;">Variação Líquida (Δ)</th></tr>
-                    </thead>
-                    <tbody>{linhas_cenarios}</tbody>
-                </table>
+                    <table>
+                        <thead>
+                            <tr><th style="width:50%;">Cenário Contrafactual de Simulação</th><th style="width:25%; text-align:right;">Repasse Estimado (R$)</th><th style="width:25%; text-align:right;">Variação Líquida (Δ)</th></tr>
+                        </thead>
+                        <tbody>{linhas_cenarios}</tbody>
+                    </table>
 
-                <div class="section-title">2. Diagnóstico Causal de Causa-Raiz (Pergunte "Por Quê?")</div>
-                {blocos_causais}
+                    <div class="section-title">2. Diagnóstico Causal de Causa-Raiz (Pergunte "Por Quê?")</div>
+                    {blocos_causais}
 
-                <div class="section-title">3. Matriz Propositiva de Ações Estratégicas (Como Agir)</div>
-                <div class="blocos-acoes-container">{blocos_acoes}</div>
+                    <div class="section-title">3. Matriz Propositiva de Ações Estratégicas (Como Agir)</div>
+                    <div class="blocos-acoes-container">{blocos_acoes}</div>
 
-                <div class="section-title" style="margin-top:6px;">4. Compromisso de Gestão & Retorno Educacional</div>
-                <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:4px; padding:5px 8px; font-size:8.5px; color:#334155;">
-                    <strong>Metas Prioritárias do Ciclo:</strong> Regularizar certidões pendentes no Simec, garantir presença &ge; 85% no Saeb e combater o abandono escolar. O atingimento destas metas projeta elevar a captação anual para até <strong>{melhor_pot_fmt}</strong>.
+                    <div class="section-title">4. Compromisso de Gestão & Retorno Educacional</div>
+                    <div style="background:#f8fafc; border:1px solid #cbd5e1; border-left:3.5px solid #16a34a; border-radius:6px; padding:7px 11px; font-size:10px; color:#334155; line-height:1.4;">
+                        <strong>Metas Prioritárias do Ciclo:</strong> Regularizar certidões pendentes no Simec, garantir presença &ge; 85% no Saeb e combater o abandono escolar. O atingimento destas metas projeta elevar a captação anual para até <strong style="color:#166534;">{melhor_pot_fmt}</strong>.
+                    </div>
                 </div>
 
                 <div class="page-footer">
@@ -797,49 +801,51 @@ class BoletimService:
             corpo_html = f"""
             <!-- SLIDE 1 PAISAGEM (PÁGINA 1) -->
             <div class="boletim-page">
-                <div class="header-bar">
-                    <div class="header-title">
-                        <h1>Boletim Executivo &bull; FUNDEB & VAAR &bull; Slide 1: Diagnóstico e Benchmarks</h1>
-                        <p>{dados.nome} &bull; {dados.uf} ({dados.esfera}) &bull; IBGE: {dados.ibge} &bull; Princípios de Stephen Few</p>
+                <div class="page-content">
+                    <div class="header-bar">
+                        <div class="header-title">
+                            <h1>Boletim Executivo &bull; FUNDEB & VAAR &bull; Slide 1: Diagnóstico e Benchmarks</h1>
+                            <p>{dados.nome} &bull; {dados.uf} ({dados.esfera}) &bull; IBGE: {dados.ibge} &bull; Princípios de Stephen Few</p>
+                        </div>
+                        <div class="header-badges">{badge_hab} {badge_benef} {badge_trans}</div>
                     </div>
-                    <div class="header-badges">{badge_hab} {badge_benef} {badge_trans}</div>
-                </div>
 
-                <div class="grid-two-col">
-                    <!-- Coluna Esquerda: Cadastro + Financiamento + Condicionalidades -->
-                    <div class="col-side">
-                        <div class="section-title">1. Financiamento Oficial da Rede (FNDE)</div>
-                        <div class="grid-fin">
-                            <div class="card-fin"><div class="tit">Receita Contribuição</div><div class="num">{rec_contrib_fmt}</div></div>
-                            <div class="card-fin"><div class="tit">VAAF</div><div class="num">{vaaf_fmt}</div></div>
-                            <div class="card-fin"><div class="tit">VAAT</div><div class="num">{vaat_fmt}</div></div>
-                            <div class="card-fin destaque"><div class="tit">VAAR 2026</div><div class="num">{vaar_26_fmt}</div></div>
-                            <div class="card-fin"><div class="tit">Total União</div><div class="num">{uniao_tot_fmt}</div></div>
+                    <div class="grid-two-col">
+                        <!-- Coluna Esquerda: Financiamento + Condicionalidades -->
+                        <div class="col-side">
+                            <div class="section-title">1. Financiamento Oficial da Rede (FNDE)</div>
+                            <div class="grid-fin">
+                                <div class="card-fin"><div class="tit">Receita Contribuição</div><div class="num">{rec_contrib_fmt}</div></div>
+                                <div class="card-fin"><div class="tit">VAAF</div><div class="num">{vaaf_fmt}</div></div>
+                                <div class="card-fin"><div class="tit">VAAT</div><div class="num">{vaat_fmt}</div></div>
+                                <div class="card-fin destaque"><div class="tit">VAAR 2026</div><div class="num">{vaar_26_fmt}</div></div>
+                                <div class="card-fin"><div class="tit">Total União</div><div class="num">{uniao_tot_fmt}</div></div>
+                            </div>
+
+                            <div class="section-title">2. Auditoria das 5 Condicionalidades (Lei 14.113/2020)</div>
+                            <table>
+                                <thead>
+                                    <tr><th style="width:8%; text-align:center;">Inc.</th><th style="width:42%;">Condicionalidade</th><th style="width:20%; text-align:center;">Status</th><th style="width:30%;">Órgão Validador</th></tr>
+                                </thead>
+                                <tbody>{linhas_cond}</tbody>
+                            </table>
                         </div>
 
-                        <div class="section-title">2. Auditoria das 5 Condicionalidades (Lei 14.113/2020)</div>
-                        <table>
-                            <thead>
-                                <tr><th style="width:8%; text-align:center;">Inc.</th><th style="width:42%;">Condicionalidade</th><th style="width:20%; text-align:center;">Status</th><th style="width:30%;">Órgão Validador</th></tr>
-                            </thead>
-                            <tbody>{linhas_cond}</tbody>
-                        </table>
-                    </div>
+                        <!-- Coluna Direita: Alerta + Benchmarks Lado a Lado + Diagnóstico Causal -->
+                        <div class="col-side">
+                            {alerta_preattentive_html}
 
-                    <!-- Coluna Direita: Alerta + Benchmarks Lado a Lado + Diagnóstico Causal -->
-                    <div class="col-side">
-                        {alerta_preattentive_html}
+                            <div class="section-title">3. Comparativo Lado a Lado (Ente vs UF vs Brasil)</div>
+                            <table>
+                                <thead>
+                                    <tr><th>Indicador</th><th style="text-align:right;">{dados.nome}</th><th style="text-align:right;">Média {dados.uf}</th><th style="text-align:right;">Média BR</th><th style="text-align:center;">Posição</th></tr>
+                                </thead>
+                                <tbody>{linhas_bench}</tbody>
+                            </table>
 
-                        <div class="section-title">3. Comparativo Lado a Lado (Ente vs UF vs Brasil)</div>
-                        <table>
-                            <thead>
-                                <tr><th>Indicador</th><th style="text-align:right;">{dados.nome}</th><th style="text-align:right;">Média {dados.uf}</th><th style="text-align:right;">Média BR</th><th style="text-align:center;">Posição</th></tr>
-                            </thead>
-                            <tbody>{linhas_bench}</tbody>
-                        </table>
-
-                        <div class="section-title">4. Diagnóstico de Causa-Raiz (Por Que Aconteceu?)</div>
-                        {blocos_causais}
+                            <div class="section-title">4. Diagnóstico de Causa-Raiz (Por Que Aconteceu?)</div>
+                            {blocos_causais}
+                        </div>
                     </div>
                 </div>
 
@@ -851,41 +857,43 @@ class BoletimService:
 
             <!-- SLIDE 2 PAISAGEM (PÁGINA 2) -->
             <div class="boletim-page">
-                <div class="header-bar">
-                    <div class="header-title">
-                        <h1>Plano Propositivo de Ação &bull; Slide 2: Simulação e Prescrições</h1>
-                        <p>{dados.nome} &bull; {dados.uf} &bull; Simulação Contrafactual de Cenários e Roteiro de Políticas Públicas</p>
-                    </div>
-                    <div class="header-badges"><span class="badge badge-info">SLIDE 2 DE 2</span></div>
-                </div>
-
-                <div class="grid-two-col">
-                    <!-- Coluna Esquerda: Cenários de Potencial + Custo da Inação -->
-                    <div class="col-side">
-                        <div class="section-title">1. Simulação Contrafactual de Potencial</div>
-                        <div class="alerta-inacao">
-                            <div class="txt"><strong>CUSTO ANUAL DA INAÇÃO:</strong><br>Perda anual estimada por inabilitação ou não cumprimento de metas.</div>
-                            <div class="val">{custo_inacao_fmt}</div>
+                <div class="page-content">
+                    <div class="header-bar">
+                        <div class="header-title">
+                            <h1>Plano Propositivo de Ação &bull; Slide 2: Simulação e Prescrições</h1>
+                            <p>{dados.nome} &bull; {dados.uf} &bull; Simulação Contrafactual de Cenários e Roteiro de Políticas Públicas</p>
                         </div>
-
-                        <table>
-                            <thead>
-                                <tr><th>Cenário Contrafactual</th><th style="text-align:right;">Repasse (R$)</th><th style="text-align:right;">Ganho Líquido (Δ)</th></tr>
-                            </thead>
-                            <tbody>{linhas_cenarios}</tbody>
-                        </table>
-
-                        <div class="section-title">2. Compromisso e Metas de Retorno Educacional</div>
-                        <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:4px; padding:6px 10px; font-size:8.5px; color:#334155;">
-                            <strong>Metas Chave:</strong> (1) Regularizar certidões no Simec; (2) Presença &ge; 85% no Saeb; (3) Reduzir abandono escolar abaixo de 1%.<br>
-                            A concretização destas metas eleva a captação anual para até <strong>{melhor_pot_fmt}</strong>.
-                        </div>
+                        <div class="header-badges"><span class="badge badge-info">SLIDE 2 DE 2</span></div>
                     </div>
 
-                    <!-- Coluna Direita: Ações Prescritivas Estratégicas -->
-                    <div class="col-side">
-                        <div class="section-title">3. Matriz Prescritiva de Ações Estratégicas (Como Agir)</div>
-                        <div class="blocos-acoes-container">{blocos_acoes}</div>
+                    <div class="grid-two-col">
+                        <!-- Coluna Esquerda: Cenários de Potencial + Custo da Inação -->
+                        <div class="col-side">
+                            <div class="section-title">1. Simulação Contrafactual de Potencial</div>
+                            <div class="alerta-inacao">
+                                <div class="txt"><strong>CUSTO ANUAL DA INAÇÃO:</strong><br>Perda anual estimada por inabilitação ou não cumprimento de metas.</div>
+                                <div class="val">{custo_inacao_fmt}</div>
+                            </div>
+
+                            <table>
+                                <thead>
+                                    <tr><th>Cenário Contrafactual</th><th style="text-align:right;">Repasse (R$)</th><th style="text-align:right;">Ganho Líquido (Δ)</th></tr>
+                                </thead>
+                                <tbody>{linhas_cenarios}</tbody>
+                            </table>
+
+                            <div class="section-title">2. Compromisso e Metas de Retorno Educacional</div>
+                            <div style="background:#f8fafc; border:1px solid #cbd5e1; border-left:3.5px solid #16a34a; border-radius:6px; padding:8px 12px; font-size:10px; color:#334155; line-height:1.4;">
+                                <strong>Metas Chave:</strong> (1) Regularizar certidões no Simec; (2) Presença &ge; 85% no Saeb; (3) Reduzir abandono escolar abaixo de 1%.<br>
+                                A concretização destas metas eleva a captação anual para até <strong style="color:#166534;">{melhor_pot_fmt}</strong>.
+                            </div>
+                        </div>
+
+                        <!-- Coluna Direita: Ações Prescritivas Estratégicas -->
+                        <div class="col-side">
+                            <div class="section-title">3. Matriz Prescritiva de Ações Estratégicas (Como Agir)</div>
+                            <div class="blocos-acoes-container">{blocos_acoes}</div>
+                        </div>
                     </div>
                 </div>
 
@@ -905,7 +913,7 @@ class BoletimService:
 <style>
     @page {{
         size: {page_size};
-        margin: 6mm;
+        margin: 8mm 10mm;
     }}
     * {{
         box-sizing: border-box;
@@ -918,31 +926,37 @@ class BoletimService:
         background-color: #f1f5f9;
         margin: 0;
         padding: 0;
-        font-size: 10px;
-        line-height: 1.3;
+        font-size: 11px;
+        line-height: 1.35;
     }}
     .boletim-container {{
         width: 100%;
-        max-width: {'1140px' if is_landscape else '820px'};
+        max-width: {'1160px' if is_landscape else '840px'};
         margin: 0 auto;
-        padding: 8px;
+        padding: 12px;
     }}
     .boletim-page {{
         background: #ffffff;
         border: 1px solid #cbd5e1;
-        border-radius: 6px;
-        padding: 14px 18px;
-        margin-bottom: 16px;
-        box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
+        border-radius: 8px;
+        padding: 18px 22px;
+        margin-bottom: 20px;
+        box-shadow: 0 4px 12px -2px rgba(0,0,0,0.07);
         page-break-after: always;
         break-after: page;
-        min-height: {'720px' if is_landscape else '1050px'};
+        min-height: {'740px' if is_landscape else '1080px'};
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
         position: relative;
+    }}
+    .page-content {{
+        flex: 1 1 auto;
     }}
     .grid-two-col {{
         display: grid;
         grid-template-columns: 1fr 1fr;
-        gap: 12px;
+        gap: 14px;
     }}
     .col-side {{
         width: 100%;
@@ -950,19 +964,30 @@ class BoletimService:
     @media print {{
         body {{
             background: #ffffff !important;
+            font-size: 10.5px !important;
         }}
         .boletim-container {{
             max-width: 100% !important;
             padding: 0 !important;
+            margin: 0 !important;
         }}
         .boletim-page {{
             border: none !important;
             box-shadow: none !important;
+            border-radius: 0 !important;
             padding: 0 !important;
-            margin: 0 0 15px 0 !important;
+            margin: 0 !important;
             page-break-after: always !important;
             break-after: page !important;
-            min-height: auto !important;
+            min-height: 98vh !important;
+            display: flex !important;
+            flex-direction: column !important;
+            justify-content: space-between !important;
+            overflow: hidden !important;
+        }}
+        .boletim-page:last-child {{
+            page-break-after: avoid !important;
+            break-after: avoid !important;
         }}
         .no-print {{
             display: none !important;
@@ -973,36 +998,38 @@ class BoletimService:
         display: flex;
         justify-content: space-between;
         align-items: center;
-        border-bottom: 2px solid #1e3a8a;
+        border-bottom: 2.5px solid #1e3a8a;
         padding-bottom: 8px;
-        margin-bottom: 8px;
+        margin-bottom: 10px;
     }}
     .header-title h1 {{
         margin: 0;
-        font-size: 15px;
+        font-size: 16.5px;
         font-weight: 800;
         color: #1e3a8a;
         letter-spacing: -0.02em;
         text-transform: uppercase;
     }}
     .header-title p {{
-        margin: 1px 0 0 0;
-        font-size: 9px;
-        color: #64748b;
+        margin: 2px 0 0 0;
+        font-size: 10px;
+        color: #475569;
         font-weight: 500;
     }}
     .header-badges {{
         display: flex;
-        gap: 4px;
+        gap: 5px;
         align-items: center;
+        flex-wrap: wrap;
     }}
     .badge {{
         display: inline-block;
-        padding: 2px 6px;
-        font-size: 8.5px;
+        padding: 3px 8px;
+        font-size: 9.5px;
         font-weight: 700;
         border-radius: 4px;
         text-transform: uppercase;
+        letter-spacing: 0.02em;
     }}
     .badge-success {{ background: #dcfce7; color: #166534; border: 1px solid #86efac; }}
     .badge-danger  {{ background: #fee2e2; color: #991b1b; border: 1px solid #fca5a5; }}
@@ -1013,67 +1040,72 @@ class BoletimService:
     /* Ente Banner */
     .ente-banner {{
         background: #f8fafc;
-        border: 1px solid #e2e8f0;
-        border-radius: 4px;
-        padding: 6px 10px;
+        border: 1px solid #cbd5e1;
+        border-radius: 6px;
+        padding: 8px 12px;
         display: grid;
         grid-template-columns: repeat(4, 1fr);
-        gap: 6px;
-        margin-bottom: 8px;
+        gap: 8px;
+        margin-bottom: 10px;
     }}
     .ente-field .label {{
-        font-size: 8px;
+        font-size: 9px;
         color: #64748b;
         text-transform: uppercase;
-        font-weight: 600;
+        font-weight: 700;
+        letter-spacing: 0.03em;
+        margin-bottom: 2px;
     }}
     .ente-field .val {{
-        font-size: 11px;
+        font-size: 12.5px;
         color: #0f172a;
         font-weight: 700;
     }}
 
     /* Seções */
     .section-title {{
-        font-size: 10.5px;
+        font-size: 12px;
         font-weight: 700;
         color: #1e3a8a;
         text-transform: uppercase;
         letter-spacing: 0.03em;
-        border-left: 3px solid #2563eb;
-        padding-left: 5px;
-        margin: 8px 0 4px 0;
+        border-left: 3.5px solid #2563eb;
+        padding-left: 6px;
+        margin: 10px 0 5px 0;
     }}
 
     /* Grids Financeiros */
     .grid-fin {{
         display: grid;
         grid-template-columns: repeat(5, 1fr);
-        gap: 4px;
-        margin-bottom: 6px;
+        gap: 6px;
+        margin-bottom: 10px;
     }}
     .card-fin {{
         background: #ffffff;
-        border: 1px solid #e2e8f0;
-        border-radius: 4px;
-        padding: 4px 6px;
+        border: 1px solid #cbd5e1;
+        border-radius: 6px;
+        padding: 6px 8px;
         text-align: center;
     }}
     .card-fin.destaque {{
         background: #eff6ff;
-        border-color: #93c5fd;
+        border-color: #60a5fa;
+        border-width: 1.5px;
     }}
     .card-fin .tit {{
-        font-size: 7.5px;
+        font-size: 9px;
         font-weight: 600;
-        color: #64748b;
+        color: #475569;
         text-transform: uppercase;
-        margin-bottom: 1px;
+        margin-bottom: 2px;
+        letter-spacing: 0.01em;
     }}
     .card-fin .num {{
-        font-size: 11px;
+        font-size: 13px;
         font-weight: 800;
         color: #0f172a;
+        letter-spacing: -0.01em;
     }}
     .card-fin.destaque .num {{
         color: #1e40af;
@@ -1083,21 +1115,22 @@ class BoletimService:
     table {{
         width: 100%;
         border-collapse: collapse;
-        margin-bottom: 6px;
-        font-size: 8.5px;
+        margin-bottom: 10px;
+        font-size: 10.5px;
     }}
     th {{
         background: #f1f5f9;
-        color: #334155;
+        color: #1e293b;
         font-weight: 700;
         text-align: left;
-        padding: 3px 5px;
-        border-bottom: 1px solid #cbd5e1;
-        font-size: 8px;
+        padding: 5px 7px;
+        border-bottom: 1.5px solid #cbd5e1;
+        font-size: 9.5px;
         text-transform: uppercase;
+        letter-spacing: 0.02em;
     }}
     td {{
-        padding: 3px 5px;
+        padding: 4.5px 7px;
         border-bottom: 1px solid #f1f5f9;
         vertical-align: middle;
     }}
@@ -1110,76 +1143,87 @@ class BoletimService:
     .alerta-inacao {{
         background: #fef2f2;
         border-left: 4px solid #ef4444;
-        border-radius: 4px;
-        padding: 6px 10px;
-        margin: 4px 0 6px 0;
+        border-radius: 6px;
+        padding: 9px 12px;
+        margin: 5px 0 10px 0;
         display: flex;
         justify-content: space-between;
         align-items: center;
     }}
     .alerta-inacao .txt {{
-        font-size: 8.5px;
+        font-size: 10px;
         color: #7f1d1d;
+        line-height: 1.35;
     }}
     .alerta-inacao .val {{
-        font-size: 13px;
+        font-size: 15px;
         font-weight: 800;
         color: #b91c1c;
+        white-space: nowrap;
+        margin-left: 12px;
+    }}
+
+    /* Alerta Pré-atentivo */
+    .alerta-preattentive {{
+        border-radius: 6px;
+        padding: 9px 12px;
+        margin-bottom: 10px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
     }}
 
     /* Ações Cards */
     .acao-card {{
         background: #ffffff;
-        border: 1px solid #e2e8f0;
-        border-left: 3px solid #2563eb;
-        border-radius: 4px;
-        padding: 5px 8px;
-        margin-bottom: 4px;
-        font-size: 8.5px;
+        border: 1px solid #cbd5e1;
+        border-left: 3.5px solid #2563eb;
+        border-radius: 5px;
+        padding: 6px 9px;
+        margin-bottom: 6px;
+        font-size: 10px;
     }}
     .acao-header {{
         display: flex;
         justify-content: space-between;
-        margin-bottom: 1px;
+        margin-bottom: 2px;
     }}
     .acao-tag {{
-        padding: 1px 4px;
+        padding: 2px 6px;
         border-radius: 3px;
-        font-size: 7.5px;
+        font-size: 8.5px;
         font-weight: 700;
+        letter-spacing: 0.02em;
     }}
     .acao-eixo {{
-        font-size: 8px;
+        font-size: 9px;
         color: #64748b;
-        margin-left: 3px;
+        margin-left: 5px;
     }}
     .acao-titulo {{
-        font-size: 10px;
+        font-size: 11px;
         font-weight: 700;
         color: #0f172a;
-        margin: 1px 0;
+        margin: 2px 0;
     }}
-    .acao-diagnostico {{ color: #64748b; margin-bottom: 1px; }}
-    .acao-corpo {{ color: #1e293b; margin-bottom: 2px; }}
+    .acao-diagnostico {{ color: #64748b; font-size: 9.5px; margin-bottom: 2px; line-height: 1.35; }}
+    .acao-corpo {{ color: #1e293b; font-size: 10px; margin-bottom: 3px; line-height: 1.35; }}
     .acao-footer {{
         border-top: 1px dashed #e2e8f0;
-        padding-top: 2px;
-        font-size: 7.5px;
+        padding-top: 3px;
+        font-size: 8.5px;
         color: #475569;
     }}
 
     /* Rodapé da Página */
     .page-footer {{
-        position: absolute;
-        bottom: 8px;
-        left: 18px;
-        right: 18px;
-        border-top: 1px solid #e2e8f0;
-        padding-top: 4px;
+        border-top: 1px solid #cbd5e1;
+        padding-top: 6px;
+        margin-top: auto;
         display: flex;
         justify-content: space-between;
-        font-size: 7.5px;
-        color: #94a3b8;
+        font-size: 8.5px;
+        color: #64748b;
     }}
 </style>
 </head>

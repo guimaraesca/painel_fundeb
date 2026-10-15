@@ -204,7 +204,7 @@ def render_boletim_view(df: pd.DataFrame, simulator: SimulatorService) -> None:
             "as 2 páginas serão paginadas automaticamente sem cortes."
         )
 
-        altura_preview = 1250 if orientacao_cod == "portrait" else 880
+        altura_preview = 1350 if orientacao_cod == "portrait" else 920
         components.html(html_boletim, height=altura_preview, scrolling=True)
 
     with tab_bench:
