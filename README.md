@@ -98,6 +98,14 @@ Para uma compreensão aprofundada da proveniência campo a campo, integridade co
 
 👉 **[DOCUMENTACAO_TECNICA.md](DOCUMENTACAO_TECNICA.md)**
 
+Para reconstruir a base **do zero** (download das fontes oficiais FNDE/INEP/IBGE → `data/processed`), com paridade verificada, consulte o pipeline completo:
+
+👉 **[PIPELINE.md](PIPELINE.md)** — `python src/sources.py --download && python -m src.parse.build_all --check`
+
+Para a proposta de evolução (plataforma multidimensional para redes e MEC, ETL e relatórios PDF):
+
+👉 **[PROPOSTA_EVOLUCAO.md](PROPOSTA_EVOLUCAO.md)**
+
 ---
 
 ## 📐 Fórmulas Matemáticas & Metodologia

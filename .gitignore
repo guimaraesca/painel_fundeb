@@ -41,3 +41,7 @@ ENV/
 # Artefatos gerados pelo ETL e pelos relatórios (reproduzíveis)
 data/processed/warehouse/
 outputs/relatorios/
+
+# Dados brutos baixados das fontes oficiais (reproduzíveis via src/sources.py --download)
+data/raw/*
+!data/raw/README.md
