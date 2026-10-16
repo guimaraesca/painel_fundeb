@@ -37,3 +37,7 @@ ENV/
 .vscode/
 *.swp
 *.swo
+
+# Artefatos gerados pelo ETL e pelos relatórios (reproduzíveis)
+data/processed/warehouse/
+outputs/relatorios/
