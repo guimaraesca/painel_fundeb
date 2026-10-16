@@ -512,3 +512,79 @@ def chart_progressao_uniao(
     return apply_few_theme(fig, show_x_grid=False, show_y_grid=True)
 
 
+# Cores por esforço (nº de condicionalidades a cumprir)
+CORES_ESFORCO = {
+    0: "#16A34A",   # já habilitada / sem esforço
+    1: "#22C55E",   # 1 condicionalidade — quick win
+    2: "#D97706",   # 2 — esforço médio
+    3: "#DC2626",   # 3+ — esforço alto
+}
+
+
+def _cor_esforco(n: int) -> str:
+    return CORES_ESFORCO.get(int(n), CORES_ESFORCO[3] if n >= 3 else CORES_ESFORCO[0])
+
+
+def chart_pareto_vaar(
+    df: pd.DataFrame,
+    nome_col: str,
+    valor_col: str,
+    esforco_col: str,
+    titulo: str,
+    max_barras: int = 25,
+) -> tuple[go.Figure, int, int]:
+    """Gráfico de Pareto do retorno potencial de VAAR por município (Few/Juran).
+
+    Barras (eixo esquerdo) = ganho potencial de VAAR por ente, ordenado do maior
+    para o menor e colorido pelo ESFORÇO (nº de condicionalidades a cumprir).
+    Linha (eixo direito) = % acumulado. Retorna (figura, n_vital_few, n_total),
+    onde n_vital_few é quantos entes concentram 80% do ganho potencial total.
+    """
+    d = df[df[valor_col] > 0].sort_values(valor_col, ascending=False).reset_index(drop=True).copy()
+    n_total = len(d)
+    total = float(d[valor_col].sum()) or 1.0
+    d["cum_pct"] = d[valor_col].cumsum() / total * 100.0
+    # Minoria vital: menor nº de entes cujo acumulado atinge 80% do ganho total.
+    n_vital = min(int((d["cum_pct"] < 80.0).sum()) + 1, n_total) if n_total else 0
+
+    vis = d.head(max_barras)
+    cores = [_cor_esforco(n) for n in vis[esforco_col]]
+
+    fig = go.Figure()
+    fig.add_trace(go.Bar(
+        x=vis[nome_col], y=vis[valor_col],
+        marker=dict(color=cores),
+        name="Ganho potencial de VAAR",
+        hovertext=[f"<b>{n}</b><br>Ganho potencial: {format_currency_full(v)}<br>Condicionalidades a cumprir: {int(e)}"
+                   for n, v, e in zip(vis[nome_col], vis[valor_col], vis[esforco_col])],
+        hoverinfo="text",
+        yaxis="y",
+    ))
+    fig.add_trace(go.Scatter(
+        x=vis[nome_col], y=vis["cum_pct"],
+        mode="lines+markers",
+        line=dict(color="#1E293B", width=2),
+        marker=dict(size=5, color="#1E293B"),
+        name="% acumulado",
+        yaxis="y2",
+        hovertemplate="Acumulado: %{y:.1f}%<extra></extra>",
+    ))
+    # Linha de referência 80%
+    fig.add_hline(y=80, line=dict(color="#94A3B8", width=1, dash="dot"), yref="y2")
+
+    fig.update_layout(
+        title=dict(text=titulo, font=dict(size=13, color="#0F172A")),
+        height=max(360, 30 + len(vis) * 14),
+        bargap=0.25,
+        yaxis=dict(title="Ganho potencial (R$)", side="left"),
+        yaxis2=dict(title="% acumulado", overlaying="y", side="right",
+                    range=[0, 105], ticksuffix="%", showgrid=False),
+        xaxis=dict(tickangle=-45),
+        legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1.0),
+    )
+    fig = apply_few_theme(fig, show_x_grid=False, show_y_grid=True)
+    fig.update_layout(yaxis2=dict(title="% acumulado", overlaying="y", side="right",
+                                  range=[0, 105], ticksuffix="%", showgrid=False))
+    return fig, n_vital, n_total
+
+

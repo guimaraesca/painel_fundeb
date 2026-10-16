@@ -164,22 +164,11 @@ def render_boletim_view(df: pd.DataFrame, simulator: SimulatorService) -> None:
         )
 
     with col_print:
-        st.markdown(
-            """
-            <a href="javascript:window.print()" class="btn-print" style="
-                display: block;
-                text-align: center;
-                background-color: #2563EB;
-                color: #FFFFFF !important;
-                padding: 0.55rem 1rem;
-                border-radius: 0.5rem;
-                font-weight: 600;
-                font-size: 0.875rem;
-                text-decoration: none;
-                margin-top: 1px;
-            ">🖨️ Imprimir / Salvar em PDF</a>
-            """,
-            unsafe_allow_html=True,
+        st.info(
+            "🖨️ Para gerar o PDF, use o botão **Imprimir / Salvar em PDF** no topo da "
+            "pré-visualização do documento (aba abaixo) — ele imprime as 2 páginas A4 "
+            "exatas, sem a interface do painel.",
+            icon=None,
         )
 
     with col_info:

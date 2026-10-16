@@ -21,6 +21,7 @@ from fundeb.ui.views.simulador_view import render_simulador_view
 from fundeb.ui.views.boletim_view import render_boletim_view
 from fundeb.ui.views.qualidade_view import render_qualidade_view
 from fundeb.ui.views.programas_view import render_programas_view
+from fundeb.ui.views.prioridades_view import render_prioridades_view
 
 # 1. Configuração da Página Streamlit (Widescreen nativo)
 st.set_page_config(
@@ -71,6 +72,7 @@ def main() -> None:
                 "⚖️ Condicionalidades & Ranking de Impacto",
                 "🗺️ Mapas em 3 Fases",
                 "🏆 Ranking por UF",
+                "🎯 Prioridades (Pareto): Retorno vs Esforço",
                 "📈 Linha Histórica & Como Agir",
                 "🧮 Simulador VAAR (Estadual vs Municipal)",
                 "🍎 Programas Suplementares (PNAE/PNATE)",
@@ -100,6 +102,8 @@ def main() -> None:
         render_condicionalidades_view(analytics)
     elif "Mapas" in menu:
         render_mapas_view(df, repo)
+    elif "Prioridades" in menu:
+        render_prioridades_view(simulator, df)
     elif "Ranking" in menu:
         render_ranking_view(analytics)
     elif "Linha Histórica" in menu:

@@ -1228,9 +1228,13 @@ class BoletimService:
 </style>
 </head>
 <body>
+<div class="boletim-toolbar no-print" style="position:sticky;top:0;z-index:999;display:flex;justify-content:flex-end;gap:8px;padding:8px 10px;background:rgba(248,250,252,0.96);border-bottom:1px solid #e2e8f0;">
+    <button onclick="window.print()" style="cursor:pointer;background:#2563EB;color:#fff;border:none;border-radius:8px;padding:8px 16px;font-weight:600;font-size:13px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Arial,sans-serif;">🖨️ Imprimir / Salvar em PDF</button>
+</div>
 <div class="boletim-container">
     {corpo_html}
 </div>
+<style>@media print {{ .no-print {{ display:none !important; }} }}</style>
 </body>
 </html>
 """
