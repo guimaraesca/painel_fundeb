@@ -6,6 +6,12 @@
       "runtimeExecutable": ".venv/bin/streamlit",
       "runtimeArgs": ["run", "app_executivo.py", "--server.headless=true", "--server.port=8502"],
       "port": 8502
+    },
+    {
+      "name": "fundeb-completo",
+      "runtimeExecutable": ".venv/bin/streamlit",
+      "runtimeArgs": ["run", "app.py", "--server.headless=true", "--server.port=8503"],
+      "port": 8503
     }
   ]
 }

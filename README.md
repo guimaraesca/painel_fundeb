@@ -106,6 +106,10 @@ Para a proposta de evolução (plataforma multidimensional para redes e MEC, ETL
 
 👉 **[PROPOSTA_EVOLUCAO.md](PROPOSTA_EVOLUCAO.md)**
 
+Para a cobertura de **PNAE/PNATE** e o simulador de impacto da subcontagem do Censo (caso RN):
+
+👉 **[PROGRAMAS_PNAE_PNATE.md](PROGRAMAS_PNAE_PNATE.md)**
+
 ---
 
 ## 📐 Fórmulas Matemáticas & Metodologia

@@ -14,6 +14,7 @@ from reportlab.platypus import BaseDocTemplate, Frame, PageTemplate, Paragraph, 
 
 from fundeb.services.analytics import AnalyticsService
 from fundeb.domain.legal import CONDICIONALIDADE_POR_CODIGO
+from fundeb.programas.suplementares import impacto_subcontagem
 from fundeb.etl.indicadores import (
     CATALOGO, DIMENSOES, FINANCEIRO, indicadores_da_dimensao,
 )
@@ -148,6 +149,33 @@ def relatorio_especifico(df: pd.DataFrame, ibge: str, caminho: str | Path) -> Pa
         linhas_acao,
         larguras=[LARGURA_UTIL * w for w in (0.30, 0.13, 0.57)],
     ))
+
+    # ---------------------------------------------------------------- PNAE/PNATE
+    fl.append(Spacer(1, 6))
+    fl.append(Paragraph("Programas suplementares — exposição à subcontagem", ST["h1"]))
+    fl.append(Paragraph(
+        "PNAE (alimentação) e PNATE (transporte rural) são repassados <b>por aluno do "
+        "Censo Escolar</b>. Cada aluno não cadastrado no Educacenso deixa de gerar, por ano:",
+        ST["corpo"]))
+    fl.append(Spacer(1, 4))
+    linhas_imp = []
+    for n in (100, 500, 1000):
+        imp = impacto_subcontagem(n, pct_rural=15.0)
+        linhas_imp.append([
+            f"{numero(n)} alunos",
+            f"{moeda(imp.pnae_min)} – {moeda(imp.pnae_max)}",
+            f"{moeda(imp.pnate_min)} – {moeda(imp.pnate_max)}",
+            f"{moeda(imp.total_min)} – {moeda(imp.total_max)}",
+        ])
+    fl.append(tabela(
+        ["Subcontagem", "PNAE/ano", "PNATE/ano (15% rural)", "Total PNAE+PNATE/ano"],
+        linhas_imp, alinhar_dir=(1, 2, 3)))
+    fl.append(Spacer(1, 4))
+    fl.append(Paragraph(
+        "Faixa do PNAE entre a menor etapa regular e a creche; PNATE sobre 15% rurais "
+        "(per capita por município). Valores per capita: Res. CD/FNDE nº 1/2026 (PNAE) e "
+        "nº 14/2026 (PNATE). A perda total inclui ainda Fundeb (VAAF/VAAT) e VAAR.",
+        ST["corpo_cinza"]))
 
     fl.append(Spacer(1, 8))
     fl.append(regua())

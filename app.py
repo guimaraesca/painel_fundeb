@@ -20,6 +20,7 @@ from fundeb.ui.views.historico_view import render_historico_view
 from fundeb.ui.views.simulador_view import render_simulador_view
 from fundeb.ui.views.boletim_view import render_boletim_view
 from fundeb.ui.views.qualidade_view import render_qualidade_view
+from fundeb.ui.views.programas_view import render_programas_view
 
 # 1. Configuração da Página Streamlit (Widescreen nativo)
 st.set_page_config(
@@ -72,6 +73,7 @@ def main() -> None:
                 "🏆 Ranking por UF",
                 "📈 Linha Histórica & Como Agir",
                 "🧮 Simulador VAAR (Estadual vs Municipal)",
+                "🍎 Programas Suplementares (PNAE/PNATE)",
                 "🛡️ Observabilidade & Qualidade dos Dados",
             ],
             index=0,
@@ -104,6 +106,8 @@ def main() -> None:
         render_historico_view(df)
     elif "Simulador" in menu:
         render_simulador_view(simulator, df)
+    elif "Programas Suplementares" in menu:
+        render_programas_view()
     elif "Observabilidade" in menu or "Qualidade" in menu:
         render_qualidade_view(repo)
 
