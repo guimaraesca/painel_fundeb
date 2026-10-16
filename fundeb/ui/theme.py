@@ -130,6 +130,47 @@ h1, h2, h3, h4 {
         display: none !important;
     }
 }
+
+/* 8. Prevenção Sistêmica de Truncamento em Métricas e Cards (Issue #5) */
+[data-testid="stMetric"] {
+    width: 100% !important;
+    overflow: visible !important;
+}
+[data-testid="stMetricLabel"] {
+    font-size: 0.82rem !important;
+    line-height: 1.25 !important;
+    white-space: normal !important;
+    word-break: break-word !important;
+}
+[data-testid="stMetricLabel"] p {
+    font-size: 0.82rem !important;
+    white-space: normal !important;
+    word-break: break-word !important;
+}
+[data-testid="stMetricValue"] {
+    font-size: clamp(1.02rem, 1.35vw, 1.45rem) !important;
+    white-space: normal !important;
+    word-break: break-word !important;
+    overflow: visible !important;
+    text-overflow: clip !important;
+    line-height: 1.2 !important;
+}
+[data-testid="stMetricValue"] div {
+    font-size: inherit !important;
+    white-space: normal !important;
+    word-break: break-word !important;
+    overflow: visible !important;
+    text-overflow: clip !important;
+}
+[data-testid="stMetricDelta"] {
+    font-size: 0.78rem !important;
+    white-space: normal !important;
+    word-break: break-word !important;
+}
+[data-testid="stMetricDelta"] div {
+    white-space: normal !important;
+    word-break: break-word !important;
+}
 </style>
 """
 

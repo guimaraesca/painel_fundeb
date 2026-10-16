@@ -60,14 +60,14 @@ def main() -> None:
     # Sidebar: Navegação Executiva
     with st.sidebar:
         st.markdown("## 📊 FUNDEB & VAAR")
-        st.caption("Ciclo de Distribuição 2026 &middot; Dados Oficiais FNDE/Inep")
+        st.caption("Ciclo de Distribuição 2026 • Dados Oficiais FNDE/Inep")
 
         menu = st.radio(
             "Navegação:",
             options=[
                 "🏠 Início & Guia de Leitura",
                 "📄 Boletim Executivo (2 Páginas)",
-                "⚖️ Condicionalidades & Funil",
+                "⚖️ Condicionalidades & Ranking de Impacto",
                 "🗺️ Mapas em 3 Fases",
                 "🏆 Ranking por UF",
                 "📈 Linha Histórica & Como Agir",
@@ -83,7 +83,7 @@ def main() -> None:
             **Auditabilidade & Observabilidade dos Dados:**
             - 5.596 Entes avaliados (26 Estados + DF + 5.569 Municípios)
             - 5 Pilares: Freshness, Volume, Distribution, Schema e Lineage
-            - Lei nº 14.113/2020 &bull; EC 108/2020
+            - Lei nº 14.113/2020 • EC 108/2020
             - NT Inep 23/2022 &amp; NT 5/2024
             - Zero dados sintéticos ou populados artificialmente
             """

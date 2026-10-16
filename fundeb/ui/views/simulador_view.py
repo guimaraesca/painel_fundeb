@@ -130,9 +130,9 @@ def render_simulador_view(sim_service: SimulatorService, df: pd.DataFrame) -> No
         forcar_hab = False
         if not ente.get("habilitado"):
             forcar_hab = st.toggle(
-                "Simular caso regularize as 5 condicionalidades (Elegibilidade Plena)",
+                "Simular regularização das 5 condicionalidades",
                 value=True,
-                help="Se ativado, calcula a estimativa de repasse caso a rede vença os gargalos normativos.",
+                help="Elegibilidade Plena: calcula a estimativa de repasse caso a rede cumpra todos os requisitos normativos do Art. 14.",
             )
 
     # Executar a simulação
@@ -238,7 +238,7 @@ def render_simulador_view(sim_service: SimulatorService, df: pd.DataFrame) -> No
 
     for item in resultado.memoria_calculo:
         with st.container(border=True):
-            col_m1, col_m2 = st.columns([1, 2])
+            col_m1, col_m2 = st.columns([1.1, 1.2])
             with col_m1:
                 st.markdown(f"**{item['passo']}**")
                 if "$" in item["formula"] or "\\" in item["formula"]:
@@ -246,7 +246,8 @@ def render_simulador_view(sim_service: SimulatorService, df: pd.DataFrame) -> No
                 else:
                     st.caption(item["formula"])
             with col_m2:
-                st.markdown(item["descricao"])
+                desc_escaped = str(item["descricao"]).replace("$", r"\$")
+                st.markdown(desc_escaped)
 
     # Tabela Histórica do IEE da Rede
     if resultado.cenarios_iee:

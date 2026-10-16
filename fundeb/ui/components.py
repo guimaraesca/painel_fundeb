@@ -72,7 +72,8 @@ def metric_card(
             delta_color="normal" if delta_color == "normal" else ("inverse" if delta_color == "red" else "off"),
         )
         if sub:
-            st.caption(sub)
+            sub_limpo = str(sub).replace("$", r"\$").replace("&bull;", "•")
+            st.caption(sub_limpo)
 
 
 def status_badge(status: str) -> str:

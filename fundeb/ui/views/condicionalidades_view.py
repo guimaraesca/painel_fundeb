@@ -29,27 +29,34 @@ def render_condicionalidades_view(analytics: AnalyticsService) -> None:
     )
 
     # 5 Colunas na ordem legal das condicionalidades (I a V)
+    resumos_delta = {
+        "Cond. I": "Gestor Escolar",
+        "Cond. II": "Saeb >= 80%",
+        "Cond. III": "Desigualdades",
+        "Cond. IV": "ICMS Educação",
+        "Cond. V": "BNCC & Currículo",
+    }
     cols = st.columns(len(gargalos_ordem))
     for col, g in zip(cols, gargalos_ordem):
         with col:
             metric_card(
                 title=g.codigo,
                 value=f"{format_int(g.reprovacoes_nao_habilitadas)} redes",
-                subtitle=f"{format_percent(g.pct_sobre_nao_habilitadas)} das não habilitadas",
-                delta=f"{g.nome_curto.split('—')[1].strip() if '—' in g.nome_curto else g.nome_curto}",
+                subtitle=f"{format_percent(g.pct_sobre_nao_habilitadas)} das não hab.",
+                delta=resumos_delta.get(g.codigo, g.codigo),
                 delta_color="red",
             )
 
     st.markdown("---")
 
-    # Gráfico de barras horizontal do funil de perdas
+    # Gráfico de barras horizontal do ranking de reprovações
     col_chart, col_tabela = st.columns([3, 2])
 
     with col_chart:
-        st.markdown("##### 📊 Funil de Reprovações nas Redes Desabilitadas (Ranking por Impacto)")
+        st.markdown("##### 📊 Ranking de Reprovações por Impacto (Redes Não Habilitadas)")
         df_chart = pd.DataFrame([
             {
-                "Condicionalidade": f"{g.codigo}: {g.nome_curto.split('—')[1].strip() if '—' in g.nome_curto else g.nome_curto}",
+                "Condicionalidade": f"{g.codigo}: {resumos_delta.get(g.codigo, g.nome_curto)}",
                 "Reprovações": g.reprovacoes_nao_habilitadas,
             }
             for g in gargalos_ranking
@@ -59,7 +66,7 @@ def render_condicionalidades_view(analytics: AnalyticsService) -> None:
             df_chart,
             categoria_col="Condicionalidade",
             valor_col="Reprovações",
-            titulo="Redes Não Habilitadas que Reprovaram em Cada Condicionalidade",
+            titulo="Ranking de Reprovações por Condicionalidade (Redes Desabilitadas)",
             destacar_primeiro=True,
             cor_destaque="#DC2626",
             formato_rotulo="%{x:,.0f} redes",
@@ -79,6 +86,12 @@ def render_condicionalidades_view(analytics: AnalyticsService) -> None:
             for g in gargalos_ordem
         ])
         st.dataframe(df_tabela, use_container_width=True, hide_index=True)
+
+    st.caption(
+        "ℹ️ **Impacto Federativo em Destaque:** Na Condicionalidade IV (ICMS Educacional), a ausência de legislação estadual regulamentada "
+        "no Rio de Janeiro inabilitou 100% das 93 redes do estado (Estado + 92 municípios). O Distrito Federal cumpriu as Cond. I, IV e V, "
+        "mas restou desabilitado por reprovação nas Cond. II (Saeb < 80%) e III (Desigualdades)."
+    )
 
     st.markdown("---")
 

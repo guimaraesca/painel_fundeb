@@ -107,7 +107,7 @@ def render_boletim_view(df: pd.DataFrame, simulator: SimulatorService) -> None:
     # 2. CARDS RESUMO & BARRA DE AÇÕES RÁPIDAS (Stephen Few: Atenção)
     # -------------------------------------------------------------------------
     st.markdown("---")
-    st.markdown(f"### 🏛️ {dados.nome} &bull; {dados.uf}")
+    st.markdown(f"### 🏛️ {dados.nome} • {dados.uf}")
 
     # Banner Pré-atentivo
     al = dados.alerta_preattentive
@@ -130,13 +130,13 @@ def render_boletim_view(df: pd.DataFrame, simulator: SimulatorService) -> None:
         st.metric(
             label="VAAR Recebido (2026)",
             value=format_currency_full(dados.vaar_2026_rs),
-            delta=f"{'+' if dados.delta_vaar_historico_rs >= 0 else ''}{format_currency_full(dados.delta_vaar_historico_rs)} vs 2025",
+            delta=f"{'+' if dados.delta_vaar_historico_rs >= 0 else ''}{format_currency(dados.delta_vaar_historico_rs)} vs 2025",
         )
     with c3:
         st.metric(
             label="Potencial Máximo Estimado",
             value=format_currency_full(dados.melhor_potencial_rs),
-            delta=f"+{format_currency_full(dados.custo_inacao_rs)} potencial",
+            delta=f"+{format_currency(dados.custo_inacao_rs)} potencial",
         )
     with c4:
         st.metric(
@@ -183,7 +183,7 @@ def render_boletim_view(df: pd.DataFrame, simulator: SimulatorService) -> None:
 
     with col_info:
         st.caption(
-            f"📌 **Autenticação:** Código `{dados.hash_autenticacao}` &bull; Formato: **{orientacao_sel}** (Paginado em 2 páginas exatas sem cortes)."
+            f"📌 **Autenticação:** Código `{dados.hash_autenticacao}` • Formato: **{orientacao_sel}** (Paginado em 2 páginas exatas sem cortes)."
         )
 
     # -------------------------------------------------------------------------
@@ -242,16 +242,32 @@ def render_boletim_view(df: pd.DataFrame, simulator: SimulatorService) -> None:
         st.plotly_chart(fig_loll, use_container_width=True)
 
         df_cen = pd.DataFrame(dados.trilha_cenarios)
+        max_pot = float(df_cen["valor_rs"].max()) if not df_cen.empty else 0.0
+        df_cen["progresso_potencial"] = (df_cen["valor_rs"] / max_pot) if max_pot > 0 else 0.0
         df_cen["valor_formatado"] = df_cen["valor_rs"].apply(format_currency_full)
         df_cen["delta_formatado"] = df_cen["delta_rs"].apply(lambda v: f"+{format_currency_full(v)}" if v > 0 else "Baseline")
-        df_cen_view = df_cen[["cenario", "valor_formatado", "delta_formatado"]].rename(
-            columns={
-                "cenario": "Cenário de Desempenho",
-                "valor_formatado": "Repasse Anual Estimado",
-                "delta_formatado": "Ganho Líquido (Δ)",
-            }
+
+        st.dataframe(
+            df_cen[[
+                "cenario",
+                "valor_formatado",
+                "progresso_potencial",
+                "delta_formatado",
+            ]],
+            column_config={
+                "cenario": st.column_config.TextColumn("Cenário de Desempenho"),
+                "valor_formatado": st.column_config.TextColumn("Repasse Estimado"),
+                "progresso_potencial": st.column_config.ProgressColumn(
+                    "% Potencial Máximo",
+                    format="percent",
+                    min_value=0.0,
+                    max_value=1.0,
+                ),
+                "delta_formatado": st.column_config.TextColumn("Ganho Líquido (Δ)"),
+            },
+            use_container_width=True,
+            hide_index=True,
         )
-        st.dataframe(df_cen_view, use_container_width=True, hide_index=True)
 
         if dados.custo_inacao_rs > 0:
             st.warning(
@@ -268,7 +284,7 @@ def render_boletim_view(df: pd.DataFrame, simulator: SimulatorService) -> None:
         for diag in dados.diagnosticos_causais:
             with st.expander(f"❓ {diag.pergunta}", expanded=True):
                 st.markdown(f"**Explicação Causal:** {diag.resposta}")
-                st.markdown(f"**Evidência nos Dados:** `{diag.evidencia}` &bull; <span style='color:#dc2626;'>**Impacto:** {diag.impacto_financeiro}</span>", unsafe_allow_html=True)
+                st.markdown(f"**Evidência nos Dados:** `{diag.evidencia}` • <span style='color:#dc2626;'>**Impacto:** {diag.impacto_financeiro}</span>", unsafe_allow_html=True)
 
         st.markdown("---")
         st.markdown("##### 🎯 Matriz Propositiva de Ações Prescritivas para o Ente (Como Agir)")
@@ -296,7 +312,7 @@ def render_boletim_view(df: pd.DataFrame, simulator: SimulatorService) -> None:
                                     Prioridade {acao.prioridade}
                                 </span>
                                 <span style="margin-left:8px; font-weight:600; color:#64748B; font-size:0.8rem;">
-                                    {acao.eixo} &bull; Prazo: <strong>{acao.prazo}</strong>
+                                    {acao.eixo} • Prazo: <strong>{acao.prazo}</strong>
                                 </span>
                             </div>
                         </div>

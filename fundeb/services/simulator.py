@@ -14,6 +14,7 @@ import math
 import numpy as np
 import pandas as pd
 
+from fundeb.ui.components import format_currency_full
 from fundeb.domain.formulas import (
     CENARIOS_IEE,
     K_PESO,
@@ -140,7 +141,7 @@ class SimulatorService:
         memoria = [
             {
                 "passo": "1. Filtro de Elegibilidade Primária (Simec / MEC)",
-                "formula": r"\text{Status\_Condicionalidades} \in \{\text{True}, \text{False}\}",
+                "formula": r"\text{Condicionalidades} \in \{\text{Cumpridas}, \text{Descumpridas}\}",
                 "descricao": f"Status da rede: {hab_status}. Avaliação na esfera {esfera} (Etapa de expansão de atendimento: {etapa}).",
             },
             {
@@ -160,13 +161,13 @@ class SimulatorService:
             },
             {
                 "passo": "5. Coeficientes e Quotas Legais (50% / 50%)",
-                "formula": r"C^r = \frac{M_r \times peso^r}{\sum (M_i \times peso^i)} \quad \text{e} \quad Repasse = C^r \times (50\% \text{ VAAR})",
-                "descricao": f"Cota Atendimento: R$ {vaar_atend_sim:,.2f} | Cota Aprendizagem: R$ {vaar_aprend_sim:,.2f}",
+                "formula": r"\begin{aligned} C^r &= \frac{M_r \times peso^r}{\sum (M_i \times peso^i)} \\ Repasse &= C^r \times (50\% \times \text{VAAR}) \end{aligned}",
+                "descricao": f"Cota Atendimento: {format_currency_full(vaar_atend_sim)} | Cota Aprendizagem: {format_currency_full(vaar_aprend_sim)}",
             },
             {
                 "passo": "6. Agregação Final e Variação Líquida",
-                "formula": r"\text{VAAR}_{\text{simulado}} = Repasse_{Atend} + Repasse_{Aprend} \quad \implies \quad \Delta = \text{VAAR}_{\text{sim}} - \text{VAAR}_{\text{orig}}",
-                "descricao": f"Repasse total simulado: R$ {vaar_total_sim:,.2f} | Variação projetada: {'+' if delta_rs >= 0 else ''}R$ {delta_rs:,.2f} ({delta_pct:+.2f}%)",
+                "formula": r"\begin{aligned} \text{VAAR}_{\text{sim}} &= Repasse_{Atend} + Repasse_{Aprend} \\ \Delta &= \text{VAAR}_{\text{sim}} - \text{VAAR}_{\text{orig}} \end{aligned}",
+                "descricao": f"Repasse total simulado: {format_currency_full(vaar_total_sim)} | Variação projetada: {'+' if delta_rs >= 0 else ''}{format_currency_full(delta_rs)} ({delta_pct:+.2f}%)",
             },
         ]
 

@@ -58,8 +58,9 @@ def render_ranking_view(analytics: AnalyticsService) -> None:
             df_grafico,
             categoria_col="uf",
             valor_col="vaar_2026",
-            titulo=f"UFs por Volume de Recursos VAAR 2026 ({qtd_ufs} — Base Zero)",
-            destacar_primeiro=True,
+            titulo=f"UFs por Volume de Recursos VAAR 2026 ({qtd_ufs} — Base Zero, Cores por Região)",
+            destacar_primeiro=False,
+            cor_col="regiao",
             formato_rotulo="R$ %{x:,.2s}",
         )
         st.plotly_chart(fig, use_container_width=True)
@@ -113,14 +114,14 @@ def render_ranking_view(analytics: AnalyticsService) -> None:
             "habilitadas_str": st.column_config.TextColumn("Habilitadas"),
             "progresso_hab": st.column_config.ProgressColumn(
                 "% Habilitadas",
-                format="%.1f%%",
+                format="percent",
                 min_value=0.0,
                 max_value=1.0,
             ),
             "beneficiarias_str": st.column_config.TextColumn("Beneficiárias"),
             "progresso_benef": st.column_config.ProgressColumn(
                 "% Beneficiárias",
-                format="%.1f%%",
+                format="percent",
                 min_value=0.0,
                 max_value=1.0,
             ),
@@ -134,4 +135,13 @@ def render_ranking_view(analytics: AnalyticsService) -> None:
         use_container_width=True,
         hide_index=True,
         height=550,
+    )
+
+    st.caption(
+        "📌 **Notas Metodológicas e Esclarecimentos sobre UFs:**  \n"
+        "• **Rio de Janeiro (93 redes auditadas — 0% de habilitação):** Dado oficial auditado das Portarias FNDE. "
+        "Nenhuma das 93 redes do estado (1 estadual + 92 municipais) cumpriu a **Condicionalidade IV (Lei Estadual do ICMS Educacional — "
+        "Art. 14, § 1º, IV da Lei nº 14.113/2020)**. Como a habilitação exige o cumprimento cumulativo das 5 condicionalidades, a ausência de legislação estadual em conformidade no prazo legal desabilitou em cascata todas as redes fluminenses.  \n"
+        "• **Distrito Federal (1 rede):** Conformidade constitucional. O art. 32 da Constituição Federal de 1988 veda expressamente a divisão do DF em municípios, "
+        "operando uma rede única e centralizada (esfera distrital/estadual). No ciclo 2026, o DF reprovou nas Condicionalidades II (participação Saeb < 80%) e III."
     )

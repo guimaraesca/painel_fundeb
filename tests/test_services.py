@@ -57,6 +57,18 @@ class TestServicesIntegration(unittest.TestCase):
         self.assertIn("Ensino Médio", pi_est.etapa_atendimento)
         self.assertEqual(len(pi_est.memoria_calculo), 6)
 
+        # Regressão Issue #3 e #4: Validação de formatação pt-BR e fórmulas completas
+        for passo in pi_est.memoria_calculo:
+            formula = passo["formula"]
+            self.assertNotIn("R ", formula, "Símbolo de real não deve perder o cifrão (R$)")
+            self.assertNotIn("Status_Condicionalidades ∈", formula, "Passo 1 não pode estar truncado")
+            self.assertNotIn("e .", formula, "Passo 5 não pode terminar de forma truncada")
+            # Verifica que valores em R$ usam vírgula decimal pt-BR
+            if "R$" in formula:
+                self.assertRegex(formula, r"R\$\s?[\d\.]+(?:,\d{2})?", "Valores em R$ devem estar em formato pt-BR")
+
+
+
     def test_auditoria_qualidade_dados(self):
         verifs = verificar(self.df)
         self.assertGreater(len(verifs), 0)
@@ -77,6 +89,25 @@ class TestServicesIntegration(unittest.TestCase):
         df_cob = cobertura(self.df)
         self.assertGreater(len(df_cob), 0)
 
+    def test_chart_ranking_horizontal_regioes(self):
+        from fundeb.ui.charts import chart_ranking_horizontal
+        import pandas as pd
+        df_teste = pd.DataFrame([
+            {"nome": "Rede 1", "valor": 100, "regiao": "Nordeste"},
+            {"nome": "Rede 2", "valor": 80, "regiao": "Sudeste"},
+        ])
+        fig = chart_ranking_horizontal(
+            df_teste,
+            categoria_col="nome",
+            valor_col="valor",
+            titulo="Teste de Ranking Regional",
+            cor_col="regiao"
+        )
+        self.assertIsNotNone(fig)
+        self.assertGreater(len(fig.data), 0)
+
+
 
 if __name__ == "__main__":
     unittest.main()
+

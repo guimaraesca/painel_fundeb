@@ -46,7 +46,7 @@ def render_home_view(analytics: AnalyticsService) -> None:
     )
 
     # ------------------------------------------------------------- NOTA TÉCNICA Nº 01/2026
-    with st.expander("📑 NOTA TÉCNICA Nº 01/2026 — Metodologia, Dados Oficiais & Assinatura da Produção", expanded=True):
+    with st.expander("📑 NOTA TÉCNICA Nº 01/2026 — Metodologia, Dados Oficiais & Assinatura da Produção", expanded=False):
         st.markdown(
             r"""
             ### 🏛️ NOTA TÉCNICA Nº 01/2026
@@ -240,7 +240,7 @@ def render_home_view(analytics: AnalyticsService) -> None:
             ### 4.3. Passo a Passo do Algoritmo de Cálculo do Simulador
 
             1. **Filtro de Elegibilidade Primária:**  
-               Verificar a matriz `Status_Condicionalidades`. Redes onde a variável for `False` recebem $\text{Repasse} = \text{R\$\ } 0{,}00$ imediatamente e são removidas da base de rateio financeiro.
+               Verificar a matriz `Status_Condicionalidades`. Redes onde a variável for `False` recebem repasse nulo ($\text{Repasse} = 0{,}00$, equivalente a R\$ 0,00) imediatamente e são removidas da base de rateio financeiro.
             2. **Processamento do VAAR-Atendimento:**  
                - Calcular $VAAR\_Atendimento_{r,t}$ combinando abandono e penalização de $SIR$ (peso 0,5).  
                - Subtrair o ano-base ($t-1$). Se $\Delta < 0$, checar se a diferença está dentro da Tabela de Margem de Flutuação. Redes fora da margem recebem peso zero neste módulo.
@@ -329,8 +329,8 @@ def render_home_view(analytics: AnalyticsService) -> None:
     with col2:
         metric_card(
             title="Redes Habilitadas",
-            value=f"{format_int(resumo.habilitados)} / {format_int(resumo.total_entes)}",
-            subtitle=f"{format_percent(resumo.pct_habilitados)} de conformidade nas 5 condicionalidades",
+            value=f"{format_int(resumo.habilitados)} redes",
+            subtitle=f"{format_percent(resumo.pct_habilitados)} ({format_int(resumo.habilitados)} de {format_int(resumo.total_entes)}) com as 5 condic.",
         )
     with col3:
         metric_card(
@@ -344,7 +344,7 @@ def render_home_view(analytics: AnalyticsService) -> None:
         metric_card(
             title="Complementação Total da União",
             value=format_currency(resumo.total_uniao_reais),
-            subtitle=f"VAAF: {format_currency(resumo.total_vaaf_reais)} &bull; VAAT: {format_currency(resumo.total_vaat_reais)}",
+            subtitle=f"VAAF: {format_currency(resumo.total_vaaf_reais)} • VAAT: {format_currency(resumo.total_vaat_reais)}",
         )
 
     # Dinâmica de Transição 2025 -> 2026
@@ -455,72 +455,72 @@ def render_home_view(analytics: AnalyticsService) -> None:
     st.markdown("---")
 
     # ------------------------------------------------------------- EXPLICAÇÃO DOS TÓPICOS COM FRASES LONGAS E NEGRITOS
-    st.subheader("📌 Tópicos e Estrutura do Painel: Guia Detalhado de Leitura")
-    st.caption("Abaixo apresentamos a fundamentação conceitual, metodológica e institucional de cada um dos eixos estruturantes do painel:")
+    with st.expander("📌 Tópicos e Estrutura do Painel: Guia Detalhado de Leitura", expanded=False):
+        st.caption("Abaixo apresentamos a fundamentação conceitual, metodológica e institucional de cada um dos eixos estruturantes do painel:")
 
-    col_t1, col_t2 = st.columns(2)
+        col_t1, col_t2 = st.columns(2)
 
-    with col_t1:
-        with st.container(border=True):
-            st.markdown(
-                """
-                #### ⚖️ 1. Condicionalidades & Funil de Desabilitação
-                **O cumprimento cumulativo das condicionalidades do Art. 14, § 1º da Lei nº 14.113/2020 constitui requisito jurídico indispensável** para que qualquer rede de ensino participe da distribuição da Complementação VAAR.
-                Nesta seção, **o painel evidencia que a Condicionalidade III (Redução de Desigualdades e vigência de lei estadual redistributiva de ICMS Educação) representou o maior gargalo nacional**, respondendo isoladamente pela desabilitação de **1.930 redes de ensino**.
-                Adicionalmente, **a Condicionalidade I (provimento de diretores por mérito e desempenho) gerou 575 reprovações**, enquanto **a Condicionalidade II (presença mínima de 80% no Saeb) desabilitou 417 redes**.
-                A tela fornece **o texto oficial de cada dispositivo normativo e um roteiro operacional de providências administrativas** para que as secretarias de educação corrijam suas pendências antes dos prazos de corte do próximo ciclo.
-                """
-            )
+        with col_t1:
+            with st.container(border=True):
+                st.markdown(
+                    """
+                    #### ⚖️ 1. Condicionalidades & Ranking de Impacto
+                    **O cumprimento cumulativo das condicionalidades do Art. 14, § 1º da Lei nº 14.113/2020 constitui requisito jurídico indispensável** para que qualquer rede de ensino participe da distribuição da Complementação VAAR.
+                    Nesta seção, **o painel evidencia que a Condicionalidade III (Redução de Desigualdades e vigência de lei estadual redistributiva de ICMS Educação) representou o maior gargalo nacional**, respondendo isoladamente pela desabilitação de **1.930 redes de ensino**.
+                    Adicionalmente, **a Condicionalidade I (provimento de diretores por mérito e desempenho) gerou 575 reprovações**, enquanto **a Condicionalidade II (presença mínima de 80% no Saeb) desabilitou 417 redes**.
+                    A tela fornece **o texto oficial de cada dispositivo normativo e um roteiro operacional de providências administrativas** para que as secretarias de educação corrijam suas pendências antes dos prazos de corte do próximo ciclo.
+                    """
+                )
 
-        with st.container(border=True):
-            st.markdown(
-                """
-                #### 🗺️ 2. Mapas Interativos em 3 Fases (Brasil, Região e Município)
-                **A visualização espacial foi arquitetada em três escalas territoriais contínuas para assegurar clareza cognitiva em apresentações e reuniões de trabalho.**
-                Na **Fase 1 (Brasil)**, é possível diagnosticar de imediato a disparidade macrorregional nos índices de habilitação e nos volumes totais captados por cada Unidade da Federação.
-                Na **Fase 2 (Regiões do País)**, o gestor pode isolar blocos regionais homogêneos (Norte, Nordeste, Centro-Oeste, Sudeste ou Sul) e comparar a eficiência relativa entre os estados vizinhos.
-                Por fim, na **Fase 3 (Municípios)**, o painel projeta a malha cartográfica detalhada da UF selecionada e oferece uma **Ficha Técnica Enxuta**, desenhada para **apresentar todas as variáveis financeiras, pedagógicas e cadastrais em um único quadro compacto sem poluição visual**.
-                """
-            )
+            with st.container(border=True):
+                st.markdown(
+                    """
+                    #### 🗺️ 2. Mapas Interativos em 3 Fases (Brasil, Região e Município)
+                    **A visualização espacial foi arquitetada em três escalas territoriais contínuas para assegurar clareza cognitiva em apresentações e reuniões de trabalho.**
+                    Na **Fase 1 (Brasil)**, é possível diagnosticar de imediato a disparidade macrorregional nos índices de habilitação e nos volumes totais captados por cada Unidade da Federação.
+                    Na **Fase 2 (Regiões do País)**, o gestor pode isolar blocos regionais homogêneos (Norte, Nordeste, Centro-Oeste, Sudeste ou Sul) e comparar a eficiência relativa entre os estados vizinhos.
+                    Por fim, na **Fase 3 (Municípios)**, o painel projeta a malha cartográfica detalhada da UF selecionada e oferece uma **Ficha Técnica Enxuta**, desenhada para **apresentar todas as variáveis financeiras, pedagógicas e cadastrais em um único quadro compacto sem poluição visual**.
+                    """
+                )
 
-        with st.container(border=True):
-            st.markdown(
-                """
-                #### 🏆 3. Ranking por Unidade da Federação com Micrográficos
-                **Esta seção organiza a classificação estruturada de todas as 27 Unidades da Federação em uma tabela analítica com mapa de calor numérico e barras visuais de progresso.**
-                Cada linha integra **micrográficos com a taxa efetiva de redes habilitadas e a proporção de municípios contemplados**, permitindo identificar instantaneamente quais estados alcançaram maior sucesso institucional.
-                A ferramenta possibilita **filtrar exclusivamente as UFs que sofreram perda líquida de recursos em relação a 2025**, viabilizando análises direcionadas de risco fiscal e priorização de suporte técnico.
-                """
-            )
+            with st.container(border=True):
+                st.markdown(
+                    """
+                    #### 🏆 3. Ranking por Unidade da Federação com Micrográficos
+                    **Esta seção organiza a classificação estruturada de todas as 27 Unidades da Federação em uma tabela analítica com mapa de calor numérico e barras visuais de progresso.**
+                    Cada linha integra **micrográficos com a taxa efetiva de redes habilitadas e a proporção de municípios contemplados**, permitindo identificar instantaneamente quais estados alcançaram maior sucesso institucional.
+                    A ferramenta possibilita **filtrar exclusivamente as UFs que sofreram perda líquida de recursos em relação a 2025**, viabilizando análises direcionadas de risco fiscal e priorização de suporte técnico.
+                    """
+                )
 
-    with col_t2:
-        with st.container(border=True):
-            st.markdown(
-                """
-                #### 📈 4. Linha Histórica de Recursos & Matriz Estratégica "Como Agir"
-                **A Emenda Constitucional nº 108/2020 determinou uma progressão escalonada da participação federal no FUNDEB**, elevando a complementação total da União de 12% da receita dos fundos em 2021 para 23% em 2026.
-                Nesse contexto, **a parcela do VAAR expandiu-se expressivamente de 0,00% nos ciclos de 2021 e 2022 para 0,75% em 2023, 1,50% em 2024, 2,00% em 2025 e atingiu sua cota plena de 2,50% em 2026**, representando um volume superior a R$ 7,5 bilhões.
-                Para apoiar os gestores públicos, **esta aba reúne uma matriz de intervenção prática que detalha as ações de curto e médio prazo necessárias para regularizar a habilitação e maximizar os indicadores de atendimento e aprendizagem**, incluindo um **Checklist Interativo de Prontidão** para reuniões de gabinete.
-                """
-            )
+        with col_t2:
+            with st.container(border=True):
+                st.markdown(
+                    """
+                    #### 📈 4. Linha Histórica de Recursos & Matriz Estratégica "Como Agir"
+                    **A Emenda Constitucional nº 108/2020 determinou uma progressão escalonada da participação federal no FUNDEB**, elevando a complementação total da União de 12% da receita dos fundos em 2021 para 23% em 2026.
+                    Nesse contexto, **a parcela do VAAR expandiu-se expressivamente de 0,00% nos ciclos de 2021 e 2022 para 0,75% em 2023, 1,50% em 2024, 2,00% em 2025 e atingiu sua cota plena de 2,50% em 2026**, representando um volume superior a R$ 7,5 bilhões.
+                    Para apoiar os gestores públicos, **esta aba reúne uma matriz de intervenção prática que detalha as ações de curto e médio prazo necessárias para regularizar a habilitação e maximizar os indicadores de atendimento e aprendizagem**, incluindo um **Checklist Interativo de Prontidão** para reuniões de gabinete.
+                    """
+                )
 
-        with st.container(border=True):
-            st.markdown(
-                r"""
-                #### 🧮 5. Simulador VAAR com Diferenciação Rigorosa (Estadual vs Municipal)
-                **O simulador matemático reproduz fielmente as diretrizes da Nota Técnica Inep nº 23/2022 e do modelo de referência Simulador-VAAR-PI**, respeitando as competências constitucionais de cada ente federativo.
-                Para **redes municipais**, a expansão do atendimento escolar no Índice de Expansão da Educação Infantil (IEE) é avaliada obrigatoriamente na **Educação Infantil (Creche e Pré-Escola)**, e os ganhos pedagógicos recaem sobre o Ensino Fundamental.
-                Para **redes estaduais**, a avaliação de atendimento concentra-se exclusivamente no **Ensino Médio**, medindo tanto a evolução de matrículas quanto a redução das taxas de abandono escolar.
-                O mecanismo calcula **o peso ponderado das matrículas através da função exponencial $w = 2 - e^{-4 \cdot \text{IND}}$ (onde $w \in [1, 2]$)** e exibe **a memória descritiva do cálculo passo a passo com equações em LaTeX e estimativa do impacto financeiro em Reais**.
-                """
-            )
+            with st.container(border=True):
+                st.markdown(
+                    r"""
+                    #### 🧮 5. Simulador VAAR com Diferenciação Rigorosa (Estadual vs Municipal)
+                    **O simulador matemático reproduz fielmente as diretrizes da Nota Técnica Inep nº 23/2022 e do modelo de referência Simulador-VAAR-PI**, respeitando as competências constitucionais de cada ente federativo.
+                    Para **redes municipais**, a expansão do atendimento escolar no Índice de Expansão da Educação Infantil (IEE) é avaliada obrigatoriamente na **Educação Infantil (Creche e Pré-Escola)**, e os ganhos pedagógicos recaem sobre o Ensino Fundamental.
+                    Para **redes estaduais**, a avaliação de atendimento concentra-se exclusivamente no **Ensino Médio**, medindo tanto a evolução de matrículas quanto a redução das taxas de abandono escolar.
+                    O mecanismo calcula **o peso ponderado das matrículas através da função exponencial $w = 2 - e^{-4 \cdot \text{IND}}$ (onde $w \in [1, 2]$)** e exibe **a memória descritiva do cálculo passo a passo com equações em LaTeX e estimativa do impacto financeiro em Reais**.
+                    """
+                )
 
-        with st.container(border=True):
-            st.markdown(
-                """
-                #### 🛡️ 6. Qualidade dos Dados, Transparência & Verificação SHA-256
-                **O compromisso primordial do painel é com a integridade absoluta dos dados: nenhuma variável é inventada, estimada aleatoriamente ou preenchida com valores artificiais.**
-                Todos os registros derivam diretamente das publicações oficiais do **FNDE (Portarias e Resoluções de rateio), INEP (Censo Escolar, Ideb, proficiências Saeb e INSE) e NIC.br/SIMET (Conectividade Escolar)**.
-                A aba de auditoria executa **testes automáticos em tempo real demonstrando que a soma das parcelas fecha perfeitamente com o total da União ($\text{VAAF} + \text{VAAT} + \text{VAAR} = \text{Total}$) em 100% dos 5.596 entes avaliados**, além de listar as **assinaturas criptográficas SHA-256** de todos os arquivos de dados para auditoria pública independente.
-                """
-            )
+            with st.container(border=True):
+                st.markdown(
+                    r"""
+                    #### 🛡️ 6. Qualidade dos Dados, Transparência & Verificação SHA-256
+                    **O compromisso primordial do painel é com a integridade absoluta dos dados: nenhuma variável é inventada, estimada aleatoriamente ou preenchida com valores artificiais.**
+                    Todos os registros derivam diretamente das publicações oficiais do **FNDE (Portarias e Resoluções de rateio), INEP (Censo Escolar, Ideb, proficiências Saeb e INSE) e NIC.br/SIMET (Conectividade Escolar)**.
+                    A aba de auditoria executa **testes automáticos em tempo real demonstrando que a soma das parcelas fecha perfeitamente com o total da União ($\text{VAAF} + \text{VAAT} + \text{VAAR} = \text{Total}$) em 100% dos 5.596 entes avaliados**, além de listar as **assinaturas criptográficas SHA-256** de todos os arquivos de dados para auditoria pública independente.
+                    """
+                )

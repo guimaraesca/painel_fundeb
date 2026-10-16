@@ -187,7 +187,17 @@ def render_historico_view(df: pd.DataFrame) -> None:
                 )
             fig_comp.update_layout(
                 title=dict(text="Comparativo das 5 Grandes Regiões (2021–2026)", font=dict(size=13, color="#0F172A")),
-                height=380,
+                height=390,
+                legend=dict(
+                    orientation="h",
+                    yanchor="bottom",
+                    y=1.02,
+                    xanchor="right",
+                    x=1.0,
+                    font=dict(size=10, color="#334155"),
+                    bgcolor="rgba(255, 255, 255, 0)",
+                ),
+                margin=dict(t=55, b=40),
             )
             apply_few_theme(fig_comp, show_x_grid=False, show_y_grid=True)
             st.plotly_chart(fig_comp, use_container_width=True)

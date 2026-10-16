@@ -118,32 +118,31 @@ def render_mapas_view(df: pd.DataFrame, repo: DataRepository) -> None:
     # -------------------------------------------------------------------------
     # CONTROLES DE SINCRONIZAÇÃO E CARTOGRAFIA
     # -------------------------------------------------------------------------
-    c_metr, c_fases, c_disp = st.columns([4, 3, 4])
+    c_metr, c_fases, c_disp = st.columns([3.8, 3.4, 3.8])
     with c_metr:
         metrica_escolhida = st.segmented_control(
             "🔘 Métrica Sincronizada:",
-            options=["% Habilitadas", "% Beneficiárias", "Valor Total VAAR (R$)", "Total Complementação União (R$)"],
+            options=["% Habilitadas", "% Beneficiárias", "VAAR (R$)", "Total União (R$)"],
             default="% Habilitadas",
+            help="Métrica cartográfica sincronizada e aplicada simultaneamente em todas as escalas.",
         )
     with c_fases:
-        fases_opcoes = ["Fase 1: Brasil (Nacional)", "Fase 2: Regiões do País", "Fase 3: Municípios por UF"]
+        fases_opcoes = ["Fase 1 (Brasil)", "Fase 2 (Regiões)", "Fase 3 (Municípios)"]
         fases_ativas = st.pills(
             "🗺️ Escalas Ativas:",
             options=fases_opcoes,
             default=fases_opcoes,
             selection_mode="multi",
+            help="Ative ou desative as escalas de visualização cartográfica.",
         )
         if not fases_ativas:
             fases_ativas = fases_opcoes
     with c_disp:
         modo_disp = st.segmented_control(
             "📐 Disposição Visual:",
-            options=[
-                "Linha 1: País e Região (Lado a Lado) • Linha 2: Municípios Abaixo",
-                "Em Abas (Tela Cheia por Escala)",
-                "Em Linha (Sequencial Expandido)",
-            ],
-            default="Linha 1: País e Região (Lado a Lado) • Linha 2: Municípios Abaixo",
+            options=["Lado a Lado", "Em Abas", "Sequencial"],
+            default="Lado a Lado",
+            help="Organização dos mapas: Lado a Lado (Fases 1 e 2 juntas, 3 abaixo), Em Abas (tela cheia por escala) ou Sequencial.",
         )
 
     # Controles Cartográficos Secundários (Cores e Resolução)
@@ -180,8 +179,8 @@ def render_mapas_view(df: pd.DataFrame, repo: DataRepository) -> None:
     # Mapeamento e Configuração da Métrica Escolhida
     is_hab = metrica_escolhida == "% Habilitadas"
     is_ben = metrica_escolhida == "% Beneficiárias"
-    is_vaar = metrica_escolhida == "Valor Total VAAR (R$)"
-    is_uniao = metrica_escolhida == "Total Complementação União (R$)"
+    is_vaar = metrica_escolhida in ("VAAR (R$)", "Valor Total VAAR (R$)")
+    is_uniao = metrica_escolhida in ("Total União (R$)", "Total Complementação União (R$)")
     is_taxa = is_hab or is_ben
 
     # Seleção da Escala de Cor calibrada
@@ -401,47 +400,75 @@ def render_mapas_view(df: pd.DataFrame, repo: DataRepository) -> None:
 
         geo_mun = repo.geo_municipios(UF_CODIGO[uf_sel])
         if geo_mun.get("features"):
-            fig_mun = px.choropleth(
-                df_mun,
-                geojson=geo_mun,
-                locations="ibge",
-                color="metrica_val",
-                color_continuous_scale=cor_escala,
-                hover_name="nome",
-                hover_data={
-                    "ibge": True,
-                    "habilitado": True,
-                    "beneficiario": True,
-                    "vaar": ":,.2f",
-                    "uniao_total": ":,.2f",
-                },
-                labels={
-                    "metrica_val": rotulo_metrica,
-                    "vaar": "VAAR 2026 (R$)",
-                    "uniao_total": "Total União (R$)",
-                },
-            )
-            # Linhas municipais finas para evitar borrões de malha em alta densidade
-            fig_mun.update_traces(marker_line_width=0.4, marker_line_color="#94A3B8")
-            fig_mun.update_geos(
-                projection_type="mercator",
-                fitbounds="locations",
-                visible=False,
-                bgcolor="#FFFFFF",
-            )
-            fig_mun.update_layout(
-                separators=",.",  # Padrão numérico ABNT NBR
-                paper_bgcolor="#FFFFFF",
-                plot_bgcolor="#FFFFFF",
-                height=altura,
-                margin=dict(l=6, r=6, t=6, b=6),
-                coloraxis_colorbar=dict(
-                    title=dict(text=rotulo_metrica, font=dict(size=10, color="#1E293B")),
-                    thickness=11,
-                    tickfont=dict(color="#1E293B", size=9),
-                ),
-            )
-            parent.plotly_chart(fig_mun, use_container_width=True, config={"displayModeBar": False, "responsive": True})
+            col_mapa_f3, col_painel_f3 = parent.columns([3.2, 1.8])
+            with col_mapa_f3:
+                fig_mun = px.choropleth(
+                    df_mun,
+                    geojson=geo_mun,
+                    locations="ibge",
+                    color="metrica_val",
+                    color_continuous_scale=cor_escala,
+                    hover_name="nome",
+                    hover_data={
+                        "ibge": True,
+                        "habilitado": True,
+                        "beneficiario": True,
+                        "vaar": ":,.2f",
+                        "uniao_total": ":,.2f",
+                    },
+                    labels={
+                        "metrica_val": rotulo_metrica,
+                        "vaar": "VAAR 2026 (R$)",
+                        "uniao_total": "Total União (R$)",
+                    },
+                )
+                # Linhas municipais finas para evitar borrões de malha em alta densidade
+                fig_mun.update_traces(marker_line_width=0.4, marker_line_color="#94A3B8")
+                fig_mun.update_geos(
+                    projection_type="mercator",
+                    fitbounds="locations",
+                    visible=False,
+                    bgcolor="#FFFFFF",
+                )
+                fig_mun.update_layout(
+                    separators=",.",  # Padrão numérico ABNT NBR
+                    paper_bgcolor="#FFFFFF",
+                    plot_bgcolor="#FFFFFF",
+                    height=altura,
+                    margin=dict(l=0, r=0, t=6, b=6),
+                    coloraxis_colorbar=dict(
+                        title=dict(text=rotulo_metrica, font=dict(size=10, color="#1E293B")),
+                        thickness=11,
+                        len=0.75,
+                        x=1.0,
+                        y=0.5,
+                        tickfont=dict(color="#1E293B", size=9),
+                    ),
+                )
+                st.plotly_chart(fig_mun, use_container_width=True, config={"displayModeBar": False, "responsive": True})
+
+            with col_painel_f3:
+                st.markdown(f"**Panorama Municipal — {uf_sel}**")
+                n_mun = len(df_mun)
+                n_hab_mun = int(df_mun["habilitado"].sum())
+                n_ben_mun = int(df_mun["beneficiario"].sum())
+                v_vaar_mun = float(df_mun["vaar"].sum())
+
+                st.caption(
+                    f"• **Total de Redes:** {format_int(n_mun)} municípios  \n"
+                    f"• **Habilitados VAAR:** {format_int(n_hab_mun)} ({format_percent(n_hab_mun / n_mun * 100 if n_mun else 0)})  \n"
+                    f"• **Beneficiados VAAR:** {format_int(n_ben_mun)} ({format_percent(n_ben_mun / n_mun * 100 if n_mun else 0)})  \n"
+                    f"• **Total VAAR 2026:** {format_currency(v_vaar_mun)}"
+                )
+
+                top_mun = df_mun.sort_values(by="vaar", ascending=False).head(5)
+                if not top_mun.empty and top_mun["vaar"].max() > 0:
+                    st.markdown("###### Maiores Repasses na UF:")
+                    df_top_view = pd.DataFrame({
+                        "Município": top_mun["nome"],
+                        "VAAR 2026": top_mun["vaar"].map(format_currency_full),
+                    })
+                    st.dataframe(df_top_view, use_container_width=True, hide_index=True)
 
     # -------------------------------------------------------------------------
     # RENDERIZAÇÃO RESPONSIVA CONFORME DISPOSIÇÃO
@@ -450,15 +477,15 @@ def render_mapas_view(df: pd.DataFrame, repo: DataRepository) -> None:
     tem_f2 = any("Fase 2" in f for f in fases_ativas)
     tem_f3 = any("Fase 3" in f for f in fases_ativas)
 
-    if modo_disp == "Linha 1: País e Região (Lado a Lado) • Linha 2: Municípios Abaixo":
+    if modo_disp == "Lado a Lado":
         if tem_f1 and tem_f2:
             col_pais, col_reg = st.columns(2)
             with col_pais:
                 with st.container(border=True):
-                    desenhar_fase_1(col_pais, altura=altura_mapa)
+                    desenhar_fase_1(st, altura=altura_mapa)
             with col_reg:
                 with st.container(border=True):
-                    desenhar_fase_2(col_reg, altura=altura_mapa)
+                    desenhar_fase_2(st, altura=altura_mapa)
         elif tem_f1:
             with st.container(border=True):
                 desenhar_fase_1(st, altura=altura_mapa)
@@ -470,7 +497,7 @@ def render_mapas_view(df: pd.DataFrame, repo: DataRepository) -> None:
             with st.container(border=True):
                 desenhar_fase_3(st, altura=altura_mapa + 20)
 
-    elif modo_disp == "Em Abas (Tela Cheia por Escala)":
+    elif modo_disp == "Em Abas":
         abas_titulos = []
         if tem_f1:
             abas_titulos.append("🇧🇷 1. Brasil (Nacional)")
@@ -484,21 +511,21 @@ def render_mapas_view(df: pd.DataFrame, repo: DataRepository) -> None:
         if tem_f1:
             with abas[a_idx]:
                 with st.container(border=True):
-                    desenhar_fase_1(abas[a_idx], altura=altura_mapa + 40)
+                    desenhar_fase_1(st, altura=altura_mapa + 40)
             a_idx += 1
         if tem_f2:
             with abas[a_idx]:
                 with st.container(border=True):
-                    desenhar_fase_2(abas[a_idx], altura=altura_mapa + 40)
+                    desenhar_fase_2(st, altura=altura_mapa + 40)
             a_idx += 1
         if tem_f3:
             with abas[a_idx]:
                 with st.container(border=True):
-                    desenhar_fase_3(abas[a_idx], altura=altura_mapa + 40)
+                    desenhar_fase_3(st, altura=altura_mapa + 40)
             a_idx += 1
 
     else:
-        # Modo em Linha (Sequencial Expandido)
+        # Modo Sequencial Expandido
         if tem_f1:
             with st.container(border=True):
                 desenhar_fase_1(st, altura=altura_mapa + 20)

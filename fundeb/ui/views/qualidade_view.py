@@ -114,8 +114,8 @@ def render_qualidade_view(repo: DataRepository) -> None:
         with f_col2:
             metric_card(
                 title="Portarias Regulamentares",
-                value="Portaria MEC/FNDE nº 12/2026",
-                subtitle="Portaria Interministerial nº 1.488/2025",
+                value="Portaria 12/2026",
+                subtitle="MEC/FNDE • Portaria 1.488/2025",
                 delta="Legislação Consolidada",
             )
         with f_col3:
@@ -197,7 +197,7 @@ def render_qualidade_view(repo: DataRepository) -> None:
                 title="Montante VAAR 2026",
                 value=format_currency(vaar_total),
                 subtitle="Recursos Totais Distribuídos",
-                delta="R$ 7,60 Bilhões",
+                delta="R$ 7,60 bi",
             )
         with d_col2:
             metric_card(
