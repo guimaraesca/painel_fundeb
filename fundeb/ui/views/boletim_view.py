@@ -20,6 +20,7 @@ from fundeb.services.simulator import SimulatorService
 from fundeb.services.boletim import BoletimService, DadosBoletim
 from fundeb.ui.components import (
     metric_card,
+    format_currency,
     format_currency_full,
     format_percent,
     format_int,
